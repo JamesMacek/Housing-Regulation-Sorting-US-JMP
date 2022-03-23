@@ -555,8 +555,8 @@ US_TRACT_2010_JOINED <- left_join(US_TRACT_2010_JOINED, LandCoverNLCS, by = c("G
 US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED[!is.na(US_TRACT_2010_JOINED$qyye008) & !is.na(US_TRACT_2010_JOINED$qyye009) &
                                                  !is.na(US_TRACT_2010_JOINED$qyye002) & !is.na(US_TRACT_2010_JOINED$qyye003) & !is.na(US_TRACT_2010_JOINED$qyye001) &
                                                  !is.na(US_TRACT_2010_JOINED$qyye010) & !is.na(US_TRACT_2010_JOINED$qyye011), ] %>% st_drop_geometry()
-US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D %>% group_by(CBSA) %>% mutate(demeaned_SingleF_Density_Margin = (demeaned_Single_family_density*sqrt(mean(Housing_density)))/(prop_value_22 + prop_value_23))
-US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D %>% group_by(CBSA) %>% mutate(demeaned_SingleF_Land_Margin = (prop_value_22 + prop_value_23)/(sqrt(mean(Housing_density))))
+US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D %>% group_by(CBSA) %>% mutate(demeaned_SingleF_Density_Margin = (demeaned_Single_family_density*sqrt(mean(Housing_density)))/(prop_value_22 + prop_value_23)) #Multiplying by sqrt because this value was already divided by housing density before)
+US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D %>% group_by(CBSA) %>% mutate(demeaned_SingleF_Land_Margin = (prop_value_22 + prop_value_23)/(sqrt(mean(Housing_density)))) #dividing by sqrt to carry over normalization component.
 
 US_TRACT_2010_JOINED <- left_join(US_TRACT_2010_JOINED, US_TRACT_2010_JOINED_D, by = c("State", "County", "Tract"), suffix = c("", ".y")) %>% select(-ends_with(".y"))
 rm(US_TRACT_2010_JOINED_D)

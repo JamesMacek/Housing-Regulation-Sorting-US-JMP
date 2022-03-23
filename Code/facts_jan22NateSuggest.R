@@ -86,6 +86,15 @@ ggplot(ACS_2010[ACS_2010$top25 <= 1,], aes(reorder(Housing_Units_Type, unitsstr)
   ylab("Average household income (demeaned by sample)") + 
   ggsave("Structure_type_income.png", width = 16, height = 10, units = "cm")
 
+#Race
+ggplot(ACS_2010[ACS_2010$top25 <= 1,], aes(reorder(Housing_Units_Type, unitsstr), demeaned_white)) +
+  geom_bar(aes(fill = Sample), position = "dodge", stat = "identity") +
+  scale_fill_brewer(palette = "Set1") +
+  coord_flip() +
+  xlab("Structure Type") +
+  ylab("White Share (demeaned by sample)") + 
+  ggsave("Structure_type_race.png", width = 16, height = 10, units = "cm") #not much differences in racial sorting on higher density structures. 
+
 ##____FACT 2:_____________________________________________________________________________
 ## Structure types don't give you the complete picture. Its the combination of structure type mandates (zoning) + minimum
 ## lot size restrictions. Can we say something about differences in the distribution of housing unit density in superstars?
@@ -103,7 +112,19 @@ ggplot() +
   ylab("Housing unit density (MSA Average = 1)") +
   ggsave("tractdens_dist.png", width = 20, height = 12, units = "cm") 
 
+#What does Houston look like? CBSA CODE 
+ggplot() + 
+  geom_smooth(method = 'loess', span= 0.5, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA == 26420,],
+              aes(x=rank_density_CBSA, y=demeaned_Housing_density, colour = 'Houston')) +
+  geom_smooth(method = 'loess', span = 0.5, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),],
+              aes(x=rank_density_CBSA, y=demeaned_Housing_density, colour = 'Bottom 25%')) +
+  scale_colour_manual(name="Sample", values = c("red", "blue")) +
+  xlab("Ranked housing unit density (Tract level)") +
+  ylab("Housing unit density (MSA Average = 1)") +
+  ggsave("tractdens_dist_houston.png", width = 20, height = 12, units = "cm") 
 
+
+#___________________________________________________________________
 # How do structure types play a role? 
 #Single family
 ggplot() +
@@ -175,6 +196,15 @@ lm_inc_top25 <- lm_robust(demeaned_log_Income ~ demeaned_log_Average_HH_size + d
                           data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])
 lm_inc_bot25 <- lm_robust(demeaned_log_Income ~ demeaned_log_Average_HH_size + demeaned_FamilyShare + rank_density_CBSA,
                           data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),])
+
+#Race
+ggplot() + 
+  geom_smooth(method = 'loess', span=1, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),], aes(x=rank_density_CBSA, y=demeaned_log_White_share, color = 'Top 25%')) +
+  geom_smooth(method = 'loess', span=1, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),], aes(x=rank_density_CBSA, y=demeaned_log_White_share, color = 'Bottom 25%')) +
+  scale_colour_manual(name="Sample", values = c("red", "blue")) + 
+  xlab("Ranked housing unit density (Tract level)") +
+  ylab("Log White Share (demeaned by MSA)") +
+  ggsave("race.png", width = 16, height = 10, units = "cm")
 
 #FACT 3_____________________________________________________________________
 #These differences are reflected in interesting patterns in the housing supply elasticity
