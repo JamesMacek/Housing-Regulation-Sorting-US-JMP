@@ -22,7 +22,7 @@ library(broom)
 #_____________________
 
 #WORKING DIRECTORY
-setwd("Z:/Dropbox/SchoolFolder/Projects/Zoning/Us_Data")
+setwd("Data/US_Data")
 
 
 #Importing data
@@ -378,6 +378,7 @@ rm(US_TRACT_2010_JOINED_D)
 #1) Single family homes
 #2) 2-19 unit structures
 #3) 20+ unit structures 
+#4) 2-4 unit structures as a sub-component of 2) (Aradhya's request)
 #USE ACS TO CONSTRUCT SHARES in structure type, Census (Planning Database) to construct number of units in levels.
 US_TRACT_2010_JOINED["Housing_density"] <- US_TRACT_2010_JOINED$fsum.Tot_Housing_Units_CEN_2010/US_TRACT_2010_JOINED$fsum.LAND_AREA
 US_TRACT_2010_JOINED <- US_TRACT_2010_JOINED  %>% group_by(CBSA) %>% mutate(demeaned_Housing_density = Housing_density/mean(Housing_density))
@@ -401,6 +402,7 @@ rm(US_TRACT_2010_JOINED_D)
 US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED[!is.na(US_TRACT_2010_JOINED$qyye008) & !is.na(US_TRACT_2010_JOINED$qyye009) &
                                                  !is.na(US_TRACT_2010_JOINED$qyye002) & !is.na(US_TRACT_2010_JOINED$qyye003) & !is.na(US_TRACT_2010_JOINED$qyye001) &
                                                  !is.na(US_TRACT_2010_JOINED$qyye010) & !is.na(US_TRACT_2010_JOINED$qyye011),]
+
 US_TRACT_2010_JOINED_D["Middle_density"] <- ((US_TRACT_2010_JOINED_D$qyye001 - (US_TRACT_2010_JOINED_D$qyye002 + US_TRACT_2010_JOINED_D$qyye003 + 
                                                                                   US_TRACT_2010_JOINED_D$qyye008 + US_TRACT_2010_JOINED_D$qyye009 + US_TRACT_2010_JOINED_D$qyye010 +
                                                                                   US_TRACT_2010_JOINED_D$qyye011))*(US_TRACT_2010_JOINED_D$fsum.Tot_Housing_Units_CEN_2010/US_TRACT_2010_JOINED_D$qyye001))/US_TRACT_2010_JOINED_D$fsum.LAND_AREA
@@ -408,8 +410,15 @@ US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D  %>% group_by(CBSA) %>% mutate(
 US_TRACT_2010_JOINED <- left_join(US_TRACT_2010_JOINED, US_TRACT_2010_JOINED_D, by = c("State", "County", "Tract"), suffix = c("", ".y")) %>% select(-ends_with(".y"))
 rm(US_TRACT_2010_JOINED_D)
 
-#Note: middle density contains boat homes
-
+#Only duplexes, triplexes and quadplexes.
+US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED[!is.na(US_TRACT_2010_JOINED$qyye008) & !is.na(US_TRACT_2010_JOINED$qyye009) &
+                                                 !is.na(US_TRACT_2010_JOINED$qyye002) & !is.na(US_TRACT_2010_JOINED$qyye003) & !is.na(US_TRACT_2010_JOINED$qyye001) &
+                                                 !is.na(US_TRACT_2010_JOINED$qyye010) & !is.na(US_TRACT_2010_JOINED$qyye011) & 
+                                                 !is.na(US_TRACT_2010_JOINED$qyye004) & !is.na(US_TRACT_2010_JOINED$qyye005),]
+US_TRACT_2010_JOINED_D["Middle_density_spl1"] <- ((US_TRACT_2010_JOINED_D$qyye004 + US_TRACT_2010_JOINED_D$qyye005)*(US_TRACT_2010_JOINED_D$fsum.Tot_Housing_Units_CEN_2010/US_TRACT_2010_JOINED_D$qyye001))/US_TRACT_2010_JOINED_D$fsum.LAND_AREA
+US_TRACT_2010_JOINED_D <- US_TRACT_2010_JOINED_D  %>% group_by(CBSA) %>% mutate(demeaned_Middlesp1_density = Middle_density_spl1/mean(Housing_density))
+US_TRACT_2010_JOINED <- left_join(US_TRACT_2010_JOINED, US_TRACT_2010_JOINED_D, by = c("State", "County", "Tract"), suffix = c("", ".y")) %>% select(-ends_with(".y"))
+rm(US_TRACT_2010_JOINED_D)
 
 
 #####################################################################################################################_____________________

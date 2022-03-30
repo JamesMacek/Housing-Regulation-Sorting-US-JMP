@@ -19,9 +19,10 @@ library(estimatr)
 library(broom)
 library(labelled)
 
-#This file gives you additional facts post Jan 22
-#WORKING DIRECTORY
-setwd("Z:/Dropbox/SchoolFolder/Projects/Zoning/Us_Data")
+#This file gives you additional facts post Jan 22.
+
+#Working Directory to Data
+setwd("Data/US_Data")
 
 
 #importing data
@@ -149,6 +150,17 @@ ggplot() +
   ylab("2-19 unit building density component")
   ggsave("219building_dist.png", width = 20, height = 12, units = "cm")
 
+#Middle Split 1: Considering only duplexes-quadplexes (Aradhya's suggestion)
+ggplot() +
+  geom_smooth(method = 'loess', span = 0.5, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),],
+                aes(x=rank_density_CBSA, y=demeaned_Middlesp1_density, colour = 'Top 25%')) +
+  geom_smooth(method = 'loess', span = 0.5, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),],
+                aes(x=rank_density_CBSA, y=demeaned_Middlesp1_density, colour = 'Bottom 25%')) +
+  scale_colour_manual(name="Sample", values = c("red", "blue")) +
+  xlab("Ranked housing unit density (Tract level)") +
+  ylab("2-4 unit building density component")
+  ggsave("24building_dist.png", width = 20, height = 12, units = "cm")
+  
   
 #20+ building density 
 ggplot() +
@@ -161,7 +173,7 @@ ggplot() +
   ylab("20+ unit building density component")
   ggsave("20building_dist.png", width = 20, height = 12, units = "cm")
   
-#Single Family Density Margin (looks good, but what does it even mean? Is this getting at something? What is this?)
+#Single Family Density Margin
 ggplot() +
     geom_smooth(method = 'loess', span = 0.5, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),],
                 aes(x=rank_density_CBSA, y=log(demeaned_SingleF_Density_Margin), colour = 'Top 25% Density Margin')) +

@@ -1,5 +1,5 @@
 *Cleaning NHGIS data 
-cd "z:/Dropbox/SchoolFolder/Projects/Zoning/US_data/NHGIS"
+cd "z:/Dropbox/SchoolFolder/Projects/Zoning/Data/US_data/NHGIS"
 
 *1st file 
 import delimited "nhgis191.csv", clear
