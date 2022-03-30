@@ -220,7 +220,7 @@ ggplot() +
 
 #FACT 3_____________________________________________________________________
 #These differences are reflected in interesting patterns in the housing supply elasticity
-#non-demeaned. missing middle have the smallest supply elasticities!
+#non-demeaned. Missing middle have the smallest supply elasticities!
 ggplot() + 
   geom_smooth(method = 'loess', span = 1, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),], aes(x=rank_density_CBSA, y=demeaned_BSH_Elasticity, colour = 'Top 25%')) +
   geom_smooth(method = 'loess', span = 1, data = US_TRACT_2010_JOINED[US_TRACT_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),], aes(x=rank_density_CBSA, y=demeaned_BSH_Elasticity, colour = 'Bottom 25%')) +
