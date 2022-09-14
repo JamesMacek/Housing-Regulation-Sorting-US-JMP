@@ -1,0 +1,50 @@
+\documentclass[]{article}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{setspace}
+\usepackage[font=small,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\onehalfspacing
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+
+%opening
+\title{Lot Sizes, Urban Form and Welfare: A View from the United States}
+\author{James Macek}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Introduces the topic, does a literature review, motivating evidence. The idea is to link the prevalence of single family homes and large lot sizes to the distribution of housing units within cities, and show that has welfare consequences in general equilibrium. Apply the logic to a general equilibrium model that covers the entire within-MSA geography in the Mainland United States. Use the former facts about the distribution to motivate the modeling of geography within MSA's (Commuting/Static Alonso-Muth-Mills) and the geography across MSA's (Rosen-Roback). 
+\end{abstract}
+
+\section{Introduction}
+\paragraph*{}
+In recent decades, high housing prices in certain "superstar" cities have been the center of attention in urban policy \citep{superstarcities}. These rising prices are met with unequal consequences for those priced out of desirable labour markets, or pay large fractions of income on rents \citep{nonhomo}, with broader implications for the economy at large \citep{hseihmoretti} \citep{parkho}. A growing set of research seeks to measure how land use regulations contribute to these high prices. In this paper, I focus on measuring the welfare impacts of a particular set -- minimum lot sizes. In my model, these regulations keep housing prices high by increasing the supply of housing stock per housing unit, pushing low income,  households who can't afford to other neighborhoods or cities that are cheaper or allow denser housing. This channel alters housing prices and wages in those locations, in addition to local amenities and the provision of public goods; shaping urban form both \textit{within} and \textit{across} cities. I accompany this logic with empirical evidence. This motivates special attention to how these welfare estimates are shaped by general equilibrium effects at both a micro and macro spatial scale.
+\paragraph*{}
+Why are minimum lot sizes important, and what do I do differently to cost them? Firstly, there is growing causal evidence that these regulations cause sorting on income \citep{kulka} \citep{Song}, which has much broader implications when one accounts for positive reinforcement of these sorting patterns. These channels include endogenous amenities\footnote{See, for example, \cite{Coutureetal}, \cite{AlmagroDI}, \cite{diamond2016} and \cite{bshartley2020}. This literature also emphasizes heterogenous valuations of these amenities across groups, and similar effects appear in my model.}, as well as the provision of congested public goods in the zoning context \citep{calabresetal} \citep{ineffTiebout}. Unfortunately, these demand side effects have recieved little attention in computing the aggregate welfare impacts of regulations. To see why this matters, consider a thought experiment surrounding the misallocation mechanism in \cite{hseihmoretti}. The standard story is that regulations attenuate aggregate growth by preventing workers from accessing productive local technologies at are responsible for that growth. However, loosening restrictions in expensive cities in the presence of income sorting causes high income, productive households to leave, attenuating these negative effects. This of course, does not factor in the externalities implied by these sorting mechanisms\footnote{For example, exclusionary zoning (and, as I show, lot size restrictions) can be optimal to limit the fiscal surplus of high income residents in the presence of property taxes and Tiebout sorting. This is the classic argument made in \cite{hamilton1976}.}. My first contribution is to square these competing ideas.     
+
+\paragraph*{}
+Secondly, I provide evidence that lot sizes alter the spatial 
+
+\section{Literature}
+
+\section{Motivating Evidence}
+
+\newpage
+\scriptsize
+\bibliography{references.bib}
+\end{document}

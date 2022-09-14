@@ -1,0 +1,82 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: aug19pres.aux
+Reallocating 'name_of_file' (item size: 1) to 8 items.
+The style file: chicago.bst
+Reallocating 'name_of_file' (item size: 1) to 15 items.
+Database file #1: references.bib
+You're missing a field part---line 518 of file references.bib
+ :   month=
+ :         ,
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 792 of file references.bib
+ : 
+ : doi = {http://dx.doi.org/10.2139/ssrn.3454631}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 1006 of file references.bib
+ : 
+ : @article{whyurbineq,
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--no number and no volume in AlmagroDI
+Warning--page numbers missing in AlmagroDI
+Warning--no number and no volume in asquithetallocaleffects
+Warning--no number and no volume in BSH
+Warning--page numbers missing in BSH
+Warning--no number and no volume in brueckner2021
+Warning--empty institution in gyourkovoith1997
+Warning--no number and no volume in herzog2022
+Warning--page numbers missing in herzog2022
+Warning--no number and no volume in kulka
+Warning--page numbers missing in kulka
+Warning--no number and no volume in KSC
+Warning--page numbers missing in KSC
+Warning--no number and no volume in martynov
+Warning--page numbers missing in martynov
+Warning--no number and no volume in parkho
+Warning--page numbers missing in parkho
+Warning--no number and no volume in Song
+Warning--page numbers missing in Song
+You've used 55 entries,
+            2861 wiz_defined-function locations,
+            928 strings with 12877 characters,
+and the built_in function-call counts, 37080 in all, are:
+= -- 3120
+> -- 2703
+< -- 11
++ -- 809
+- -- 933
+* -- 3381
+:= -- 6801
+add.period$ -- 167
+call.type$ -- 55
+change.case$ -- 393
+chr.to.int$ -- 55
+cite$ -- 74
+duplicate$ -- 970
+empty$ -- 2209
+format.name$ -- 1093
+if$ -- 6862
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 45
+newline$ -- 279
+num.names$ -- 552
+pop$ -- 240
+preamble$ -- 1
+purify$ -- 722
+quote$ -- 0
+skip$ -- 1057
+stack$ -- 0
+substring$ -- 1857
+swap$ -- 314
+text.length$ -- 11
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 1100
+warning$ -- 19
+while$ -- 515
+width$ -- 0
+write$ -- 731
+(There were 3 error messages)

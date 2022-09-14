@@ -1,0 +1,5 @@
+\beamer@sectionintoc {1}{Motivating Evidence}{18}{0}{1}
+\beamer@sectionintoc {2}{Model}{30}{0}{2}
+\beamer@sectionintoc {3}{Calibration + Identification}{52}{0}{3}
+\beamer@sectionintoc {4}{Counterfactual Results}{70}{0}{4}
+\beamer@sectionintoc {6}{Appendix}{91}{0}{5}

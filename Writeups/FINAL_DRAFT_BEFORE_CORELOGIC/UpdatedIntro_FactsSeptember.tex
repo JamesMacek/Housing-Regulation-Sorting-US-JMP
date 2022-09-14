@@ -1,0 +1,101 @@
+\documentclass[]{article}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{setspace}
+\newtheorem{theorem}{Fact}
+\usepackage[font=small,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\onehalfspacing
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+\usepackage{comment}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+
+%opening
+\title{Lot Sizes, Welfare and Urban Structure: A View from the United States \\
+	Very Preliminary Draft}
+\author{James Macek}
+
+\begin{document}
+\maketitle	
+		
+\begin{abstract}
+	\scriptsize
+This paper considers the welfare effects of minimum lot size regulation, as well as its effect on income segregation and density. I show that minimal lots are more expensive in productive cities, and this can explain some sorting on income into these cities. I also show that high density neighborhoods in productive cities are relatively more dense, and this is accompanied by slightly stronger negative income sorting on density within these cities. Variation in the prices of minimal lots explain these observations. Motivated by this evidence, I construct a general equilibrium model in which households of heterogeneous incomes choose cities and neighborhoods, value affluent neighbors, and are burdened differently by regulation. Counterfactual exercises show large and progressive gains to deregulation, and yield two surprising results. First, any productivity gains that occur from the expansion of productive cities are completely nullified by the out-migration of affluent households who prefer regulated neighborhoods. Second, deregulation can \textit{increase} income segregation because the effects of these restrictions spill over to promote integration in lightly regulated, high density neighborhoods. Affluent households would benefit from this increased segregation. 
+\end{abstract}	
+
+
+\newpage
+	\section*{Introduction Outline}
+	\paragraph*{}
+	para 1: (Sets the stage for the research question and says why this research question is important) Pervasive housing regulation \dots (introduce housing regulation, in particular, minimum lot sizes) \dots argue that they matter, ubiquitous.
+	\begin{enumerate}
+		\item Consequences for aggregate growth i.e. \cite{hseihmoretti}
+		\item Consequences for income sorting, i.e. \cite{Song} and \cite{kulka}
+	\end{enumerate}
+	
+	\paragraph*{}
+	What do I do in this paper? Start with some basic facts that are useful, say why they are useful, relate to both within and across city stuff (hsieh/moretti, kulka and song). I.e. aggregate growth + income sorting both within and across cities. Talk about how all this stuff may be exacerbated by endogenous amenities (and some brief thinking about the literature) (this may be two/three paragraphs) 
+	
+	\paragraph*{}
+	para 2: hsieh and moretti + across city income sorting and facts 
+	
+	\paragraph*{}
+	para 3: within city density + income sorting patterns: argue why this presumably matters for welfare. 
+	
+	\paragraph*{}
+	Introduce what I do with the model + some interesting results (two paragraphs?)
+	
+	\paragraph*{}
+	Calibration, other difficulties, methodology to estimate endogenous amenities relationship
+	
+	\paragraph*{}
+	embed literature review here
+	
+	
+	\newpage	
+	\section{Introduction}
+		
+	\paragraph*{}
+	
+	In recent decades, a large effort has been made to link pervasive US housing regulation with unaffordability. However, these regulations have implications that extend beyond the issue of high housing prices; they presumably slow aggregate growth by limiting density in big cities \citep{hseihmoretti,durantonpugaurbgrowth}. A particular type of regulation -- the minimum lot size -- also causes differences in opportunity and affluence across cities and neighborhoods by excluding those who cannot afford large lots \citep{Song, kulka}. In this paper, I ask how these minimum lot sizes shape aggregate welfare and inequality, as well as their effect on income segregation and on both the density of big cities and how that density is distributed within their urban boundaries. Understanding minimum lot size restrictions in the macroeconomic context is important because they are ubiquitous and have a growing prevalence across the United States \citep{gyourko2021}. 
+	
+	\paragraph*{}
+	Previous work in the macroeconomics of housing regulation ignores the importance of the income sorting that these regulations cause. The standard story, one echoed by \cite{hseihmoretti} and \cite{durantonpugaurbgrowth}, is that regulations slow aggregate growth by preventing workers from accessing productive cities that are responsible for that growth. However, loosening regulation in expensive cities in the presence of sorting causes high income, productive households to leave, attenuating these negative effects. To motivate this view, I show empirically that the prices of minimal lots are more expensive in productive cities; and this can explain some positive sorting on income into these cities.  This has broader implications when one accounts for the positive reinforcement of these sorting patterns. Relevant mechanisms include endogenous amenities\footnote{A recent message in the urban literature is that exogenous demographic changes can be positively reinforced by the endogenous supply of amenities. See, for example,  \cite{Coutureetal}, \cite{AlmagroDI}, \cite{diamond2016}, and \cite{bshartley2020}.}, as well as the provision of congested public goods in the zoning context \citep{calabresetal, ineffTiebout}. Unfortunately, these demand side effects have also received little attention in computing the aggregate welfare impacts of regulations. 
+	 
+	
+	\paragraph*{} 
+	Focusing on income sorting across cities also masks important sorting happening across neighborhoods \textit{within} these cities. I show empirically that there is negative income sorting on density within cities, and that this sorting is slightly stronger in expensive cities. Moreover, I show that high density neighborhoods are relatively more dense in these expensive cities. Variation in the prices of minimal lots help explain these observations. Accounting for within-city geography is crucial for gauging the aggregate welfare impacts of these regulations. Low income households can move toward high density neighborhoods to avoid large lots, and this movement imposes externalities on affluent neighbors through the endogenous amenities channel. 
+	
+	\paragraph*{}
+	Inspired by this theory and evidence, I construct a general equilibrium model encompassing the metropolitan areas of the United States. In the model, households differ on income and choose cities and neighborhoods subject to a varying intensity of regulation. Minimum lot sizes impose a floor on housing consumption required to live in a neighborhood, as in \cite{kulka} or \cite{calabresetal}. Tight regulation excludes the poor by constraining their consumption decisions, whereby increasing neighborhood affluence. The model also incorporates rich heterogeneity across locations along two dimensions. First, cities differ on labour productivity, so that any changes in labour supply across cities affects aggregate productivity. Second, neighborhoods differ both exogenously and endogenously on amenity values; in  particular, these amenity values respond to neighborhood affluence, as in \citet*{parispoor}\footnote{To fix more ideas, I provide other microfoundations for this relationship.}. In the model, this relationship leads to a positive correlation between neighborhood amenities and regulation.
+
+	\paragraph*{}
+	Using this model to study regulation is difficult because regulation is hard to measure, especially with broad geographic coverage. 
+
+	\paragraph*{}
+	I use the model to study the implications of a total elimination of lot size restrictions.
+	
+
+
+	\subsection{Literature}
+	
+	\newpage
+	\section{Data and Motivating Evidence}
+	\paragraph*{}
+	This observation might be surprising because it differs in message from the theoretical literature on the relationship between regulation and urban structure. For example, \cite{bbheight} and \cite{mills2005} show that structural density restrictions flatten the urban density gradient, if said restrictions are uniform across space. Moreover, expensive and productive cities tend to be more regulated because of political economy forces \citep{HILBER2013, parkho}. Therefore, uniformly more stringent restrictions in expensive cities cannot explain why high density neighborhoods are relatively more dense.
+	\newpage\newpage
+	\scriptsize
+	\bibliography{references.bib}
+		
+\end{document}

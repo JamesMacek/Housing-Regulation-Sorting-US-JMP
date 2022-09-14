@@ -1,0 +1,81 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: litReview.aux
+Reallocating 'name_of_file' (item size: 1) to 8 items.
+The style file: chicago.bst
+Illegal, another \bibstyle command---line 20 of file litReview.aux
+ : \bibstyle
+ :          {chicago}
+I'm skipping whatever remains of this command
+Reallocating 'name_of_file' (item size: 1) to 15 items.
+Database file #1: references.bib
+You're missing a field part---line 531 of file references.bib
+ :   month=
+ :         ,
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 805 of file references.bib
+ : 
+ : doi = {http://dx.doi.org/10.2139/ssrn.3454631}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--no number and no volume in AlmagroDI
+Warning--page numbers missing in AlmagroDI
+Warning--no number and no volume in BSH
+Warning--page numbers missing in BSH
+Warning--no number and no volume in herzog2022
+Warning--page numbers missing in herzog2022
+Warning--no number and no volume in kulka
+Warning--page numbers missing in kulka
+Warning--no number and no volume in KSC
+Warning--page numbers missing in KSC
+Warning--no number and no volume in martynov
+Warning--page numbers missing in martynov
+Warning--no number and no volume in parkho
+Warning--page numbers missing in parkho
+Warning--no number and no volume in severen2021
+Warning--no number and no volume in Song
+Warning--page numbers missing in Song
+Warning--no number and no volume in suamenities
+Warning--page numbers missing in suamenities
+You've used 50 entries,
+            2861 wiz_defined-function locations,
+            901 strings with 12205 characters,
+and the built_in function-call counts, 33432 in all, are:
+= -- 2814
+> -- 2428
+< -- 11
++ -- 729
+- -- 843
+* -- 3026
+:= -- 6149
+add.period$ -- 153
+call.type$ -- 50
+change.case$ -- 355
+chr.to.int$ -- 49
+cite$ -- 69
+duplicate$ -- 879
+empty$ -- 1990
+format.name$ -- 983
+if$ -- 6175
+int.to.chr$ -- 2
+int.to.str$ -- 0
+missing$ -- 41
+newline$ -- 255
+num.names$ -- 500
+pop$ -- 215
+preamble$ -- 1
+purify$ -- 653
+quote$ -- 0
+skip$ -- 958
+stack$ -- 0
+substring$ -- 1655
+swap$ -- 285
+text.length$ -- 11
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 996
+warning$ -- 19
+while$ -- 470
+width$ -- 0
+write$ -- 668
+(There were 3 error messages)
