@@ -1,0 +1,84 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: UpdatedIntro_FactsSeptember.aux
+Reallocating 'name_of_file' (item size: 1) to 8 items.
+The style file: chicago.bst
+Illegal, another \bibstyle command---line 20 of file UpdatedIntro_FactsSeptember.aux
+ : \bibstyle
+ :          {chicago}
+I'm skipping whatever remains of this command
+Reallocating 'name_of_file' (item size: 1) to 15 items.
+Database file #1: references.bib
+You're missing a field part---line 518 of file references.bib
+ :   month=
+ :         ,
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 792 of file references.bib
+ : 
+ : doi = {http://dx.doi.org/10.2139/ssrn.3454631}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 1006 of file references.bib
+ : 
+ : @article{whyurbineq,
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Repeated entry---line 1069 of file references.bib
+ : @article{HILBER2013
+ :                    ,
+I'm skipping whatever remains of this entry
+Warning--no number and no volume in AlmagroDI
+Warning--page numbers missing in AlmagroDI
+Warning--no number and no volume in BSH
+Warning--page numbers missing in BSH
+Warning--no number and no volume in kulka
+Warning--page numbers missing in kulka
+Warning--no number and no volume in KSC
+Warning--page numbers missing in KSC
+Warning--page numbers missing in MolloyRSUE
+Warning--no number and no volume in parkho
+Warning--page numbers missing in parkho
+Warning--no number and no volume in Song
+Warning--page numbers missing in Song
+You've used 48 entries,
+            2861 wiz_defined-function locations,
+            903 strings with 11904 characters,
+and the built_in function-call counts, 32550 in all, are:
+= -- 2767
+> -- 2312
+< -- 9
++ -- 699
+- -- 811
+* -- 2947
+:= -- 5926
+add.period$ -- 146
+call.type$ -- 48
+change.case$ -- 338
+chr.to.int$ -- 48
+cite$ -- 61
+duplicate$ -- 866
+empty$ -- 1971
+format.name$ -- 951
+if$ -- 6050
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 42
+newline$ -- 243
+num.names$ -- 482
+pop$ -- 206
+preamble$ -- 1
+purify$ -- 626
+quote$ -- 0
+skip$ -- 951
+stack$ -- 0
+substring$ -- 1674
+swap$ -- 291
+text.length$ -- 9
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 960
+warning$ -- 13
+while$ -- 464
+width$ -- 0
+write$ -- 637
+(There were 5 error messages)

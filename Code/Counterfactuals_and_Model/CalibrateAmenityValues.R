@@ -24,7 +24,8 @@ US_BLOCK <- left_join(US_BLOCK, US_BLOCK_2010_JOINED, by = c("State", "County", 
 rm(lambda)
 
 AmenityDF <- US_BLOCK %>% select(State, County, Tract, BlockGroup, 
-                                 CBSA, CBSA_NAME, avg_commuteMins, lambda) #organized dataframe for everything we need in this program
+                                 CBSA, CBSA_NAME, avg_commuteMins, lambda,
+                                 MedianYearStructureBuilt, Public_transport_share, Bus_share) #organized dataframe for everything we need in this program
 
 
 #Migration elasticities converted to a nested logit semi-elasticity.
@@ -189,29 +190,29 @@ test <- select(AmenityDF, starts_with("withincity_amenity")) %>% group_by() %>% 
 AmenityDF["wc_aggregate_amenity"] <- rowMeans(test, na.rm = TRUE)
 rm(test)
 
+AmenityDF["wc_relRich_amenity"] <- (AmenityDF$withincity_amenity_College7 + AmenityDF$withincity_amenity_NoCollege7 + 
+                                    AmenityDF$withincity_amenity_College6 + AmenityDF$withincity_amenity_NoCollege6 + 
+                                    AmenityDF$withincity_amenity_College5 + AmenityDF$withincity_amenity_NoCollege5)/
+                                   (AmenityDF$withincity_amenity_College1 + AmenityDF$withincity_amenity_NoCollege1 + 
+                                    AmenityDF$withincity_amenity_College2 + AmenityDF$withincity_amenity_NoCollege2 + 
+                                    AmenityDF$withincity_amenity_College3 + AmenityDF$withincity_amenity_NoCollege3)
+
 #Joining with average income data
 AmenityDF <- left_join(AmenityDF, US_BLOCK_2010_JOINED, by = c("State", "County", "Tract", "BlockGroup"))
 rm(US_BLOCK_2010_JOINED)
 AmenityDF["adjusted_ag_amenity"] <- AmenityDF$wc_aggregate_amenity*(exp(0.01*AmenityDF$avg_commuteMins))
-
-#OLS ESTIMATE? Seems quite low.
-summary(lm_robust(log(adjusted_ag_amenity) ~ log(Average_income), data = AmenityDF, fixed_effects = CBSA, clusters = CBSA, se_type = "stata"))
-#checking correlation with hedonic prices and average income
 
 #Checking correlation between amenities and hedonic housing prices/stringency of regulation
 summary(lm_robust(log(adjusted_ag_amenity) ~ LotSizeStringency, data = AmenityDF, cluster = CBSA, se_type = "stata")) #No FE's-- large coefficient (note: within city amenity already set to be on average 1 so Fe's redundant)
 summary(lm_robust(log(Average_income) ~ LotSizeStringency, data = AmenityDF, fixed_effects = CBSA, cluster = CBSA, se_type = "stata")) #predicts it VERY WELL... rsquared of 0.2561 within city 
 #such is positive...which is interesting and to be expected
 
-#Correlation between hedonic prices and amenities is positive...not suprising..?
+#Correlation between hedonic prices and amenities (note: this means that prices alone have a bit more explanatory power than the lot size regulation, which is fine.)
 AmenityDF["hedonicPrice"] <- US_BLOCK$hedonicPrice
 summary(lm_robust(log(adjusted_ag_amenity) ~ log(hedonicPrice), data = AmenityDF, fixed_effects = CBSA, cluster = CBSA, se_type = "stata"))
-
-#Why is this positive if there is negative income sorting into high density neighborhoods?
-AmenityDF["hedonicPrice"] <- US_BLOCK$hedonicPrice
 summary(lm_robust(log(Average_income) ~ log(hedonicPrice), data = AmenityDF, fixed_effects = CBSA, cluster = CBSA, se_type = "stata"))
 
-#Bingo-- hedonic index NOT RELATED TO DENSITY. This... defies the logic of urban equilibria? How is that possible?
+#Hedonic index NOT RELATED TO DENSITY???
 #There must be an issue with the hedonic index.
 summary(lm_robust(log(hedonicPrice) ~ rank_density_CBSA, data = AmenityDF, fixed_effects = CBSA, cluster = CBSA, se_type = "stata"))
 summary(lm_robust(log(Average_income) ~ rank_density_CBSA, data = AmenityDF, fixed_effects = CBSA, cluster = CBSA, se_type = "stata")) #negative income sorting

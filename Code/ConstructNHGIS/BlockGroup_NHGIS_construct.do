@@ -42,7 +42,8 @@ import delimited "nhgis_blkgrp20082012.csv", clear
 
 keep statea countya tracta blkgrpa qvbe* qt*e* qu1e* qu2e* qu3e* qx6e* qx7e* qx8e* qx9e* qyae* ///
 qyje* qyme* qyne* qyre* qyue* qyse* qyye* qyze* qy0e* qy1e* qy3e* qy2e* qy8e* qy9e* qzse* qzxe* qzze* qz2e* qz4e* qz6e* qz8e* ///
-qzve* qzhe* qzie* qzee* qzfe* qz1e* qy7e* qzte* qz0e* quse* qu0e* qz3* qthe*
+qzve* qzhe* qzie* qzee* qzfe* qz1e* qy7e* qzte* qz0e* quse* qu0e* qz3* qthe* qtfe*
+
 
 rename statea State
 rename countya County

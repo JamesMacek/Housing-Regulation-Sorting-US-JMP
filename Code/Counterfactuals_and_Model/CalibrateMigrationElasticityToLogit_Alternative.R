@@ -7,7 +7,7 @@ library(stringr)
 library(labelled)
 library(rlang)
 
-#This file calibrates the within city migration elasticity to match that of other estimates using the Frechet specification. 
+#This file calibrates the within city migration elasticity to match that of other estimates using the Frechet specification. Uses alternative adjustment factor that adjusts for the log-standard deviation.
 
 US_BLOCK <- read_dta("Data/Counterfactuals/JoinedDataForCounterfactuals.dta")
 lambda <- read_dta("Data/Counterfactuals/CalibratedLambda.dta")
@@ -19,7 +19,7 @@ AmenityDF <- US_BLOCK %>% select(State, County, Tract, BlockGroup,
 
 Beta <- 0.174
 Theta <- 10/3 #From Hornbeck and Moretti (2018)-- measure long run cross city migration elasticities
-Rho <- 0.5377 #using Theta/(1-Rho) = 7.22 from Herzog (2021)-- can also use 8.5 from Baum-Snow and Han 
+Rho <- 0.6075 #using Theta/(1-Rho) approx 8.5 from Baum Snow and Han (2022) (similar values from Herzog)
 
 #Migration elasticities from empirical work
 
@@ -65,20 +65,14 @@ for (i in 1:7) {
 }
 
 #Calculating converted migration elasticities to move from Frechet shock model to a MNL discrete choice model.
-#Rescaling elasticity by average calculated utility
-utilities <- as.matrix(select(AmenityDF, contains("consumption_val_"))) #
-mean_conversion_factor <- colMeans(utilities) 
-
-
-#adjusting within-city migration semi-elasticities by mean utility to convert to an average elasticity. (NOTE: these have to be done on a group-basis.)
-me_within <- me_within/mean_conversion_factor
+utilities <- as.matrix(select(AmenityDF, contains("consumption_val_"))) 
 
 #Alternative adjustment factor: adjusting me_within (and me_across) so that the implied log standard deviation is comparable to Frechet models used to estimate theta/omega
 #Calculating what the (log) standard deviation of indirect utility would be if no minimum lot sizes
 utilities_noLot <- as.matrix(select(AmenityDF, contains("consumption_NoLot_val")))
-std_conversion_factor <- apply(utilities, 2, sd)/apply(log(utilities_noLot), 2, sd)
+std_conversion_factor <- (apply(utilities, 2, sd)/apply(log(utilities_noLot), 2, sd))
 
-me_within_2 <- (Theta/(1-Rho))/std_conversion_factor #much lower migration elasticity implied here. 
+me_within <- me_within/std_conversion_factor #much lower migration elasticity implied here. 
 
 
 #Calculating what within city welfare indicies must be and adjusting downward by that for the across city elasticity
@@ -126,12 +120,20 @@ for (i in 1:7) {
   MSA_fr_households_NoCollege <- paste("MSA_fr_households_NoCollege", i, sep="")
   fr_households_College <- paste("fr_households_College", i, sep="")
   fr_households_NoCollege <- paste("MSA_fr_households_NoCollege", i, sep="")
+  
   MSA_welfare_aggregator_College <- paste("MSAWelf_ag_College", i, sep = "")
   MSA_welfare_aggregator_NoCollege <- paste("MSAWelf_ag_NoCollege", i, sep = "")
+  MSA_welfare_aggregator_College_NoLot <- paste("MSAWelf_NoLot_ag_College", i , sep="") #Calcualting what the welfare would be in absence of minimum lot sizes for migration elasticity adjustment.
+  MSA_welfare_aggregator_NoCollege_NoLot <- paste("MSAWelf_NoLot_ag_NoCollege", i , sep="")
+  
   wc_amenity_College <- paste("withincity_amenity_College", i, sep = "")
   wc_amenity_NoCollege <- paste("withincity_amenity_NoCollege", i, sep = "")
+  
   consumption_val_College <- paste("consumption_val_College", i , sep="")
   consumption_val_NoCollege <- paste("consumption_val_NoCollege", i , sep="")
+  consumption_val_College_NoLot <- paste("consumption_NoLot_val_College", i , sep="") #Calcualting what the welfare would be in absence of minimum lot sizes for migration elasticity adjustment.
+  consumption_val_NoCollege_NoLot <- paste("consumption_NoLot_val_College", i , sep="")
+  
   fr_households_College <- paste("fr_households_College", i, sep="")
   fr_households_NoCollege <- paste("fr_households_NoCollege", i, sep="")
   
@@ -154,16 +156,24 @@ for (i in 1:7) {
   AmenityDF <- AmenityDF %>% group_by(CBSA) %>% mutate(!!sym(MSA_welfare_aggregator_NoCollege) := 
                                                          log(sum((!!sym(wc_amenity_NoCollege)*exp(me_within[i]*!!sym(consumption_val_NoCollege))))) )
   
+  #Creating no-lot-size versions to make alternative adjustment (me_across_2)
+  AmenityDF <- AmenityDF %>% group_by(CBSA) %>% mutate(!!sym(MSA_welfare_aggregator_College_NoLot) := 
+                                                         (sum((!!sym(wc_amenity_College)*(!!sym(consumption_val_College_NoLot))^(Theta/(1-Rho)))))^((1-Rho)/Theta) )
+  
+  AmenityDF <- AmenityDF %>% group_by(CBSA) %>% mutate(!!sym(MSA_welfare_aggregator_NoCollege_NoLot) := 
+                                                        (sum((!!sym(wc_amenity_NoCollege)*(!!sym(consumption_val_NoCollege_NoLot))^(Theta/(1-Rho)))))^((1-Rho)/Theta) )
   
 }
 
 utilities <- select(AmenityDF, contains("MSAWelf_ag_"))
 utilities <- utilities %>% group_by() %>% select(-CBSA)
-  
-mean_conversion_factor <- colMeans(utilities) #If thinking about adjusting migration elasticity by group... Note: elasticity has to be large relative to within-city elasticity because within city welfare aggregators are in small units!
-me_across <- me_across/mean_conversion_factor
+utilities_noLot <- select(AmenityDF, contains("MSAWelf_NoLot_ag_"))
+utilities_noLot <- utilities_noLot %>% group_by() %>% select(-CBSA)
 
-#Alternative adjustment factor: adjusting me_within (and me_across) so that the implied log standard deviation is comparable to Frechet models used to estimate theta/omega
+std_conversion_factor <- apply(utilities, 2, sd)/apply(log(utilities_noLot), 2, sd) #If thinking about adjusting migration elasticity by group... Note: elasticity has to be large relative to within-city elasticity because within city welfare aggregators are in small units!
+me_across <- me_across/std_conversion_factor
+
+#Alternative adjustment factor: adjusting me_within (and me_across) so that the implied log standard deviation is comparable to Frechet models used to estimate theta/omega (we use Gumbel for this draft)
 #Calculating what the (log) standard deviation of indirect utility would be if no minimum lot sizes
 
 

@@ -122,6 +122,8 @@ Region0 <- Region0[!(is.na(Region0$LotSizeAcres) & is.na(Region0$LotSizeSquareFe
                      !is.na(Region0$Y), ] #Main sample requires lot sizes and a land use description. 
 
 #transforming Region0 into sf file
+Region0["Lat"] <- Region0$Y
+Region0["Lon"] <- Region0$X
 Region0 <- st_as_sf(Region0, coords = c("X", "Y"))
 Region0 <- st_set_crs(Region0, 4269) #
 
@@ -161,6 +163,8 @@ if (proto == 1) {
                          CurrentAssess$PropertyLandUseStndCode != "" & !is.na(CurrentAssess$X) &
                          !is.na(CurrentAssess$Y), ] #Main sample requires lot sizes and a land use description. 
     
+    CurrentAssess["Lat"] <- CurrentAssess$Y
+    CurrentAssess["Lon"] <- CurrentAssess$X
     CurrentAssess <- st_as_sf(CurrentAssess, coords = c("X", "Y"))
     CurrentAssess <- st_set_crs(CurrentAssess, 4269) #
     
@@ -192,6 +196,8 @@ if (proto != 1) {
                                      CurrentAssess$PropertyLandUseStndCode != "" & !is.na(CurrentAssess$X) &
                                      !is.na(CurrentAssess$Y), ] #Main sample requires lot sizes and a land use description. 
     
+    CurrentAssess["Lat"] <- CurrentAssess$Y
+    CurrentAssess["Lon"] <- CurrentAssess$X
     CurrentAssess <- st_as_sf(CurrentAssess, coords = c("X", "Y"))
     CurrentAssess <- st_set_crs(CurrentAssess, 4269) #
     

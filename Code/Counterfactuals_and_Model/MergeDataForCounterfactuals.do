@@ -165,8 +165,13 @@ gen avg_commuteMins = 2*share_time_to_work2 + 7*share_time_to_work3 + 12*share_t
 bysort CBSA: egen MSA_avg_CommuteMins = mean(avg_commuteMins)
 replace avg_commuteMins = MSA_avg_CommuteMins if missing(avg_commuteMins)
 
+*Calculating building age and public transport share as controls for instrument
+gen MedianYearStructureBuilt = qy2e001
+gen Public_transport_share = qtfe010/qtfe001
+gen Bus_share = qtfe011/qtfe001
+
 *Keeping needed variables for other programs
-keep *Zoning* CBSA* State County Tract BlockGroup Ability_bin* *Wage Nominal_Income_bin* hhincome_bin* RegulatedHousingUnitShare SingleFamilyShare DuplexShare TriFourplexShare implied_college_share ability_grp* avg_commuteMins //CorrectedAbility*  *_inc_bin_*
+keep *Zoning* CBSA* State County Tract BlockGroup Ability_bin* *Wage Nominal_Income_bin* hhincome_bin* RegulatedHousingUnitShare SingleFamilyShare DuplexShare TriFourplexShare implied_college_share ability_grp* avg_commuteMins MedianYearStructureBuilt Public_transport_share Bus_share //CorrectedAbility*  *_inc_bin_*
 
 drop hhincome_bin_*
 

@@ -5,7 +5,6 @@ library(readr)
 library(collapse)
 library(stringr)
 library(labelled)
-library(rlang)
 library(doParallel) #Parallelize for loops, solving housing market equilibria much faster. 
 library(rlang) #For symbolic...
 library(ggplot2)
@@ -20,6 +19,10 @@ test_zero_equilibrium <- 1 #Set to 1 if you need to remove all lot sizes
 test_initial_equilibrium <- 0 #Set to 1 if you want to check if the chosen parameters rationalize the data as an equilibrium.
 
 
+test_noMobility <- 0 #set to 1 to test no mobility equilibrium (i.e. population is fixed)
+test_withinCityMobility <- 1 # set to 1 to test version of model with only within-city labour mobility
+#If you set both to be 1, NoMobility will be chosen
+
 #Setting up parallel cluster to solve housing market equilibria faster
 n.cores <- detectCores() - 1 #11 threads (cores?) on my main machine.
 my.cluster <- makeCluster(n.cores, type = "PSOCK") #needs to allow firewall.
@@ -30,7 +33,6 @@ registerDoParallel(cl = my.cluster)
 #checking to see if this is registered
 getDoParRegistered() #TRUE.
 getDoParWorkers()
-
 
 #Joined data
 Main <- read_dta("Data/Counterfactuals/JoinedDataForCounterfactuals.dta")
@@ -51,7 +53,7 @@ rm(AmenityValues, Productivity)
 #UNIVARIATE PARAMETERS__________________________________________________________________________________
 Beta <- 0.174 #Spending share on housing from CalibrateBeta.R
 
-Omega <- 0 #IV estimate from SimpleInstrument.do 2.65 
+Omega <- 1.31 #IV estimate from ComplexInstrument.do
 
 Sigma <- 1.3 #Elasticity of substitution for labour types
 
@@ -489,56 +491,88 @@ while (Max_vector > 0.99) { #TOLERANCE FOR Minimum Distance
   }
   rm(temp)
   
-    
-
-  #Constructing new population distribution on current iteration
-  for (i in 1:7) { #Looping over income groups...
   
+  #constructing initial values 
+  
+    
+  #Constructing new population distribution on current iteration
+  for (i in 1:7) { #Looping over income groups..
+    
+    
+    
     #COLLEGE WORKERS
+  
     #first, calculate what the conditional welfare would be of someone who chose CBSA c 
     equilibrium_objects <- equilibrium_objects %>% group_by(CBSA) %>% mutate(!!sym(paste("wc_Amenity_College", i, sep = "")) := 
                                                                             log(sum(exp(me_within[i]*!!sym(paste("consumption_val_College", i , sep="")))*!!sym(paste("withincity_amenity_College", i, sep = "")))))
-  
+    if (test_noMobility == 0) { #if no mobility
+      
     #calculating fraction of workers in i conditional on CBSA
     equilibrium_objects[paste("wc_hhfr_College", i, sep = "")] <- ((exp(me_within[i]*equilibrium_objects[[paste("consumption_val_College", i , sep="")]])*
                                                                   equilibrium_objects[[paste("withincity_amenity_College", i, sep = "")]])/exp(equilibrium_objects[[paste("wc_Amenity_College", i, sep = "")]]))
     #should sum to 1 within MSAs...
   
+    
     #Now, calculating the fraction of workers choosing CBSA c.Note, need to inversely weight by number of block groups in MSA since this data frame is not collapsed.
+    if (test_withinCityMobility == 0) { #Update city fractions of workers if you allow for across city mobility.
+    
     equilibrium_objects[paste("ac_hhfr_College", i, sep = "")] <- (exp(me_across[i]*equilibrium_objects[[paste("wc_Amenity_College", i, sep = "")]])*equilibrium_objects[[paste("acrosscity_amenity_College", i, sep = "")]])/
                                                                 (sum(exp(me_across[i]*equilibrium_objects[[paste("wc_Amenity_College", i, sep = "")]])*equilibrium_objects[[paste("acrosscity_amenity_College", i, sep = "")]]/equilibrium_objects$MSAcount))
-
+    }
     #Should sum to 1 across cities, and it does.    
+    
+    if (test_withinCityMobility == 1) { #Else, keep city population exogenous
+      equilibrium_objects <- equilibrium_objects %>% group_by(CBSA) %>% mutate(!!sym(paste("ac_hhfr_College", i, sep = "")) := sum(!!sym(paste("households_College", i, sep = "")))/!!sym(paste("tot_households_College", i, sep = "")) )
+      
+    }
       
     #Lastly, updating total number of households in equilibrium_objects
     new_equilibrium_objects[paste("households_College", i, sep = "")] <- equilibrium_objects[[paste("ac_hhfr_College", i, sep = "")]]*
-                                                                   equilibrium_objects[[paste("wc_hhfr_College", i, sep = "")]]*
-                                                                   equilibrium_objects[paste("tot_households_College", i, sep = "")] #total number of households chosen given amenities and consumption indices
+                                                                         equilibrium_objects[[paste("wc_hhfr_College", i, sep = "")]]*
+                                                                         equilibrium_objects[paste("tot_households_College", i, sep = "")] #total number of households chosen given amenities and consumption indices
     #Should sum to original value of total households (very close up to 9 decimal machine precision)
-  
+    }
+    
+    
     #NON-COLLEGE WORKERS
     #first, calculate what the conditional welfare would be of someone who chose CBSA c 
     equilibrium_objects <- equilibrium_objects %>% group_by(CBSA) %>% mutate(!!sym(paste("wc_Amenity_NoCollege", i, sep = "")) := 
                                                                                log(sum(exp(me_within[i]*!!sym(paste("consumption_val_NoCollege", i , sep="")))*!!sym(paste("withincity_amenity_NoCollege", i, sep = "")))))
     
+    if (test_noMobility == 0) {
     #calculating fraction of workers in i conditional on CBSA
     equilibrium_objects[paste("wc_hhfr_NoCollege", i, sep = "")] <- ((exp(me_within[i]*equilibrium_objects[[paste("consumption_val_NoCollege", i , sep="")]])*
                                                                       equilibrium_objects[[paste("withincity_amenity_NoCollege", i, sep = "")]])/exp(equilibrium_objects[[paste("wc_Amenity_NoCollege", i, sep = "")]]))
     #should sum to 1 within MSAs...
     
     #Now, calculating the fraction of workers choosing CBSA c.Note, need to inversely weight by number of block groups in MSA since this data frame is not collapsed.
+    if (test_withinCityMobility == 0) {
+    
     equilibrium_objects[paste("ac_hhfr_NoCollege", i, sep = "")] <- (exp(me_across[i]*equilibrium_objects[[paste("wc_Amenity_NoCollege", i, sep = "")]])*equilibrium_objects[[paste("acrosscity_amenity_NoCollege", i, sep = "")]])/
-                                                                  (sum(exp(me_across[i]*equilibrium_objects[[paste("wc_Amenity_NoCollege", i, sep = "")]])*equilibrium_objects[[paste("acrosscity_amenity_NoCollege", i, sep = "")]]/equilibrium_objects$MSAcount))
+                                                                    (sum(exp(me_across[i]*equilibrium_objects[[paste("wc_Amenity_NoCollege", i, sep = "")]])*equilibrium_objects[[paste("acrosscity_amenity_NoCollege", i, sep = "")]]/equilibrium_objects$MSAcount))
+    }
+    #Should sum to 1 across cities, and it does.
     
-    #Should sum to 1 across cities, and it does.    
+    if (test_withinCityMobility == 1) { #Else, keep city population exogenous
+      equilibrium_objects <- equilibrium_objects %>% group_by(CBSA) %>% mutate(!!sym(paste("ac_hhfr_NoCollege", i, sep = "")) := sum(!!sym(paste("households_NoCollege", i, sep = "")))/!!sym(paste("tot_households_NoCollege", i, sep = "")) )
+      
+    }
     
+  
     #Lastly, updating total number of households in equilibrium_objects
     new_equilibrium_objects[paste("households_NoCollege", i, sep = "")] <- equilibrium_objects[[paste("ac_hhfr_NoCollege", i, sep = "")]]*
-                                                                         equilibrium_objects[[paste("wc_hhfr_NoCollege", i, sep = "")]]*
-                                                                         equilibrium_objects[paste("tot_households_NoCollege", i, sep = "")] #total number of households chosen given amenities and consumption indices
-                                                                         #Should sum to original value of total households (very close up to 9 decimal machine precision)
+                                                                           equilibrium_objects[[paste("wc_hhfr_NoCollege", i, sep = "")]]*
+                                                                           equilibrium_objects[paste("tot_households_NoCollege", i, sep = "")] #total number of households chosen given amenities and consumption indices
+                                                                           #Should sum to original value of total households (very close up to 9 decimal machine precision)
+    }
+    
+    if (test_noMobility == 1) { #else, update all new values with old values
+      new_equilibrium_objects[paste("households_College", i, sep = "")] <- equilibrium_objects[paste("households_College", i, sep = "")] 
+      new_equilibrium_objects[paste("households_NoCollege", i, sep = "")] <- equilibrium_objects[paste("households_NoCollege", i, sep = "")] 
+      
+    }
+    
   }
-
 #Evaluating the distance between Old and New population distributions
   for (i in 1:7) {
     Max_vector_College[i] <-  max(abs(new_equilibrium_objects[[paste("households_College", i, sep = "")]] - equilibrium_objects[[paste("households_College", i, sep = "")]]))
@@ -575,7 +609,7 @@ while (Max_vector > 0.99) { #TOLERANCE FOR Minimum Distance
 #4) The importance of within-city sorting in its interaction with 2) and 3). 
 
 #Baseline counterfactual
-if (test_zero_equilibrium == 1 & Omega > 0) {
+if (test_zero_equilibrium == 1 & Omega > 0 & test_noMobility == 0 & test_withinCityMobility == 0) {
   save(equilibrium_objects, file = "Data/Counterfactuals/CounterfactualDataOutput/Counterfactual_Amenities.Rdata")
   
 }
@@ -588,6 +622,18 @@ if (test_zero_equilibrium == 1 & Omega == 0) {
 if (test_initial_equilibrium == 1) { #Saving initial equilibrium objects to calculate welfare
   save(equilibrium_objects, file = "Data/Counterfactuals/CounterfactualDataOutput/initial_equilibrium.Rdata")
 }
+
+
+if (test_zero_equilibrium == 1 & Omega > 0 & test_noMobility == 1) {
+  save(equilibrium_objects, file = "Data/Counterfactuals/CounterfactualDataOutput/Counterfactual_Amenities_noMobility.Rdata")
+  
+}
+
+if (test_zero_equilibrium == 1 & Omega > 0 & test_noMobility == 0 & test_withinCityMobility == 1) {
+  save(equilibrium_objects, file = "Data/Counterfactuals/CounterfactualDataOutput/Counterfactual_Amenities_withincMobility.Rdata")
+  
+}
+
 
 rm(list=(ls()[ls()!="me_within" & ls()!="me_across"])) #removing all objects but these for use with other programs
 

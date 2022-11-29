@@ -36,6 +36,12 @@ top25 <- top25[sample(nrow(top25), floor(nrow(top25)/3)),] #take approx 33% of t
 
 bot25 <- US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),]
 
+#Construct inverse weights for robustness
+#calculating inverse weights by CBSA (to weight each city equally)
+bot25 <- bot25 %>% group_by(CBSA) %>% mutate(citywt = 1/n())
+top25 <- top25 %>% group_by(CBSA) %>% mutate(citywt = 1/n())
+US_BLOCK_2010_JOINED <- US_BLOCK_2010_JOINED %>% group_by(CBSA) %>% mutate(citywt = 1/n()) 
+
 ggplot() + 
   geom_smooth(method = 'loess' , data = top25,
               aes(x=rank_density_CBSA, y=demeaned_Housing_density, colour = 'Top 25%'), se = TRUE,
@@ -142,8 +148,6 @@ ggplot() +
     ggsave("Data/US_Data/Output/SingleFamilyLand.png", width = 20, height = 12, units = "cm")
     
     
-    
-    
 #These differences in distribution also accompany stronger sorting on income in superstars
 ggplot() + 
   geom_smooth(method = 'loess', span=1, data = top25, aes(x=rank_density_CBSA, y=demeaned_log_Income, color = 'Top 25%')) +
@@ -152,6 +156,36 @@ ggplot() +
   xlab("Ranked housing unit density (Block Group level)") +
   ylab("Log Average Income (demeaned by MSA)")
 ggsave("Data/US_Data/Output/income.png", width = 16, height = 10, units = "cm")
+
+#linear regressions
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]))
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),]))
+
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]),
+                  weights = citywt)
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),],
+                  weights = citywt))
+#alternative definitions
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["90.0%"]),]),
+                  )
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["10.0%"]),],
+                  ))
+
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["50.0%"]),]),
+)
+summary(lm_robust(demeaned_log_Income ~ rank_density_CBSA, 
+                  data = US_BLOCK_2010_JOINED[US_BLOCK_2010_JOINED$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["50.0%"]),],
+))
+
+#Very robust fact in 2010! 
+
 
 #Robustness: does this hold after controlling for average household size + census family status? In a linear regression
 lm_inc_top25 <- lm_robust(demeaned_log_Income ~ demeaned_log_Average_HH_size + demeaned_FamilyShare + rank_density_CBSA,
