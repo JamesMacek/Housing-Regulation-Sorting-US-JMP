@@ -22,10 +22,46 @@ INCLUSION_BUFFER <- c(1000, 1000, 1250, 1500) #vector of buffers you want to try
 #Each vector above should have the same length
 
 #Load data
-US_BLOCK <- st_read("DataV2/US_Data/Instrument/Slope_Extracted.shp") 
+US_BLOCK <- st_read("DataV2/US_Data/Instrument/Slope_Extracted.shp") %>% select(State, County, Tract, BlockGroup, CBSA, Avg_Slope)
 
-#Values of instruments/other stuff
-donut_instrument_list <- c("Avg_Slope", "Avg_Elev") 
+#Merging with other donut variables
+
+#Destringing variables for merge
+US_BLOCK["State"] <- as.double(US_BLOCK$State)
+US_BLOCK["County"] <- as.double(US_BLOCK$County)
+US_BLOCK["Tract"] <- as.double(US_BLOCK$Tract)
+US_BLOCK["BlockGroup"] <- as.double(US_BLOCK$BlockGroup)
+US_BLOCK["CBSA"] <- as.double(US_BLOCK$CBSA)
+
+
+#Merging other variables from CoreLogic/ACS
+OtherDonutVariables <- read_dta("DataV2/US_Data/Instrument/Donut_variables_nonTopographic.dta")
+US_BLOCK <- left_join(US_BLOCK, OtherDonutVariables, by = c("State", "County", "Tract", "BlockGroup", "CBSA"))
+rm(OtherDonutVariables)
+
+#Renaming variables to shorter codes
+US_BLOCK <- US_BLOCK %>% rename(sqf = buildingsquarefeet,
+                                livsqf = livingsquarefeetallbuildings,
+                                fpind = fireplaceindicator, #Note: fireplace and poolindicators don't discriminate on missing data.
+                                poolind = poolindicator,
+                                bedr = bedroomsallbuildings,
+                                trooms = totalroomsallbuildings,
+                                tbath = totalbathroomsallbuildings,
+                                dm_hdens = demeaned_Housing_density,
+                                dm_cshare = demeaned_car_share,
+                                dm_ptshare = demeaned_public_transport_share,
+                                dm_bussh = demeaned_bus_share,
+                                dm_avgt = demeaned_avg_travel_time,
+                                dm_ACSyrbuilt = demeaned_median_bage) #Note -- this is median building age from the ACS. 
+
+#Replace living square feet with building square feet if missing
+US_BLOCK$livsqf[is.na(US_BLOCK$yearbuilt)] <- US_BLOCK$sqf[is.na(US_BLOCK$yearbuilt)] #185k observations on square footage
+
+#___________!INSTRUMENT LIST!__________________________
+donut_instrument_list <- c("Avg_Slope", "yearbuilt", "livsqf", "dm_hdens", "dm_cshare", "dm_ptshare",
+                           "dm_bussh", "dm_avgt", "dm_ACSyrbuilt") 
+
+US_BLOCK <- US_BLOCK %>% select(State, County, Tract, BlockGroup, CBSA, starts_with(donut_instrument_list))
 
 for (varname in donut_instrument_list) {
   for (s in 1:length(EXCLUSION_BUFFER)) {
@@ -75,8 +111,8 @@ for (loop_MSA in unique(US_BLOCK$CBSA)) {
       excl_neighbors <- US_BLOCK_MSA_CENTROID[US_BLOCK_MSA_CENTROID$row_index %in% excluded_row,]
       
       for (varname in donut_instrument_list) {
-        US_BLOCK_MSA[[paste(paste("instrument", varname, sep = "_"), s, sep = "_spec_")]][loop_row] <- mean(neighbors[[varname]])
-        US_BLOCK_MSA[[paste(paste("control", varname, sep = "_"), s, sep = "_spec_")]][loop_row] <- mean(excl_neighbors[[varname]])
+        US_BLOCK_MSA[[paste(paste("instrument", varname, sep = "_"), s, sep = "_spec_")]][loop_row] <- mean(neighbors[[varname]], na.rm = TRUE)
+        US_BLOCK_MSA[[paste(paste("control", varname, sep = "_"), s, sep = "_spec_")]][loop_row] <- mean(excl_neighbors[[varname]], na.rm = TRUE)
       } 
   } #NaNs that appear from this procedure must come from MSA's with no neighbors. 
 }
@@ -88,12 +124,6 @@ for (loop_MSA in unique(US_BLOCK$CBSA)) {
 US_BLOCK_APPENDED <- US_BLOCK_APPENDED %>% dplyr::select(starts_with(c("instrument", "control", "Avg", "State", "County",
                                                                        "Tract", "BlockGroup", "CBSA"))) %>% st_drop_geometry()
 
-#Destringing variables for merge
-US_BLOCK_APPENDED["State"] <- as.double(US_BLOCK_APPENDED$State)
-US_BLOCK_APPENDED["County"] <- as.double(US_BLOCK_APPENDED$County)
-US_BLOCK_APPENDED["Tract"] <- as.double(US_BLOCK_APPENDED$Tract)
-US_BLOCK_APPENDED["BlockGroup"] <- as.double(US_BLOCK_APPENDED$BlockGroup)
-US_BLOCK_APPENDED["CBSA"] <- as.double(US_BLOCK_APPENDED$CBSA)
-
 #outputting to STATA.
 write_dta(US_BLOCK_APPENDED, "Datav2/US_Data/Instrument/Instrument_constructed.dta")
+rm(list = ls())

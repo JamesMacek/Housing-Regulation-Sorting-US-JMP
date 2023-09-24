@@ -14,6 +14,10 @@ library(geosphere) #pairwise distances
 #Parrallel computing
 library(doParallel) #Parallelize for loops
 
+
+GoogleMaps_Ping <- 0 #SET TO 0 AFTER AUGUST 2023, TAKE CBD LOCATION AS GIVEN!
+
+
 #This file constructs CBD distances by pinging google API
 load(file = "DataV2/US_Data/Output/Constructed_Block.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
@@ -37,25 +41,43 @@ US_CBSA_2010_c <- US_CBSA_2010_c[!is.na(US_CBSA_2010_c$CBSA_NAME.join1),]
 CBSA_NAME_toMatch <- US_CBSA_unmatched$CBSA_NAME
 
 #Start google search
-gmaps_key <- "AIzaSyDl8XvlPfdxNKS0Yqzw-3KochTyUinjvGw" #our API key (DO NOT SHARE!!!)
+gmaps_key <- "AIzaSyDlKczwjeiIG83YCgdodjkl2C7VapyBKOI" #our API key (DO NOT SHARE!!!) DO NOT RUN AFTER AUGUST 2023!
 
-#Starting queries
-for (row in 1:nrow(US_CBSA_unmatched)) {
+
+if (GoogleMaps_Ping == 1) {
+
+  #Starting queries
+  for (row in 1:nrow(US_CBSA_unmatched)) {
   
   
-  search_query <- paste(US_CBSA_unmatched$CBSA_NAME[row], "City hall", sep = " ")
+      search_query <- paste(US_CBSA_unmatched$CBSA_NAME[row], "City hall", sep = " ")
   
-  if (US_CBSA_unmatched$CBSA_NAME[row] == "Los Angeles-Long Beach-Anaheim, CA") { #alteration to only include LA and not anaheim
-    search_query <- "Los Angeles City hall" 
-  }
+      if (US_CBSA_unmatched$CBSA_NAME[row] == "Los Angeles-Long Beach-Anaheim, CA") { #alteration to only include LA and not anaheim
+        search_query <- "Los Angeles City hall" 
+      }
   
-  place_results <- google_places(search_string = search_query, 
+      place_results <- google_places(search_string = search_query, 
                                  key = gmaps_key)
+    
+      US_CBSA_unmatched$GoogleEarthLat[row] <- place_results$results$geometry$location[[1]][1] #latitude of first search result
+      US_CBSA_unmatched$GoogleEarthLon[row] <- place_results$results$geometry$location[[2]][1] #longitude
   
-  US_CBSA_unmatched$GoogleEarthLat[row] <- place_results$results$geometry$location[[1]][1] #latitude of first search result
-  US_CBSA_unmatched$GoogleEarthLon[row] <- place_results$results$geometry$location[[2]][1] #longitude
+  }
+    
+  #SAVING GOOGLE MAPS PING + DAY OF EXTRACTION 
+   date_full <- date()
+   date <- paste0(word(date_full, start = 2, end = 2), "_",
+                word(date_full, start = 4, end = 4), "_",
+                word(date_full, start = 6, end = 6)) 
+  save(US_CBSA_unmatched, file = paste0("DataV2/US_Data/Output/Unmatched_CBD_locations_fromGoogleMaps_", date, ".Rdata"))  
   
 }
+
+#loading matched filename (note: there should be only one in output folder!)
+filelist <- list.files("DataV2/US_Data/Output")
+load_GoogleMaps_CBD <- filelist[which(grepl("Unmatched_CBD_locations_fromGoogleMaps", filelist, fixed = TRUE) == TRUE)] #extracting desired files
+#loading data
+load(paste0("DataV2/US_Data/Output/", load_GoogleMaps_CBD))
 
 US_CBSA_2010_c <- rbind(US_CBSA_2010_c, US_CBSA_unmatched)
 
@@ -75,14 +97,15 @@ US_BLOCK_CENTRIOD <- st_centroid(US_BLOCK)
 US_BLOCK_CENTRIOD <- st_transform(US_BLOCK_CENTRIOD, 4269) #setting correct crs to talk to lat/lon
 
 
-#loop over rows and calculate distance between CBD and block group centriod (takes a long time to run for some reason)
+#loop over rows and calculate distance between CBD and block group
 #Initializing column
-US_BLOCK["Dist_to_CBD"] <- rep(NA, nrow(US_BLOCK))
-for (i in 1:nrow(US_BLOCK)) {
-  US_BLOCK$Dist_to_CBD[i] <- geosphere::distm(c(US_BLOCK_CENTRIOD$geometry[i][[1]][1], US_BLOCK_CENTRIOD$geometry[i][[1]][2]),
-                                              c(US_BLOCK$CBDLon[i], US_BLOCK$CBDLat[i]), fun = distHaversine)
+US_BLOCK["Dist_to_CBD"] <- foreach(i=1:nrow(US_BLOCK), .combine = c) %do% {
+  
+                           return(geosphere::distm(c(US_BLOCK_CENTRIOD$geometry[i][[1]][1], US_BLOCK_CENTRIOD$geometry[i][[1]][2]),
+                                                                                          c(US_BLOCK$CBDLon[i], US_BLOCK$CBDLat[i]), fun = distHaversine))
   
 }
+
 
 US_BLOCK["inv_D2CBD"] <- 1/US_BLOCK$Dist_to_CBD
 

@@ -125,4 +125,7 @@ for (variable in vars_to_merge) {
   
 }
 
+#Setting CBSA to numeric
+US_BLOCK$CBSA <- as.numeric(US_BLOCK$CBSA)
+
 save(US_BLOCK, file = "DataV2/US_Data/Output/Constructed_Block.Rdata")

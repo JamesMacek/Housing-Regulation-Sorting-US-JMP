@@ -17,15 +17,14 @@ library(gratia) #for helping to plot these
 options(scipen = 5) #limit scientific
 
 #Date created: August 26th, 2022
-#This file does different facts with the 2016-2020 pooled ACS. 
-#Focuses entirely on income sorting.
-#Data_CensusACS_BlockGroup_Construct.R
+#requires output from a whole host of programs-- namely Merge_stringency.R and NaNDA_Construct.R
 
 #importing data
 load(file = "DataV2/US_Data/Output/Constructed_Block_V2.Rdata")
-load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
-
+load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
+load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
+load(file = "DataV2/US_Data/Output/CBSA_quantiles_pop.Rdata")
 
 #Formulas to use for regressions
 controls <- "+ demeaned_median_bage + demeaned_household_size + demeaned_car_share + demeaned_family_share + demeaned_car_transport_share + 
@@ -36,7 +35,7 @@ controls <- "+ demeaned_median_bage + demeaned_household_size + demeaned_car_sha
                demeaned_fastfood_dens + demeaned_coffee_dens + demeaned_bar_dens + 
                demeaned_perennial_snow + demeaned_deciduous_forest + demeaned_evergreen_forest +
                demeaned_mixed_forest + demeaned_shrubs + demeaned_herbaceous + demeaned_woody_wetlands + 
-               demeaned_herbaceous_wetlands"
+               demeaned_herbaceous_wetlands + rank_inv_D2CBD" #baseline set of controls
 
 excluded_controls_income_formula <- as.formula('demeaned_log_Income ~ s(rank_density_CBSA, k = 5, bs = "cr")')
 
@@ -45,14 +44,21 @@ included_controls_income_formula <- as.formula(paste('demeaned_log_Income ~ s(ra
 excluded_controls_stringency_formula <- as.formula('demeaned_stringency ~ s(rank_density_CBSA, k = 5, bs = "cr")')
 
 included_controls_stringency_formula <- as.formula(paste('demeaned_stringency ~ s(rank_density_CBSA, k = 5, bs = "cr")', controls, sep = " "))
+
+
+#Sample definitions
+top <- US_BLOCK[US_BLOCK$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) & 
+                     US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]
+bot <- US_BLOCK[US_BLOCK$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
+                US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),]
                                         
 
-#Fact1: "slightly stronger income sorting on density"
+#Fact1: "slightly stronger income sorting on density in dense (large) cities"
 reg_t25 <- gam(formula = excluded_controls_income_formula,
-               data = US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
+               data = top) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
 
 reg_b25 <- gam(formula = excluded_controls_income_formula,
-               data = US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),]) 
+               data = bot) 
 
 #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
 t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -66,7 +72,7 @@ Income.plot <- ggplot() +
   geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
   
   geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
   scale_colour_manual(name="Sample", values = c("red","blue")) + 
   xlab("Ranked housing unit density (Block Group level)") +
   ylab("Log Average Income (demeaned by MSA)") + 
@@ -77,10 +83,10 @@ ggsave("DataV2/US_Data/Output/income.png", plot = Income.plot, width = 24, heigh
 #Estimating linear model after residualizing other variables (this is temporary-- can estimate a partial linear model later)
 #Estimating partial linear model (i.e. residualizing by building age) (i.e. using globally fitted parameter)
 reg_t25 <- gam(formula = included_controls_income_formula,
-               data = US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])
+               data = top)
 
 reg_b25 <- gam(formula = included_controls_income_formula,
-               data = US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),])
+               data = bot)
 
 #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
 t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -94,7 +100,7 @@ Income_resid.plot <- ggplot() +
   geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
   
   geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
   scale_colour_manual(name="Sample", values = c("red","blue")) + 
   xlab("Ranked housing unit density (Block Group level)") +
   ylab("Log Average Income (demeaned by MSA, residualized by controls)") +
@@ -108,18 +114,16 @@ ggsave("DataV2/US_Data/Output/income_combined.png", width = 24, height = 15, uni
 #Using a linear regression to check relative slopes in income
 linear_income_formula <- as.formula(paste('demeaned_log_Income ~ rank_density_CBSA', controls, sep = " "))
 
-summary(lm_robust(formula = linear_income_formula, data = 
-                    US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]))
-summary(lm_robust(formula = linear_income_formula, data = 
-                    US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),]))
+summary(lm_robust(formula = linear_income_formula, data = top))
+summary(lm_robust(formula = linear_income_formula, data = bot)) #Same idea. 
 
 
 #Fact 2: "Variation explained by the prices of minimal lots"
   reg_t25 <- gam(formula = excluded_controls_stringency_formula,
-                 data = US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])
+                 data = top)
   
   reg_b25 <- gam(formula = excluded_controls_stringency_formula,
-                 data = US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),])
+                 data = bot)
   
   #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
   t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -128,12 +132,12 @@ summary(lm_robust(formula = linear_income_formula, data =
     add_confint()
   
   #Plotting these residualized plots
-  IncomeStringency.plot <- ggplot() +
+ IncomeStringency.plot <- ggplot() +
     geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
     geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
     
     geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-    geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+    geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
     scale_colour_manual(name="Sample", values = c("red","blue")) + 
     xlab("Ranked housing unit density (Block Group level)") +
     ylab("Income Stringency of Density Restrictions (demeaned by MSA)") +
@@ -143,10 +147,10 @@ summary(lm_robust(formula = linear_income_formula, data =
   
   
   reg_t25 <- gam(formula = included_controls_stringency_formula,
-                 data = US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])
+                 data = top)
   
   reg_b25 <- gam(formula = included_controls_stringency_formula,
-                 data = US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),])
+                 data = bot)
   
   #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
   t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -160,11 +164,11 @@ summary(lm_robust(formula = linear_income_formula, data =
     geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
     
     geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-    geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+    geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
     scale_colour_manual(name="Sample", values = c("red","blue")) + 
     xlab("Ranked housing unit density (Block Group level)") +
     labs(y = paste0("Income Stringency of Density Restrictions", "\n", "(demeaned by MSA, residualized by controls)")) +
-    theme(axis.title = element_text(size = 15))
+    ggtitle("Panel A")
     ggsave("DataV2/US_Data/Output/income_stringency_residualized.png", width = 24, height = 15, units = "cm")
     
     
@@ -172,10 +176,10 @@ summary(lm_robust(formula = linear_income_formula, data =
     excluded_controls_density_formula <- as.formula('demeaned_densrestriction ~ s(rank_density_CBSA, k = 5, bs = "cr")')
     
     reg_t25 <- gam(formula = excluded_controls_density_formula,
-                   data = US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])
+                   data = top)
     
     reg_b25 <- gam(formula = excluded_controls_density_formula,
-                   data = US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),])
+                   data = bot)
     
     #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
     t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -189,20 +193,20 @@ summary(lm_robust(formula = linear_income_formula, data =
       geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
       
       geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-      geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+      geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
       scale_colour_manual(name="Sample", values = c("red","blue")) + 
       xlab("Ranked housing unit density (Block Group level)") +
       labs(y = paste0("Density Restriction (Acres/Unit)", "\n", "(demeaned by MSA)")) +
       theme(axis.title = element_text(size = 15))
     ggsave("DataV2/US_Data/Output/income_density.png", width = 24, height = 15, units = "cm")
-    #Interesting... but how is this possible?
-    #NOTE: SAME HOLDS INCLUDING CONTROLS!
+    #NOTE: SAME HOLDS INCLUDING CONTROLS! This suggests a completely opposite framework! (remember--these density restrictions do not take into account fraciton of zoned land)
 
 
 #Replicating negative income sorting on density plots allowing for average intercept to differ
-t25d_int <- US_BLOCK[US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]
-b25d_int <- US_BLOCK[US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["25.0%"]),]
-
+t25d_int <- US_BLOCK[US_BLOCK$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) & 
+                  US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]
+b25d_int <- US_BLOCK[US_BLOCK$City_housing_density < as.numeric(quantile_CBSA_dens["50.0%"]) & 
+                  US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["50.0%"]),]
 
 #Regressions allowing for average intercept to vary
 reg_t25 <- gam(excluded_controls_income_formula,
@@ -227,7 +231,7 @@ ggplot() +
   geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
   
   geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
   scale_colour_manual(name="Sample", values = c("red","blue")) + 
   xlab("Ranked housing unit density (Block Group level)") +
   ylab("Log Average Income (demeaned by MSA)") +
@@ -244,9 +248,9 @@ reg_b25 <- gam(excluded_controls_stringency_formula,
 #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
 t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
   add_confint()  #from gratia, extracts gam estimates + add confidence intervals
-t25_smooth$lower_ci <- t25_smooth$lower_ci + mean(t25d_int$IncomeStringencyofRegulation, na.rm = TRUE) - mean(b25d_int$IncomeStringencyofRegulation, na.rm = TRUE) #add differences in intercept
-t25_smooth$upper_ci <- t25_smooth$upper_ci + mean(t25d_int$IncomeStringencyofRegulation, na.rm = TRUE) - mean(b25d_int$IncomeStringencyofRegulation, na.rm = TRUE) #add differences in intercept
-t25_smooth$est <- t25_smooth$est + mean(t25d_int$IncomeStringencyofRegulation, na.rm = TRUE) - mean(b25d_int$IncomeStringencyofRegulation, na.rm = TRUE) #add differences in intercept
+t25_smooth$lower_ci <- t25_smooth$lower_ci + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
+t25_smooth$upper_ci <- t25_smooth$upper_ci + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
+t25_smooth$est <- t25_smooth$est + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
 
 b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>%
   add_confint()
@@ -257,7 +261,7 @@ IncomeStringency_intercept.plot <- ggplot() +
   geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
   
   geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 25%')) + 
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
   scale_colour_manual(name="Sample", values = c("red","blue")) + 
   xlab("Ranked housing unit density (Block Group level)") +
   labs(y = paste0("Income Stringency of Density Restrictions", "\n", "(demeaned by MSA, intercept varies by sample)")) +
@@ -265,3 +269,5 @@ IncomeStringency_intercept.plot <- ggplot() +
 
 IncomeStringency.plot + IncomeStringency_intercept.plot + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 ggsave("DataV2/US_Data/Output/incomestringency_combined.png", width = 24, height = 15, units = "cm")
+
+rm(list = ls())

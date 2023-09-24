@@ -46,7 +46,7 @@ names(US_BLOCK)[names(US_BLOCK) == 'ALAND'] <- 'LAND_AREA'
 US_BLOCK<- US_BLOCK[!is.na(US_BLOCK$CBSA),] #200,670 block groups remain.
 
 US_BLOCK <- US_BLOCK[!(US_BLOCK$State == 15 | US_BLOCK$State == 72 | US_BLOCK$State == '02'),]
-US_BLOCK <- US_BLOCK %>% dplyr::select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, LAND_AREA) #197,385 block groups remain. 
+US_BLOCK <- US_BLOCK %>% dplyr::select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, LAND_AREA) #197,062 block groups remain. 
 
 #Joining NHGIS Data (ACS 2016-2020)
 US_NHGIS <- read_csv("DataV2/US_Data/NHGIS/nhgis_20205_blck_grp.csv")
@@ -82,12 +82,13 @@ US_BLOCK$Housing_density <- US_BLOCK$U7G001/US_BLOCK$LAND_AREA #Housing unit den
 
 #Constructing CBSA level housing unit density 
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(City_housing_density = sum(U7G001, na.rm = TRUE)/sum(LAND_AREA, na.rm = TRUE))
+US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(City_housing_pop = sum(U7G001, na.rm = TRUE))
 
 #Demeaning housing unit density by MSA
 US_BLOCK<- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_Housing_density = Housing_density/mean(Housing_density))
 
 #Median housing value subsets to classify cities 
-US_CBSA_2010_c <- as.data.frame(collap(US_BLOCK, AMWBE001 + City_housing_density ~ CBSA + CBSA_NAME, FUN = c("fmedian")))
+US_CBSA_2010_c <- as.data.frame(collap(US_BLOCK, AMWBE001 + City_housing_density + City_housing_pop ~ CBSA + CBSA_NAME, FUN = c("fmedian")))
 names(US_CBSA_2010_c)[names(US_CBSA_2010_c) == 'AMWBE001'] <- 'CBSA_med_house_value'
 US_BLOCK <- left_join(US_BLOCK, US_CBSA_2010_c, by = c("CBSA"), suffix = c("", ".y")) %>% select(-ends_with(".y"))
 
@@ -99,6 +100,13 @@ US_BLOCK["Average_income"] <- US_BLOCK$AMR9E001/US_BLOCK$AMUDE001 #Aggregate inc
 
 #Demeaning by MSA, plus calculating average by MSA
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_log_Income = log(Average_income) - mean(log(Average_income), na.rm = TRUE))
+
+#Census white share
+US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_white_share = U7B003/U7B001 - mean(U7B003/U7B001, na.rm = TRUE))
+
+#ACS college share 
+US_BLOCK <- US_BLOCK %>% mutate(college_share = (AMRZE021 + AMRZE022 + AMRZE023 + AMRZE024 + AMRZE025)/AMRZE001)
+US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_college_share = college_share - mean(college_share, na.rm = TRUE))
 
 #Building age (gentrification cycles-- Bruecker and Rosenthaal (2008) )
 US_BLOCK$AMU8E001[US_BLOCK$AMU8E001 == 18] <- NA #18 appears to be some type of error code. removing these observations (only a few hundred)
@@ -117,7 +125,6 @@ US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_car_share = (AMVHE00
 #Car work transport share
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_car_transport_share = (AMQKE002)/AMQKE001 -
                                                      mean((AMQKE002)/AMQKE001, na.rm = TRUE))
-
 #Public transport share
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_public_transport_share = (AMQKE010)/AMQKE001 -
                                                      mean((AMQKE010)/AMQKE001, na.rm = TRUE))
@@ -164,10 +171,11 @@ US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_regulated_housing_sh
 #Centiles of CBSAs in terms of median-of-median house prices
 quantile_CBSA_houseval <- quantile(US_CBSA_2010_c$CBSA_med_house_value, probs = seq(0, 1, 0.005), na.rm = TRUE)
 quantile_CBSA_dens <- quantile(US_CBSA_2010_c$City_housing_density, probs = seq(0, 1, 0.005), na.rm = TRUE)
+quantile_CBSA_pop <-quantile(US_CBSA_2010_c$City_housing_pop, probs = seq(0, 1, 0.005), na.rm = TRUE)
 
 US_BLOCK <- st_set_geometry(US_BLOCK, US_BLOCK$geometry) #for some reason geometries were dropped before, resetting
 US_BLOCK <- select(US_BLOCK, contains(c("State", "County", "Tract", "BlockGroup", "CBSA", "CBSA_NAME", "NAME",
-                                      "rank", "density", "Income", "demeaned", "geometry")))
+                                      "rank", "density", "pop", "Income", "demeaned", "geometry")))
 
 
 
@@ -176,5 +184,6 @@ save(US_BLOCK, file = "DataV2/US_Data/Output/Constructed_Block.Rdata")
 save(US_CBSA_2010_c, file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
 save(quantile_CBSA_houseval, file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
 save(quantile_CBSA_dens, file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
+save(quantile_CBSA_pop, file = "DataV2/US_Data/Output/CBSA_quantiles_pop.Rdata")
 
 rm(list = ls())

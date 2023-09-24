@@ -103,17 +103,8 @@ US_BLOCK["Avg_Slope"] <- foreach (row = 1:nrow(US_BLOCK), .combine = 'c') %dopar
   
 }
 
-US_BLOCK["Avg_Elev"] <- foreach (row = 1:nrow(US_BLOCK), .combine = 'c') %dopar% {
-  Extract(raster = elevation, polygonDF = US_BLOCK,
-          i = row)
-  
-}
-
 Sys.time() #1000 slopes extracted in <15 seconds. #Extrapolating to ~ 45 minutes for entire dataset. 
 #Only 4 observations could not be assigned slopes in the data (out of 177,261 block groups)
-
-
-#Do the same with altitude raster?
 
 
 #Writing and storing as shapefile
