@@ -6,7 +6,7 @@
 
 
 Calibrate_prices <- function(Master_data, demandParameters) {
-  
+  set.seed(1)
   #PRELIMINARIES -- DEFINING OBJECTS TO PASS TO FOLLOWING FUNCTIONS
   beta_StGeary <- demandParameters[1] #beta -- stone geary
   min_hReq <- demandParameters[2] #Minimum housing consumption requirement

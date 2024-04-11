@@ -1,4 +1,9 @@
+#This file reads in and compiles all functions used in the companion file Solve_Current_Equilibrium_allSpecs_FullDereg.R
+library(compiler) #Compile function for added speed. Short functions don't need to be compiled. 
 
+
+
+#_____________________________________________________________________________________________________________________________________________
 #Full solution to housing market equilibrium given fixed population. NOTE: THIS FUNCTION IS ONLY USEABLE WITH STONE GEARY PREFERENCES!!
 #Otherwise, housing market equilibrium solution is extremely easy when spending shares are fixed
 getHousingPrices_Full <- function(Master_data) {
@@ -67,6 +72,11 @@ getHousingPrices_Full <- function(Master_data) {
   
 }
 
+getHousingPrices_Full <- cmpfun(getHousingPrices_Full) #compiling function
+#___________________________________________________________________________________________________________________________________________
+
+
+#___________________________________________________________________________________________________________________________________________
 getHousingPrices <- function(Master_data) { #This function solves housing markets KEEPING SPENDING SHARES FIXED (EXOGENOUS). Pass whole data frame, not row-by-row.
   
   h_spending <- 0
@@ -87,20 +97,25 @@ getHousingPrices <- function(Master_data) { #This function solves housing market
   
 }
 
+getHousingPrices <- cmpfun(getHousingPrices) #compiling function
+#____________________________________________________________________________________________________________________________________________
 
+
+#____________________________________________________________________________________________________________________________________________
 #This function solves for consumption values 
 getConsumptionValues <- function(Master_data, skill, incomeType, demandParameters) {
     
     #demandParameters[1] is beta
     #demandParameters[2] is the minimum housing unit requirement
     
-    #parallel maxima of 0, etc 
+    #parallel maxima of 0
     consumptionValue <- pmax((Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]] - Master_data$housingPrice*demandParameters[2])/(Master_data$housingPrice^(demandParameters[1])), rep(0, nrow(Master_data)))* #Take vanilla consumption index
                               (consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]) #adjusting by consumption adjustment factor calculated in calibrate_unobserved_amenities.R
     return(consumptionValue)
   
   
 } #End retrieval of housing prices
+#____________________________________________________________________________________________________________________________________________
 
 #Function to retrieve average income
 getAvgIncome <- function(Master_data) {
@@ -119,6 +134,7 @@ getAvgIncome <- function(Master_data) {
     return(total_income/total_population)
     
 }
+#____________________________________________________________________________________________________________________________________________
 
 #Function to retrieve location amenity
 getLocationAmenity <- function(Master_data, skill, incomeType) {
@@ -128,8 +144,9 @@ getLocationAmenity <- function(Master_data, skill, incomeType) {
   Amenity <- Master_data[[paste0("exogenous_Amenity_", name_of_skill, incomeType)]]*(Master_data$Avg_income^(Omega[incomeType])) #Requires Avg_income in dataframe and exogenous amenity value
   
 }
+#____________________________________________________________________________________________________________________________________________
 
-
+#____________________________________________________________________________________________________________________________________________
 #Function to update college and nocollege wages given relative employments
 getSkillWages <- function(Master_data) { #only works if bySkill == TRUE!
   
@@ -172,4 +189,15 @@ getSkillWages <- function(Master_data) { #only works if bySkill == TRUE!
   return(list(College = Master_data$CollegeWage, 
               NoCollege = Master_data$NoCollegeWage))
 
+}
+getSkillWages <- cmpfun(getSkillWages) #compiling function
+#____________________________________________________________________________________________________________________________________________
+
+#Small function for parralel means -- source https://rdrr.io/github/tanaylab/tgutil/src/R/utils.R
+pmean <- function(..., na.rm = FALSE) {
+  d <- do.call(cbind, list(...))
+  res <- rowMeans(d, na.rm = na.rm)
+  idx_na <- !rowMeans(!is.na(d))
+  res[idx_na] <- NA
+  return(res)
 }

@@ -34,7 +34,7 @@ getCityAverageType <- function(Master_data) {
     for (incomeType in 1:7) {
       
       Master_data["sum_type"] <- Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]*Master_data[[paste0("ability_grp", incomeType)]] + Master_data[["sum_type"]]
-      Master_data["running_tot_pop"] <- Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] + Master_data[["running_tot_pop"]]
+      Master_data["running_tot_pop"] <- Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] + Master_data[["running_tot_pop"]] 
       
     }
   }
@@ -73,86 +73,32 @@ getCityTotalPop <- function(Master_data) {
 
 
 
-#INCOME AND CONSUMPTION EXPOSURE MEASURES FOR WELFARE DECOMPOSITION
-#Function to do income and consumption decompositions... 
-getAmenityExposureGrowth <- function(Init_data, Ct_data, skill, incomeType) { #Income growth weighted by initial population
+#Welfare effects for shapely decomposition
+getWelfare_ShapelyDecomp <- function(Consumption_data, Amenity_data, skill, incomeType) { #Income growth weighted by initial population
   
   #Skill Name
   name_of_skill <- skillName[which(skill == skillVector)]
   
   #measuring growth in incomes only weighted by fraction of these types of workers
-  Ct_data[paste0("Val_temp", name_of_skill, incomeType)] <- ((Ct_data[[paste0("Amenity_", name_of_skill, incomeType)]]/Init_data[[paste0("Amenity_", name_of_skill, incomeType)]])^(rho))*
-                                                            (Init_data[[paste0("Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]])
-                                                            #Amenity growth in each location x initial fraction of workers in x 
+  Consumption_data[paste0("Val_temp", name_of_skill, incomeType)] <- (exp(Consumption_data[[paste0("consumption_Val_", name_of_skill, incomeType)]])*
+                                                                      (Amenity_data[[paste0("Amenity_", name_of_skill, incomeType)]]))^(rho)
+                                                                    
+                                                                #Amenity growth in each location x initial fraction of workers in x 
   
   value_n_sym <- paste0("Val_temp", name_of_skill, incomeType)
   value_n_city_sym <- paste0("City_Welfare_", name_of_skill, incomeType) 
   
   #Creating city welfare index 
-  Ct_data <- Ct_data %>% group_by(CBSA) %>% mutate(!!sym(value_n_city_sym) := (sum(!!sym(value_n_sym), na.rm = TRUE))^(1/rho))
+  Consumption_data <- Consumption_data %>% group_by(CBSA) %>% mutate(!!sym(value_n_city_sym) := (sum(!!sym(value_n_sym), na.rm = TRUE))^(1/rho))
   
-  #Creating global welfare index (city level utility weighted by... etc. )
-  Welfare_index <- (sum(( (Ct_data[[paste0("City_Welfare_", name_of_skill, incomeType)]])^(theta))*
-                          ((Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("Total_Population_type_", name_of_skill, incomeType)]])*Init_data$inverse_city_weights)))^(1/theta)
-  
-  return(Welfare_index)
-  
-  
-}
-
-#Income exposure growth (do not take to power of Omega)
-getIncomeExposureGrowth <- function(Init_data, Ct_data, skill, incomeType) { #Income growth weighted by initial population
-  
-  #Skill Name
-  name_of_skill <- skillName[which(skill == skillVector)]
-  
-  #measuring growth in incomes only weighted by fraction of these types of workers
-  Ct_data[paste0("Val_temp", name_of_skill, incomeType)] <- ((Ct_data$Avg_income/Init_data$Avg_income)^(rho))*
-                                                            (Init_data[[paste0("Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]])
-                                                            #Income growth in each location x initial fraction of workers in x 
-  
-  value_n_sym <- paste0("Val_temp", name_of_skill, incomeType)
-  value_n_city_sym <- paste0("City_Welfare_", name_of_skill, incomeType) 
-  
-  #Creating city welfare index 
-  Ct_data <- Ct_data %>% group_by(CBSA) %>% mutate(!!sym(value_n_city_sym) := (sum(!!sym(value_n_sym), na.rm = TRUE))^(1/rho))
-  
-  #Creating global welfare index (city level utility weighted by... etc. )
-  Welfare_index <- (sum( ((Ct_data[[paste0("City_Welfare_", name_of_skill, incomeType)]])^(theta))*
-                          ((Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("Total_Population_type_", name_of_skill, incomeType)]])*Init_data$inverse_city_weights)))^(1/theta)
+  #Creating global welfare index (aggregating up city welfare indices)
+  Welfare_index <- (sum( ((Consumption_data[[paste0("City_Welfare_", name_of_skill, incomeType)]])^(theta))*
+                           Consumption_data$inverse_city_weights ))^(1/theta) #Take log for differences in shapely decomposition
   
   return(Welfare_index)
   
   
 }
-
-getConsumptionExposureGrowth <- function(Init_data, Ct_data, skill, incomeType) {
-  
-  #Skill Name
-  name_of_skill <- skillName[which(skill == skillVector)]
-  
-  #measuring growth in incomes only weighted by fraction of these types of workers
-  Ct_data[paste0("Val_temp", name_of_skill, incomeType)] <- ((exp(Ct_data[[paste0("consumption_Val_", name_of_skill, incomeType)]] - Init_data[[paste0("consumption_Val_", name_of_skill, incomeType)]]))^(rho))*
-                                                            (Init_data[[paste0("Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]])
-                                                                                          #Consumption growth in each location x initial fraction of workers in x 
-  
-  value_n_sym <- paste0("Val_temp", name_of_skill, incomeType)
-  value_n_city_sym <- paste0("City_Welfare_", name_of_skill, incomeType) 
-  
-  #Creating city welfare index 
-  Ct_data <- Ct_data %>% group_by(CBSA) %>% mutate(!!sym(value_n_city_sym) := (sum(!!sym(value_n_sym)))^(1/rho))
-  
-  #Creating global welfare index (city level utility weighted by... etc. )
-  Welfare_index <- (sum( ((Ct_data[[paste0("City_Welfare_", name_of_skill, incomeType)]])^(theta))*
-                          ((Init_data[[paste0("City_Population_type_", name_of_skill, incomeType)]]/Init_data[[paste0("Total_Population_type_", name_of_skill, incomeType)]])*Init_data$inverse_city_weights)))^(1/theta)
-  
-  return(Welfare_index)
-  
-  
-}
-
-
-
 
 #Get city output shares -- this is to do calculations for to get an idea for what productivity changes 
 #would have been if we didn't have income sorting...
@@ -179,4 +125,21 @@ getCityOutputShares <- function(Master_data) {
   
 }
 
-#Basic welfare function for testing
+#Get populationsof neighborhoods
+getNeighborhoodPop <- function(Master_data) {
+  
+  neighborhood_pop <- rep(0, nrow(Master_data))
+  
+  for (skill in skillVector) {
+    name_of_skill <- skillName[which(skill == skillVector)]
+    for (incomeType in 1:7) {
+      
+      neighborhood_pop <- Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] + neighborhood_pop
+      
+    }
+  }
+  
+  return(neighborhood_pop)
+  
+  
+}

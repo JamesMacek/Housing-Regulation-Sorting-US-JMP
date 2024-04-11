@@ -1,7 +1,8 @@
 #Date created: Feb 5th, 2023
 
 #This file solves for all possible equilibria in our model under full deregulation. 
-#This calls Solve_Current_Equilibrium....R for each parameterization of the model we want to solve. 
+#This calls Solve_Current_Equilibrium....R for each parameterization of the model we want to solve, and creates an 
+#equilibrium output file. 
 
 library(dplyr)
 library(haven)
@@ -10,11 +11,8 @@ library(readr)
 library(rlang)
 library(stringr)
 
-#_______________________________________________________________________________________________________________________________________
-#MODEL 1: FULL MOBILITY, ENDOGENOUS AMENITIES -- BASELINE SPECIFICATION
-
 #FILEPATH FOR SOLUTION .R FILE
-solver <- "CodeV2/Counterfactual/Solve_Current_Equilibrium_allSpecs_FullDereg.R" #Use different solver file for different results... 
+solver <- "CodeV2/Counterfactual/Functions/Solve_Current_Equilibrium_allSpecs_FullDereg.R" #Use different solver file for different results... 
 
 #PARAMETER GUI__________________________________________________________________
 EquilibriumType <- list() #List to read which equilibrium to solve for 
@@ -33,9 +31,9 @@ EquilibriumType["bySkill"] <- FALSE #BySkill
 EquilibriumType["StoneGeary"] <- TRUE #Baseline, Stone geary preferences 
 EquilibriumType["EndogenousAmenities"] <- TRUE
 EquilibriumType["EndogenousProductivity"] <- FALSE #Baseline, no endogenous productivity
+EquilibriumType["NoFundamentals"] <- FALSE #use observed fundamental amenities
 
-
-#Run solution
+#MODEL 1: BASELINE 
 source(solver)
 
 #_______________________________________________________________________________________________________________________________________
@@ -46,25 +44,7 @@ EquilibriumType["EndogenousAmenities"] <- FALSE
 source(solver)
 
 #______________________________________________________
-#MODEL 3: WITHIN/C MOBILITY, ENDOGENOUS AMENITIES 
-EquilibriumType["WithinCityMobility"] <- TRUE
-EquilibriumType["Full"] <- FALSE
-EquilibriumType["EndogenousAmenities"] <- TRUE
-
-
-#Run solution
-source(solver)
-
-#______________________________________________________
-#MODEL 4: NO MOBILITY, ENDOGENOUS AMENITIES 
-EquilibriumType["WithinCityMobility"] <- FALSE
-EquilibriumType["NoMobility"] <- TRUE
-
-#Run solution
-source(solver)
-
-#______________________________________________________
-#MODEL 5: ENDOGENOUS AMENITIES  + PRODUCTIVITY
+#MODEL 3: ENDOGENOUS AMENITIES  + PRODUCTIVITY
 EquilibriumType["NoMobility"] <- FALSE
 EquilibriumType["Full"] <- TRUE
 EquilibriumType["EndogenousProductivity"] <- TRUE 
@@ -73,7 +53,7 @@ EquilibriumType["EndogenousProductivity"] <- TRUE
 source(solver)
 
 #______________________________________________________
-#MODEL 6: BASELINE BY SKILL -- TURN OF ENDOGENOUS AMENITIES.
+#MODEL 4: BASELINE BY SKILL -- TURN OF ENDOGENOUS AMENITIES.
 EquilibriumType["EndogenousProductivity"] <- FALSE
 EquilibriumType["EndogenousAmenities"] <- FALSE 
 EquilibriumType["bySkill"] <- TRUE
@@ -81,12 +61,20 @@ EquilibriumType["bySkill"] <- TRUE
 #Run solution
 source(solver)
 
-#MODEL 7: BASELINE BY SKILL --  ENDOGENOUS AMENITIES.
+#_____________________________________________________________
+#MODEL 5: BASELINE BY SKILL --  ENDOGENOUS AMENITIES.
 EquilibriumType["EndogenousProductivity"] <- FALSE
 EquilibriumType["EndogenousAmenities"] <- TRUE
 EquilibriumType["bySkill"] <- TRUE
 
 #Run solution
 source(solver)
+
+#__________________________________________________________________________
+#MODEL 6: BASELINE BY SKILL --  ENDOGENOUS AMENITIES + PRODUCTIVITY (skill biased agglomeration)
+EquilibriumType["EndogenousProductivity"] <- TRUE
+
+source(solver)
+
 
 

@@ -19,6 +19,9 @@ library(dplyr)
 library(haven) #to save in .dta format
 library(sf)
 
+#OVERWRITE_FILES
+overwrite_files <- TRUE #Set to false if you don't want to overrwrite files
+
 #need to turn of sf_use_s2 (spherical geometry) because of spatial joining issues. Some approximation error using flat geometry
 sf::sf_use_s2(FALSE) 
 
@@ -95,10 +98,11 @@ for (chunk in seq(1, no_of_loops)) {
  
   # lines to skip in delimit read under current iteration
   loop_skip <- (chunk - 1)*loop_row + 1 
-  #create dataset if it already does not exist
   
-  if (file.exists(paste0(data_filepath, paste0("/temp/dta/transactions/", 
-                                               paste0(chunk, "transactions_tmpchunk.dta")))) == FALSE) {
+  #create dataset if it already does not exist
+  if ( file.exists(paste0(data_filepath, paste0("/temp/dta/transactions/", 
+                                               paste0(chunk, "transactions_tmpchunk.dta")))) == FALSE |
+       overwrite_files == TRUE ) {
     
     
     #Importing chunk
@@ -124,9 +128,8 @@ for (chunk in seq(1, no_of_loops)) {
     transactions_chunk <- transactions_chunk %>% filter(!is.na(primarycategorycode) & primarycategorycode == "A" &
                                                         !is.na(saleamount) & !is.na(clip))
     
-    #Extracting YearSold, MonthSold, DaySold, keeping observations above year 2016
+    #Extracting YearSold, MonthSold, DaySold, keeping observations
     transactions_chunk["yearSold"] <- as.numeric(substr(transactions_chunk$salederiveddate, 1, 4))
-    transactions_chunk <- transactions_chunk %>% filter(yearSold >= 2016 & !is.na(yearSold)) 
     transactions_chunk["monthSold"] <- as.numeric(substr(transactions_chunk$salederiveddate, 5, 6))
     transactions_chunk["daySold"] <- as.numeric(substr(transactions_chunk$salederiveddate, 7, 8))
     transactions_chunk <- transactions_chunk %>% select(-salederiveddate)
@@ -138,9 +141,20 @@ for (chunk in seq(1, no_of_loops)) {
     #relabeling fips code
     transactions_chunk <- transactions_chunk %>% rename(fipscode_fromSale = fipscode)    #Saving in .dta format
     
-    write_dta(transactions_chunk,
+    
+    #Saving two datasets, one for historical 2008-2012 transactions and one for >=2016 transactions
+    transactions_chunk_out <- transactions_chunk %>% filter(yearSold >= 2016 & !is.na(yearSold)) #Filtering transactions for construction of hedonic indices centered in 2020/2010
+    
+    write_dta(transactions_chunk_out,
                 path = paste0(data_filepath, paste0("/temp/dta/transactions/", 
                                                     paste0(chunk, "transactions_tmpchunk.dta"))))
+    
+    transactions_chunk_out <- transactions_chunk %>% filter((yearSold >= 2008 & yearSold <= 2012) & !is.na(yearSold)) #historical indices
+    write_dta(transactions_chunk_out,
+              path = paste0(data_filepath, paste0("/temp/dta/transactions/", 
+                                                  paste0(chunk, "transactions_tmpchunk_hist.dta"))))
+    
+    rm(transactions_chunk, transactions_chunk_out)
     
   }
    

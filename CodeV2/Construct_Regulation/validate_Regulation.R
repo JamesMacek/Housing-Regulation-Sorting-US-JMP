@@ -1,3 +1,4 @@
+#Loading packages
 library(sf)
 library(haven) #Reading stata.dta files 
 library(dplyr)
@@ -42,12 +43,13 @@ TLUS_joined$zon_mfminlotsize[TLUS_joined$zon_mfminlotsize < 0] <- NA #recorrecti
 #Start loop over clustering definition
 colnames <- colnames(TLUS_joined)
 extract_colnames <- colnames[which(grepl("uDR", colnames, fixed = TRUE) == TRUE)] #all minimmum lot sizes
-extract_MSE_TLUS <- rep(NA, length(extract_colnames))
+extract_MSE_TLUS <- rep(NA, length(extract_colnames)) #vector containing MSE by clustering algorithm
+extract_MSE_TLUS_SF <- rep(NA, length(extract_colnames)) #vector containing MSE by clustering algorithm for single family only
 
 for (column in extract_colnames) {
   
   
-  TLUS_selected <- TLUS_joined %>% select(city, State, CBSA, CBSA_NAME, ZoningDistrictID, Assigned_municipality, 
+  TLUS_selected <- TLUS_joined %>% select(city, State, County, Tract, BlockGroup, CBSA, CBSA_NAME, ZoningDistrictID, Assigned_municipality, Assigned_geocoded_municipality,
                                           contains(column), contains(sub( "uDR", "singlefamily_mode", column)),
                                           contains(sub( "uDR", "duplex_mode", column)),
                                           contains(sub( "uDR", "triplex_mode", column)),
@@ -58,31 +60,39 @@ for (column in extract_colnames) {
   TLUS_selected$zon_sfminlotsize <- (TLUS_joined$zon_sfminlotsize)/43560
   TLUS_selected$zon_mfminlotsize <- (TLUS_joined$zon_mfminlotsize)/43560
   
-  #Re-multiplying uDR by implied unit density restriction for comparison to single and multifamily lots
-  structureType <- as.vector(apply(as.matrix(data.frame(TLUS_selected[sub( "uDR", "singlefamily_mode", column)],
-                           TLUS_selected[sub( "uDR", "duplex_mode", column)],
-                           TLUS_selected[sub( "uDR", "triplex_mode", column)],
-                           TLUS_selected[sub( "uDR", "quadriplex_mode", column)])), MARGIN = 1, FUN = which.min)) #finding which structure yields minimum. structureType[[row]] gives unit density restriction
-  structureType <- lapply(structureType, function(x) if(length(x) == 0) NA else x)
-  structureType <- unlist(structureType) #vector of implied unit density restrictions
-  TLUS_selected["uDR"] <- TLUS_selected[[column]]*structureType #coverting modes back to lot area (rather than implied unit density restriction)
+  #multiplying each mode to that they are expressed in terms of lot size
+  TLUS_selected[["singlefamily_mode"]] <- TLUS_selected[[sub( "uDR", "singlefamily_mode", column)]]/1
+  TLUS_selected[["duplex_mode"]] <- TLUS_selected[[sub( "uDR", "duplex_mode", column)]]*2
+  TLUS_selected[["triplex_mode"]] <- TLUS_selected[[sub( "uDR", "triplex_mode", column)]]*3
+  TLUS_selected[["quadriplex_mode"]] <- TLUS_selected[[sub( "uDR", "quadriplex_mode", column)]]*4
   
   
   #calculating mode over all observations by city
-  collap_formula <- as.formula(paste0("uDR", " ~ city + CBSA_NAME + zon_sfminlotsize + zon_mfminlotsize"))
-  TLUS_selected <- collap(TLUS_selected, collap_formula, FUN = fmode) #note: using mode doesn't matter a whole lot
+  collap_formula <- as.formula("singlefamily_mode + duplex_mode + triplex_mode + quadriplex_mode ~ city + CBSA_NAME + zon_sfminlotsize + zon_mfminlotsize")
+  TLUS_selected <- collap(TLUS_selected, collap_formula, FUN = fmedian) #note: using mode as a measure of center doesn't matter a whole lot
   
   #Calculating singlefamily or multifamily structure that minimizes distance with implied uDR
-  TLUS_selected["sf_deviation"] <- abs(TLUS_selected$uDR - TLUS_selected$zon_sfminlotsize)
-  TLUS_selected["mf_deviation"] <- abs(TLUS_selected$uDR - TLUS_selected$zon_mfminlotsize)
-  TLUS_selected <- TLUS_selected %>% rowwise() %>% mutate(min_deviation = min(sf_deviation, mf_deviation))
+  TLUS_selected["sf_deviation"] <- abs((TLUS_selected$singlefamily_mode - TLUS_selected$zon_sfminlotsize)/TLUS_selected$zon_sfminlotsize)
   
+  TLUS_selected["mf2_deviation"] <- abs((TLUS_selected$duplex_mode - TLUS_selected$zon_mfminlotsize)/TLUS_selected$zon_mfminlotsize) #taking single family deviation when comparing only proported minimum lot size
+  TLUS_selected["mf3_deviation"] <- abs((TLUS_selected$triplex_mode - TLUS_selected$zon_mfminlotsize)/TLUS_selected$zon_mfminlotsize)
+  TLUS_selected["mf4_deviation"] <- abs((TLUS_selected$quadriplex_mode - TLUS_selected$zon_mfminlotsize)/TLUS_selected$zon_mfminlotsize)
+  
+  TLUS_selected <- TLUS_selected %>% mutate(mf_deviation = pmin(mf2_deviation, mf3_deviation, mf4_deviation, na.rm = TRUE))
+  
+  TLUS_selected <- TLUS_selected %>% mutate(min_deviation = pmin(sf_deviation, mf_deviation, na.rm = TRUE)) #Taking minimum of all deviations for these 3 types of structures (it is unclear which we are comparing)
+                                                                                                                                           #Note: this procedure is taking the minimum deviation when matching different types of structures. 
+                                                                                                                                           #Selection in the model is the smallest of these implied unit density restrictions to be as conservative as possible
   #Calculating median error rates 
-  extract_MSE_TLUS[which(column == extract_colnames)] <- median(TLUS_selected$min_deviation/abs(TLUS_selected$zon_sfminlotsize), na.rm = TRUE)
-  
+  extract_MSE_TLUS[which(column == extract_colnames)] <- median(TLUS_selected$min_deviation, na.rm = TRUE) #storing minimum variation from the data
+  extract_MSE_TLUS_SF[which(column == extract_colnames)]  <- median(TLUS_selected$sf_deviation, na.rm = TRUE) #storing single family variation from the data
 }
 
-print(paste0("The best clustering algorithm on TLUS is ", extract_colnames[which(extract_MSE_TLUS == min(extract_MSE_TLUS))]))
+print(paste0("The best clustering algorithm on TLUS is ", extract_colnames[which(extract_MSE_TLUS == min(extract_MSE_TLUS))],
+             " with an MSE error of ", extract_MSE_TLUS[which(extract_MSE_TLUS == min(extract_MSE_TLUS))]))
+print(paste0("and with an Single Family MSE error of ", extract_MSE_TLUS_SF[which(extract_MSE_TLUS == min(extract_MSE_TLUS))])) #11.42% median error on single family homes. 
+                                                                                                                                #Very good!
+
 
 #Clearing memory
 itemList <- ls()
@@ -92,8 +102,11 @@ itemList <- itemList[!(itemList %in% "US_BLOCK") &
 rm(list = itemList)
 rm(itemList)
 
+#__________________________________________________________________________________________________
 #Part 2: Performing validation at microgeographic level for various US cities.
 #This is done by overlaying block group data on the official zoning maps of these cities. 
+#__________________________________________________________________________________________________
+
 
 #importing geography
 #Loading block group geometry
@@ -216,7 +229,7 @@ for (city in cityList) {
   }
   
   if (city == "Cleveland") {
-    "https://codelibrary.amlegal.com/codes/cleveland/latest/cleveland_oh/0-0-0-15793#JD_Chapter355" 
+    #"https://codelibrary.amlegal.com/codes/cleveland/latest/cleveland_oh/0-0-0-15793#JD_Chapter355" 
     
     #Residential
     shpfile_appended$Official_uDR[shpfile_appended$ZONE_DIST == "AA"] <- 7200/43560
@@ -432,13 +445,14 @@ for (city in cityList) {
 total_appended_df <- total_appended_df %>% group_by(State, County, Tract, BlockGroup) %>% mutate(blkgrp_weight = 1/n())
   
 #Calculating polygon_area weighted median of error, matching uDR to closest unit density restriction under the modes for single family to quadriplex 
-#(this makes sense-- sometimes, on paper restrictions don't match up with the types of structures.)
+#(this makes sense-- sometimes, on paper restrictions don't match up with the types of structures. Sometimes multifamily density restrictions are not reported)
 for (column in extract_colnames) {
     
     total_appended_df["p_error_sf"] <- abs(total_appended_df$Official_uDR - total_appended_df[[sub( "uDR", "singlefamily_mode", column)]])/abs(total_appended_df$Official_uDR) #deviation using sf mode
     total_appended_df["p_error_d"] <- abs(total_appended_df$Official_uDR - total_appended_df[[sub( "uDR", "duplex_mode", column)]])/abs(total_appended_df$Official_uDR) #deviation using duplex mode
     total_appended_df["p_error_t"] <- abs(total_appended_df$Official_uDR - total_appended_df[[sub( "uDR", "triplex_mode", column)]])/abs(total_appended_df$Official_uDR) #deviation using triplex mode
     total_appended_df["p_error_q"] <- abs(total_appended_df$Official_uDR - total_appended_df[[sub( "uDR", "quadriplex_mode", column)]])/abs(total_appended_df$Official_uDR) #deviation using quadriplex mode
+    #Taking the smallest deviation from locations modes and this one
     
     #taking minium deviation from each structure type
     total_appended_df["min_deviation"] <- pmin(total_appended_df$p_error_sf,
@@ -452,8 +466,11 @@ for (column in extract_colnames) {
 }
 
 extract_MSE_citymap
-print(paste0("The best clustering algorithm on CityMaps is ", extract_colnames[which(extract_MSE_citymap == min(extract_MSE_citymap))])) #22% median error.
+print(paste0("The best clustering algorithm on CityMaps is ", extract_colnames[which(extract_MSE_citymap == min(extract_MSE_citymap))],
+             " with an MSE error of ", extract_MSE_citymap[which(extract_MSE_citymap == min(extract_MSE_citymap))])) #20% median error. at optimal agorithm. Pretty good!
 
 #Taking observation that minimizes weighted average of both
-print(paste0("The best clustering algorithm on a equal weight of both is ", extract_colnames[which(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS == min(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS))]))
+print(paste0("The best clustering algorithm with 50% weight on TLUS is ", extract_colnames[which(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS == min(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS))],
+             " with a TLUS median error of ", extract_MSE_TLUS[which(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS == min(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS))], 
+             " and a CityMap median error (weighted by land mass) of ",  extract_MSE_citymap[which(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS == min(0.5*extract_MSE_citymap + 0.5*extract_MSE_TLUS))]))
 

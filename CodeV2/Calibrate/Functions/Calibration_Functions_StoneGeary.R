@@ -1,7 +1,7 @@
 
 #Getting prices for regulated and unregulated structures + consumption values to clear markets 
 Calibrate_prices <- function(Master_data, demandParameters) {
-  
+  set.seed(1)
   beta_StGeary <- demandParameters[1] #beta -- stone geary
   min_hReq <- demandParameters[2] #Minimum housing consumption requirement
 
@@ -20,7 +20,7 @@ Calibrate_prices <- function(Master_data, demandParameters) {
     
     price <- rep(NA, 2) #A set of two prices (one in the regulated, one in the unregulated)
     
-    price[1] <- Master_data$hedonicPrice #Unregulated neighborhood price index identified from hedonic index
+    price[1] <- Master_data$hedonicPrice #regulated neighborhood price index identified from hedonic index
     price[2] <- price_reg
     
     #Measuring housing stringency (value of a minimal lot in regulated neighborhood)
@@ -64,13 +64,13 @@ Calibrate_prices <- function(Master_data, demandParameters) {
     } #end loop over zones
     
     
-    #Standardizing consValue because of numerical error for population allocations (cant take exp of very large number) (this does not matter for allocations)
+    #Standardizing consValue because of numerical error for population allocations (cant take exp of very large number) (this does not matter for allocations if migration elasticity large (infinite))
     consValue_adjusted <- matrix(NA, 7, 2)
     
     for (zone in c(1, 2)) { #NOTATION: 1 for regulated, 2 for unregulated
       for (incomeType in 1:7) {
         
-        consValue_adjusted[incomeType, zone] <- exp(consValue[incomeType, zone]/adjustment_factor_temp[incomeType]) 
+        consValue_adjusted[incomeType, zone] <- exp(consValue[incomeType, zone]/adjustment_factor_temp[incomeType]) #this is the rescaling by z^{-1} in the paper, only for computation!
         
       }
     }

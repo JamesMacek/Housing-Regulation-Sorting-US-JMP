@@ -50,7 +50,7 @@ US_BLOCK <- US_BLOCK %>% dplyr::select(State, County, Tract, BlockGroup, CBSA, C
 #PART 2: Merging with 2000 census tract geography
 US_TRACT_2000 <- st_read("DataV2/US_Data/Shapefiles/US_tract_2000.shp")
 
-#Creating overlap shapefile
+#Creating overlap shapefile (st intersects)
 US_JOINED <- st_join(US_BLOCK, US_TRACT_2000)
 rm(US_BLOCK, US_TRACT_2000)
 

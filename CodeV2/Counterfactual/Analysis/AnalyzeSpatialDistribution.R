@@ -85,6 +85,8 @@ Ct_NoAmenities["ALAND"] <- Init_eq$ALAND
 load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
 
+#Setting NA to 0 (as we do before)
+Init_eq$IncomeStringency_cl[is.na(Init_eq$IncomeStringency_cl)]  <- 0
 
 #demeaning income
 Init_eq <- Init_eq %>% group_by(CBSA) %>% mutate(demeaned_log_Income = log(Avg_income) - mean(log(Avg_income), na.rm = TRUE))
@@ -222,6 +224,22 @@ Income.plot.initial <- ggplot() +
   ylab("Log Average Income (demeaned by MSA)") + 
   ggtitle("Panel A: Bottom 75%")
 
+#______________________________________
+#ADDITIONAL POSTER PLOT________________
+#______________________________________
+Income.plot.initial_forPoster <- ggplot() +
+  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
+  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
+  
+  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
+  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
+  xlab("Within city density quantile (Block Group level)") +
+  ylab("Log Average Income (demeaned by MSA)") + 
+  theme_gray(base_size = 18.5) + 
+  ggtitle("Panel A: All other cities")
+
+
 #new graoh
 reg_t25 <- gam(formula = excluded_controls_income_formula,
                data = Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
@@ -249,11 +267,35 @@ Income.plot.new <- ggplot() +
   ylab("Log Average Income (demeaned by MSA)") + 
   ggtitle("Panel B: Top 25%")
 
+#______________________________________
+#ADDITIONAL POSTER PLOT________________
+#______________________________________
+
+Income.plot.new_forPoster <- ggplot() +
+  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
+  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
+  
+  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
+  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
+  xlab("Within city density quantile (Block Group level)") +
+  ylab("Log Average Income (demeaned by MSA)") +
+  theme_gray(base_size = 18.5) + 
+  ggtitle(paste0("Panel B: Superstars", "\n", "Top 25% in density and housing prices"))
+
+#Plotting base plot
 Income.plot.initial + Income.plot.new + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl_alternate",
                BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                BASELINE_SPECIFICATION$pref, ".png"),
                   width = 24, height = 15, units = "cm") 
+#Plotting poster plot
+Income.plot.initial_forPoster + Income.plot.new_forPoster + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl_alternate_forPoster_",
+              BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+              BASELINE_SPECIFICATION$pref, ".png"),
+                  width = 33, height = 17, units = "cm") 
+
 
 
 #Changes in Density Gradients
@@ -339,90 +381,80 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Den
               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
               BASELINE_SPECIFICATION$pref, ".png"), width = 24, height = 15, units = "cm")
 
+#_____________________________________________________________________________________________________________________________________
+#PART 2: ANALYZE SEGREGATION PATTERNS ____________________________________________________________________________________________________
+#_____________________________________________________________________________________________________________________________________
+#What happens to segregation == variance of average income across neighborhoods?
+print(paste0("Neighborhood variance in log average income increases by ",
+             100*(var(log(Ct_Amenities$Avg_income)) - var(log(Init_eq$Avg_income)))/var(log(Init_eq$Avg_income)), " percent.")) 
 
+#Average within-city segregation (using only within-city variation)
+print(paste0("Neighborhood variance in log average income increases by ",
+             100*(var(Ct_Amenities$demeaned_log_Income) - var(Init_eq$demeaned_log_Income))/var(Init_eq$demeaned_log_Income), " percent for within-city variation."))
 
-#LAST PART: ANALYZE SEGREGATION PATTERNS ____________________________________________________________________________________________________
-
-#Analyzing spatial distribution of income within cities....
-
-#only works if BySkill == FALSE.
-
-
-if (BASELINE_SPECIFICATION$bySkill == FALSE) {
-
-  #What happens to segregation == variance of average income across neighborhoods?
-  print(paste0("Neighborhood variance in log average income increases by ",
-              100*(var(log(Ct_Amenities$Avg_income)) - var(log(Init_eq$Avg_income)))/var(log(Init_eq$Avg_income)), " percent.")) #Variance in log income increases in the counterfactual. Why? 
-
-  #Average within-city segregation (using only within-city variation)
-  print(paste0("Neighborhood variance in log average income increases by ",
-             100*(var(Ct_Amenities$demeaned_log_Income) - var(Init_eq$demeaned_log_Income))/var(Init_eq$demeaned_log_Income), " percent for within-city variation.")) #Variance in log income increases in the counterfactual. Why?
-  #Q: Why does segregation increase after imposing the counterfactual?
-
-  #What about superstar cities?
-  print(paste0("Neighborhood variance in log average income increases by ",
+#Average within-city segregation (using only within-city variation in superstar cities)
+print(paste0("Neighborhood variance in log average income increases by ",
              100*(var(Ct_Amenities[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
                                      Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]$demeaned_log_Income) - 
-                      var(Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                    Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]$demeaned_log_Income))/
-                      var(Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                    Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]$demeaned_log_Income), " percent for within-city variation in superstar cities.")) 
-                      #This number is more like 27% in superstar cities. How is this possible if segregation is to be reduced -- at least with respect to density?
+                    var(Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
+                                  Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]$demeaned_log_Income))/
+               var(Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
+                             Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]$demeaned_log_Income), " percent for within-city variation in superstar cities.")) 
 
-  #Correlation between income growth and initial income.
-  #Correlation between initial stringency and incomes
-  print(paste0("The correlation between initial stringency and income changes in the cross section is " ,
-             cor(Init_eq$IncomeStringency_cl, log(Ct_Amenities$Avg_income) - log(Init_eq$Avg_income), use = "complete.obs") ))
-  #Correlation between initial stringency and incomes
-  Init_eq <- Init_eq %>% group_by(CBSA) %>% mutate(demeaned_stringency = IncomeStringency_cl - mean(IncomeStringency_cl, na.rm = TRUE))
-  print(paste0("The correlation between initial stringency and income changes in the cross section on within-city variation is " ,
-             cor(Init_eq$demeaned_stringency, Ct_Amenities$demeaned_log_Income - Init_eq$demeaned_log_Income, use = "complete.obs") )) #Either way, reasonably string correlation between stringency and income changes.
+#Correlation between initial stringency and incomes
+print(paste0("The correlation between initial stringency and log income changes in the cross section is (in levels) is " ,
+             cor(Init_eq[Init_eq$IncomeStringency_model_rents < regulation_censoring,]$IncomeStringency_cl, 
+                 log(Ct_Amenities[Init_eq$IncomeStringency_model_rents < regulation_censoring,]$Avg_income) - 
+                 log(Init_eq[Init_eq$IncomeStringency_model_rents < regulation_censoring,]$Avg_income), use = "complete.obs") ))
+#Note: we account for the fact that the income stringency measure was censored in the model at regulation_censoring (otherwise, correlation greatley reduced because of outlier sensitivity)
+#   Alternatively, log correlation higher because of outlier limitation
 
-  print(paste0("The correlation between initial stringency and initial income is " ,
-             cor(Init_eq$IncomeStringency_cl, log(Init_eq$Avg_income), use = "complete.obs") )) #Either way, 41% correlation between initial stringency and initial income, which is quite interesting. 
-
-  print(paste0("The correlation between initial stringency and income AFTER deregulation is " ,
-             cor(Init_eq$IncomeStringency_cl, log(Ct_Amenities$Avg_income), use = "complete.obs") )) #Correlation between initial stringency and income after has been reduced to 0.1299! 
-                                                                                                     #It's still positive, yet residential segregation increases??? 
-
-
-  print(paste0("The correlation between initial income and income changes in the cross section on within-city variation is " ,
+#Correlation between initial income 
+print(paste0("The correlation between initial income and income changes in the cross section " ,
              cor(log(Init_eq$Avg_income),log(Ct_Amenities$Avg_income) - log(Init_eq$Avg_income), use = "complete.obs") )) #Noisy income changes. Is this why "segregation" increases?
 
-  #Amenities -- what's the correlation?
-  Init_eq["low_amenity_ex"] <- (Ct_Amenities$exogenous_Amenity_1 + Ct_Amenities$exogenous_Amenity_2 + Ct_Amenities$exogenous_Amenity_3)
-  Init_eq["high_amenity_ex"] <- (Ct_Amenities$exogenous_Amenity_5 + Ct_Amenities$exogenous_Amenity_6 + Ct_Amenities$exogenous_Amenity_7)
-  Init_eq["relative_amenity_high_ex"] <- log(Init_eq$high_amenity_ex/Init_eq$low_amenity_ex) #top 2 quantiles - bot 2 quantiles. 
+#______________________________________________________________________________________________________
+#Analyzing spatial distribution of income within cities, general segregation not related to density.
 
-  temp_df <- Init_eq[Init_eq$high_amenity_ex > 0 & Init_eq$low_amenity_ex > 0,]
-
-  temp_df <- temp_df %>% group_by(CBSA) %>% mutate(demeaned_rel_amenity = relative_amenity_high_ex - mean(relative_amenity_high_ex, na.rm = TRUE))  
-
- 
-  #However, stringency positively correlated with relatively higher fundamental amenity values for rich...?
-  #How is this commesurate with decreasing segregation?
-  print("Within and Across city correlation between income stringency and relative fundamental amenities for rich")
-  print(summary(lm(relative_amenity_high_ex ~ IncomeStringency_cl, data = temp_df) ) ) 
-  print(summary(lm(demeaned_rel_amenity ~ demeaned_stringency, data = temp_df) ) ) 
+#only works if BySkill == FALSE.
+#______________________________________________________________________________________________________
+if (BASELINE_SPECIFICATION$bySkill == FALSE) {
   
+  #Creating stringency measures (note--we use log stringency here which drops many zeros. Similar results hold for levels, though worse fit)
+  #If we did the same exercise in levels, conclusions would be even more stark.
+  Init_eq["log_IncomeStringency_cl"] <- log(Init_eq$IncomeStringency_cl)
+  Init_eq$log_IncomeStringency_cl[is.infinite(Init_eq$log_IncomeStringency_cl)] <- NA
+  Ct_Amenities["log_IncomeStringency_cl"] <- Init_eq$log_IncomeStringency_cl
+  Init_eq <- Init_eq %>% group_by(CBSA) %>% mutate(demeaned_log_stringency = log_IncomeStringency_cl - mean(log_IncomeStringency_cl, na.rm = TRUE))
+  Ct_Amenities["demeaned_log_stringency"] <- Init_eq$demeaned_log_stringency
   
-  #What about actual amenity-adjusted values? Clearly these exogenous amenities might overcome the fact that income sorting is so strong.
-    print("Within and Across city correlation between income stringency and relative fundamental amenities for rich")
-  Init_eq["low_amenity"] <- (Init_eq$Amenity_1 + Init_eq$Amenity_2 + Init_eq$Amenity_3)
-  Init_eq["high_amenity"] <- (Init_eq$Amenity_5 + Init_eq$Amenity_6 + Init_eq$Amenity_7)
-  Init_eq["relative_amenity_high"] <- log(Init_eq$high_amenity/Init_eq$low_amenity) #top 2 quantiles - bot 2 quantiles. 
+  print("Within and Across city correlation between log(income stringency) and income AFTER DEREGULATION")
+  print(summary(lm(log(Avg_income) ~ log_IncomeStringency_cl, data = Ct_Amenities) ) ) 
+  print(summary(lm(demeaned_log_Income ~ demeaned_log_stringency, data = Ct_Amenities) ) )
   
-  temp_df <- Init_eq[Init_eq$high_amenity > 0 & Init_eq$low_amenity > 0,]
+  print("AND BEFORE DEREGULATION...")
+  print(summary(lm(log(Avg_income) ~ log_IncomeStringency_cl, data = Init_eq) ) ) 
+  print(summary(lm(demeaned_log_Income ~ demeaned_log_stringency, data = Init_eq) ) )
   
-  temp_df <- temp_df %>% group_by(CBSA) %>% mutate(demeaned_rel_amenity = relative_amenity_high - mean(relative_amenity_high, na.rm = TRUE))  
+  #Putting these results into a graph (for both within-city variation and across city variation)
+  ggplot() + 
+                        geom_point(data = Init_eq, aes(x = log_IncomeStringency_cl, y = log(Avg_income)), color = "red", size = 0.25, alpha = 0.1) +
+                        geom_point(data = Ct_Amenities, aes(x = log_IncomeStringency_cl, y = log(Avg_income)), color = "blue", size = 0.25, alpha = 0.05) +
+                        geom_smooth(data = Init_eq, aes(x = log_IncomeStringency_cl, y = log(Avg_income), color = "Initial"), method = "lm") +
+                        geom_smooth(data = Ct_Amenities, aes(x = log_IncomeStringency_cl, y = log(Avg_income), color = "Counterfactual"), method = "lm") +
+                        scale_colour_manual(name="Equilibrium", values = c("royalblue4", "red4")) + 
+                        xlab("log Lot Size Stringency (from Initial Equilibrium)") + 
+                        ylab("log Average Income") + 
+                        coord_cartesian(xlim = c(min(Init_eq[Init_eq$log_IncomeStringency_cl > quantile(Init_eq$log_IncomeStringency_cl, 
+                                                                                                        probs = c(0.01), na.rm = TRUE),]$log_IncomeStringency_cl, na.rm = TRUE),
+                                        
+                                                 max(Init_eq[Init_eq$log_IncomeStringency_cl < quantile(Init_eq$log_IncomeStringency_cl, 
+                                                                                                            probs = c(0.99), na.rm = TRUE),]$log_IncomeStringency_cl, na.rm = TRUE)),
+                                        ylim = c(9.5, 13)) #Cut off x axis at 1th and 99th percentile for plot, same with y
   
-  print("Within and Across city correlation between income stringency and initial amenities for rich")
-  print(summary(lm(relative_amenity_high ~ IncomeStringency_cl, data = temp_df) ) ) 
-  print(summary(lm(demeaned_rel_amenity ~ demeaned_stringency, data = temp_df) ) ) 
-  
-  
-  #What are other measures of segregation? For example the difference in quantiles between 10-90? Really rich vs really poor neighborhoods?
-  #Check quantiles of other 
+  ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeStringencyCorrelation_aftdereg_",
+                                      BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                                      BASELINE_SPECIFICATION$pref, ".png"), width = 24, height = 15, units = "cm")
   
   
   #Check q75 - q25
@@ -442,40 +474,55 @@ if (BASELINE_SPECIFICATION$bySkill == FALSE) {
   
   #plot neighborhood income distributions
   ggplot() + 
-    geom_histogram(data = Init_eq, aes(Avg_income), fill = "red", alpha = 0.2) + 
-    geom_histogram(data = Ct_Amenities, aes(Avg_income), fill = "blue", alpha = 0.2) #Segregation increasing, blue clearly has much higher variance
-  #Hard to reconcile with results above that turn toward declining segregation.
-  
-  Init_eq["IncomeStringency_rescaled"] <- Init_eq$IncomeStringency_cl/1000000
-  reg <- gam(formula = log(Avg_income) ~ s(IncomeStringency_rescaled, k = 5, bs = "cr"), data = Init_eq)
-  reg <- smooth_estimates(reg, n = 1000) %>% add_confint()
-  ggplot() +
-    geom_ribbon(data = reg, aes(ymin = lower_ci, ymax = upper_ci, x = IncomeStringency_rescaled), alpha = 0.2) +
-    geom_line(data = reg, aes(x = IncomeStringency_rescaled, y = est)) +
-    ylab("log Average income (Rescaled so average == 0)") + 
-    xlab("Stringency (value of a minimal lot * fraction of block group population in regulated structures, Millions of USD)")
-  
-  #Doing the same with within-city variation
-  reg <- gam(formula = demeaned_log_Income ~ s(demeaned_stringency, k = 5, bs = "cr"), data = Init_eq)
-  reg <- smooth_estimates(reg, n = 1000) %>% add_confint()
-  ggplot() +
-    geom_ribbon(data = reg, aes(ymin = lower_ci, ymax = upper_ci, x = demeaned_stringency), alpha = 0.2) +
-    geom_line(data = reg, aes(x = demeaned_stringency, y = est))
-    #Its... U shaped... holy shit
-  
-  
-  #Relative amenitites, within-city variation
-  reg <- gam(formula = demeaned_rel_amenity ~ s(demeaned_stringency, k = 3, bs = "cr"), data = temp_df)
-  reg <- smooth_estimates(reg, n = 1000) %>% add_confint()
-  ggplot() +
-    geom_ribbon(data = reg, aes(ymin = lower_ci, ymax = upper_ci, x = demeaned_stringency), alpha = 0.2) +
-    geom_line(data = reg, aes(x = demeaned_stringency, y = est))
-  
-  #Linear reg
-  print(summary(lm(demeaned_log_Income ~ demeaned_stringency, data = Init_eq))) #Positive relationship
-
-  #This is the reason.... what's happening in the tails. Stringency is noisy here
+    geom_histogram(data = Init_eq, aes(x = Avg_income/1000), fill = "red", alpha = 0.2) + 
+    geom_histogram(data = Ct_Amenities, aes(x = Avg_income/1000), fill = "blue", alpha = 0.2) +
+    xlab("Average Income (Block Group, $1000's)") +
+    ylab("Counts") +
+    ggtitle("Neighborhood Income distribution (counterfactual is blue)")
+  ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/NeighborhoodIncomeDist_",
+                  BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                  BASELINE_SPECIFICATION$pref, ".png"), width = 24, height = 15, units = "cm")
   
 }
+
+#Finally, detailing distribution of income changes in transition to counterfactual
+#___________________________________________________________________________________
+# 
+
+Init_eq["Income_change_ctfl"] <- Ct_Amenities$Avg_income/Init_eq$Avg_income
+median(Init_eq$Income_change_ctfl) #Most locations see income INCREASE, around 28% see decrease, fat tails.
+quantile(Init_eq$Income_change_ctfl, probs = seq(0, 1, 0.1))
+ #What is this in line with? Few ultra-stringent neighborhoods, or good reallocations?
+ #Can we figure out how many poor neigborhoods see boost in utility rel to rich?
+  
+ #Number of below average income neighborhoods that see boost in income
+ print(quantile(Init_eq[Init_eq$Avg_income < mean(Init_eq$Avg_income), ]$Income_change_ctfl,
+          probs = seq(0, 1, 0.1))) #Almost all neighborhoods see boost in income (88 % roughly)
+ 
+ #Number of above average that see boost in income
+ print(quantile(Init_eq[Init_eq$Avg_income > mean(Init_eq$Avg_income), ]$Income_change_ctfl,
+                probs = seq(0, 1, 0.1)))
+ 
+ #What's interesting is that most locations see an increase in income. This is not surprising--very few ultra-stringent neighborhoods.
+ #If externality was corrected, then most locations would see a drop in income post deregulation, and that's not what's happening. 
+ #This is clearly about exclusionary zoning. 
+
+
+#___________________________________________________________________________________
+ 
+
+ 
+#_______________________________________________________
+#Why does segregation increase in some cities? SF?
+ Init_eq["Avg_income_ctfl"] <- Ct_Amenities$Avg_income
+ test <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",] %>% 
+   select(IncomeStringency_cl, starts_with("Avg_income"), ends_with("nPop"), UnitDensityRestriction_cl,
+          regulated_housingUnit_share, LandValueDensity_matched, starts_with("Amenity"), IncomeStringency_model_rents, State, County, Tract, BlockGroup, CBSA_NAME)
+ 
+ test["squared_deviation"] <- (log(test[["Avg_income_ctfl"]]) - mean(log(test[["Avg_income_ctfl"]])))^2 - (log(test[["Avg_income"]]) - mean(log(test[["Avg_income"]])))^2
+ 
+ 
+
+#____________________________________________
 
 rm(list = ls())

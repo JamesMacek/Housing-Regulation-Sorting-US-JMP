@@ -1,9 +1,12 @@
 *This do file constructs spending shares on housing using measures of after-tax income. 
 *Requires crosswalk output. This is to calibrate housing demand parameters after accounting for regulation.
+*This file also calculates shares of housing wealth by income type for an extended welfare analysis.  
+
 cd $proj_filepath 
 
 use "DataV2/US_Data/ACS_Individual/acs_2015_2019.dta", clear
 
+****ASSIGNING METRO TO HOUSEHOLDS IN SAMPLE*************************************
 *dropping observations that are for sure not in 2013 MSAs
 drop if metro == 1
 
@@ -40,7 +43,7 @@ local cnt = 0
 foreach i of local levels {
     local cnt = `cnt' + 1
 }
-
+********************************************************************************
 
 *Generating income-type-by-CBSA expenditure shares 
 rename met2013 CBSA
@@ -60,8 +63,8 @@ replace hhincome = hhincome*1.02 if multyear == 2019
 *Cleaning house and rent values
 duplicates drop serial, force
 
-*tax progressivity parameter to identify after tax/transfer income to better calculate spending shares
-*This is from Finlay and Williams (2022) and is similar to Heathcote, Storesletten and Violante (2017) 
+*Tax progressivity parameter to identify after tax/transfer income to better calculate spending shares
+*This is an approach taken in Finlay and Williams (2022) and is similar to Heathcote, Storesletten and Violante (2017) 
 local TaxProgressivityParameter 0.174
 
 bysort multyear: egen total_income = sum(hhincome*hhwt)
@@ -89,28 +92,30 @@ replace ability_ind = 5 if 100000 <= Ability & Ability < 150000
 replace ability_ind = 6 if 150000 <= Ability & Ability < 200000
 replace ability_ind = 7 if 200000 <= Ability 
 
+*Dummy if owner occupier
+gen owneroccupier = (valueh != 9999999)
+
+*Dropping house values that arent imputed moving forward
 replace valueh = . if valueh==0 | valueh >= 9999999
 
 *For spending shares on housing, payments for mortgages assume price to rent ratio by year from PriceRentRatios.do
-*Weird-- this is consistently lower than rents, why????
+*Weird-- this is consistently lower than rents. Why?
 drop _merge
 merge m:1 CBSA multyear using "DataV2/US_Data/Output/price_to_rent_by_city.dta"
 drop _merge
 
+*Adjust yearly payment as owner cost of housing (to net of saving effects)
 gen yrlymortgagepayment = valueh/price_to_rent_national
 
+*Removing pro-bono rents
 replace rent = . if rent==0
+
 *converting to yearly payments
 gen yrlyrent = rent*12 
 
 *taking household income to housepmt
-
 gen house_pmt = yrlymortgagepayment
-replace house_pmt = yrlyrent if missing(house_pmt)
-
-*Generating dummies for renters
-gen owner = 1 if missing(yrlymortgagepayment) == 0
-replace owner = 0 if missing(yrlymortgagepayment)
+replace house_pmt = yrlyrent if owneroccupier != 1
 
 *adjusting housing payments to 2020 dollars (this does not matter for any calculations below)
 replace house_pmt = house_pmt*1.02 if multyear == 2019
@@ -128,19 +133,19 @@ cap ssc install egenmore
 
 *Aggregate spending share by ability, + by owner/renter status, etc
 bysort ability_ind: egen Income_spendshare_ag = wpctile(house_spendshare), p(50) weight(hhwt)
-bysort ability_ind owner: egen Income_spendshare_owner = wpctile(house_spendshare), p(50) weight(hhwt)
+bysort ability_ind owneroccupier: egen Income_spendshare_owner = wpctile(house_spendshare), p(50) weight(hhwt)
 egen spendshare_ag = wpctile(house_spendshare), p(50) weight(hhwt)
 egen spendshare_ag_notax = wpctile(house_spendshare_notax), p(50) weight(hhwt)
-bysort owner: egen spendshare_ag_owner = wpctile(house_spendshare_notax), p(50) weight(hhwt)
+bysort owneroccupier: egen spendshare_ag_owner = wpctile(house_spendshare_notax), p(50) weight(hhwt)
 
 
-*Collapsing by CBSA and income type
-collapse (median) Income_spendshare* house_spendshare spendshare_ag* [pw = hhwt], by(CBSA ability_ind owner)
+*Collapsing by CBSA and income type, reshaping
+collapse (median) Income_spendshare* house_spendshare spendshare_ag* [pw = hhwt], by(CBSA ability_ind owneroccupier)
 
 rename house_spendshare CBSA_spendshare
 
-reshape wide CBSA_spendshare Income_spendshare*, i(CBSA owner) j(ability_ind)
-reshape wide CBSA_spendshare* Income_spendshare_owner* spendshare_ag_owner, i(CBSA) j(owner)
+reshape wide CBSA_spendshare Income_spendshare*, i(CBSA owneroccupier) j(ability_ind)
+reshape wide CBSA_spendshare* Income_spendshare_owner* spendshare_ag_owner, i(CBSA) j(owneroccupier)
 
 save "DataV2/US_Data/Output/HousingSpendshare_byCity.dta", replace
 

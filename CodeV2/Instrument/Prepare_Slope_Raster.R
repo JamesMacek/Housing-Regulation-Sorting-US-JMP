@@ -18,7 +18,6 @@ library(doParallel) #Parallelize for loops
 #Date created: September 27th 2022
 #Constructs slope rasters for merge and construction with the instrument
 
-
 #Import any adf file from the slope folder. 40GB is the total size of the raster
 slopes <- raster("Data/US_Data/Instrument/ElevationMaps/us_slope/slope/w001001.adf") #Change to DataV2 folder when migrating
 elevation <- raster("Data/US_Data/Instrument/ElevationMaps/us_orig_dem/orig_dem/w001001.adf")
@@ -63,7 +62,7 @@ US_BLOCK <- st_transform(US_BLOCK, st_crs(slopes))
 
 #_______EXTRACTING FEATURES FROM RASTER___________
 #Initiating doParrallel 
-n.cores <- detectCores() - 1 #11 threads (cores?) on my main machine.
+n.cores <- min(detectCores() - 1, 6) #11 threads (cores?) on my main machine.
 my.cluster <- makeCluster(n.cores, type = "PSOCK") #needs to allow firewall.
 
 #registering cluster

@@ -9,6 +9,8 @@ library(readr)
 library(rlang)
 library(ggplot2)
 library(collapse)
+library(vtable) #for easy conditional tables
+
 
 #PARAMETERS
 source("CodeV2/Counterfactual/Parameters/GlobalParameters.R")
@@ -21,7 +23,7 @@ source("CodeV2/Counterfactual/Functions/Analysis_Functions.R")
 #_______________________________________________________________________________ PRELIMINARIES
 
 #SPECIFY BASELINE COUNTERFACTUAL OUTPUT
-BASELINE_SPECIFICATION <- list(pref = "SG", bySkill_to_pass = TRUE) 
+BASELINE_SPECIFICATION <- list(pref = "SG", bySkill_to_pass = FALSE) #SET bySkill_to_pass == FALSE for correct table
 
 if (BASELINE_SPECIFICATION$bySkill == TRUE) {
   
@@ -67,6 +69,13 @@ rm(Master)
 load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
 
+##_________________________________________________________________________________
+#Collecting this all in a data frame and outputting in Latex table for saving later
+#__________________________________________________________________________________
+Table_toOutput <- data.frame(matrix(nrow = 0, ncol = 5))
+colnames(Table_toOutput) <- c("End. Amenities", "End. Productivity", "Education", 
+                              "Prod. Growth", "Prod. Growth, no income sorting")
+rows_to_output <- list() #list of rows to put into table for appending
 
 
 #_______________________________________________________________________________
@@ -75,16 +84,21 @@ load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
 print(paste0("The difference in labour productivity after deregulation is ",
              100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
                     getAggregateProductivity(Init_eq)), " percent.")) #Not high like H & M!
+rows_to_output[[1]] <- c("Yes", "No", "No",  paste0(round(100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
+                                                                   getAggregateProductivity(Init_eq)), 2), "%" )) #row to output to table
+
 
 #When amenities are exogenous 
 print(paste0("The difference in labour productivity after deregulation is ",
              100*((getAggregateProductivity(Ct_NoAmenities) - getAggregateProductivity(Init_eq))/ 
-                    getAggregateProductivity(Init_eq)), " percent for No Endogenous Amenities.")) #Slightly higher 
+                    getAggregateProductivity(Init_eq)), " percent for No Endogenous Amenities.")) #Slightly higher
+rows_to_output[[2]] <- c("No", "No", "No", paste0(round(100*((getAggregateProductivity(Ct_NoAmenities) - getAggregateProductivity(Init_eq))/ 
+                                                              getAggregateProductivity(Init_eq)), 2), "%" ))
 
-rm(Ct_NoAmenities)
 
-
+#Setting 
 AcrossCityAnalysis <- Init_eq %>% select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, City_housing_density, CBSA_med_house_value, IncomeStringency_cl)
+AcrossCityAnalysis$IncomeStringency_cl[is.na(AcrossCityAnalysis$IncomeStringency_cl)] <- 0 #replacing IncomeStringency_cl = 0 like we did in the model
 
 #Delta Average types, populations
 AcrossCityAnalysis["pDelta_AvgType"] <- 100*(getCityAverageType(Ct_Amenities)/getCityAverageType(Init_eq) - 1)
@@ -102,33 +116,23 @@ AcrossCityAnalysis$SuperStar[AcrossCityAnalysis$CBSA_med_house_value > as.numeri
 
 
 AcrossCityAnalysis <- collap(AcrossCityAnalysis, pDelta_AvgType + pDelta_Pop + PooledWage + IncomeStringency_cl + 
-                               City_housing_density + CBSA_med_house_value + Init_City_Population + SuperStar ~ CBSA + CBSA_NAME)
+                            City_housing_density + CBSA_med_house_value + Init_City_Population + SuperStar ~ CBSA + CBSA_NAME)
 
 #Checking correlation between pop growth, type growth and wages
-cor.test(AcrossCityAnalysis$PooledWage, AcrossCityAnalysis$pDelta_Pop, method = "pearson")
-cor.test(AcrossCityAnalysis$PooledWage, AcrossCityAnalysis$pDelta_AvgType, method = "pearson")
+print("Correlation with population flows and wages")
+print(cor.test(AcrossCityAnalysis$PooledWage, AcrossCityAnalysis$pDelta_Pop, method = "pearson"))
+print(cor.test(AcrossCityAnalysis$PooledWage, AcrossCityAnalysis$pDelta_AvgType, method = "pearson"))
 
 #With housing prices
-cor.test(AcrossCityAnalysis$CBSA_med_house_value, AcrossCityAnalysis$pDelta_Pop, method = "pearson")
-cor.test(AcrossCityAnalysis$CBSA_med_house_value, AcrossCityAnalysis$pDelta_AvgType, method = "pearson")
+print("Correlation with population flows and initial housing prices")
+print(cor.test(AcrossCityAnalysis$CBSA_med_house_value, AcrossCityAnalysis$pDelta_Pop, method = "pearson"))
+print(cor.test(AcrossCityAnalysis$CBSA_med_house_value, AcrossCityAnalysis$pDelta_AvgType, method = "pearson"))
 
 #And measures of stringency
-cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta_AvgType, method = "pearson") #80% correlation here 
-cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta_Pop, method = "pearson")
+print("Correlation with population flows and stringency")
+print(cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta_Pop, method = "pearson")) #80% correlation here 
+print(cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta_AvgType, method = "pearson"))
 
-
-summary(lm(ifelse(pDelta_AvgType < 0, 1, 0) ~ City_housing_density, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_AvgType < 0, 1, 0) ~ CBSA_med_house_value, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_AvgType < 0, 1, 0) ~ PooledWage, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_AvgType < 0, 1, 0) ~ IncomeStringency_cl, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_AvgType < 0, 1, 0) ~ SuperStar, data = AcrossCityAnalysis)) 
-
-
-summary(lm(ifelse(pDelta_Pop > 0, 1, 0) ~ City_housing_density, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_Pop > 0, 1, 0) ~ CBSA_med_house_value, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_Pop > 0, 1, 0) ~ PooledWage, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_Pop > 0, 1, 0) ~ IncomeStringency_cl, data = AcrossCityAnalysis))
-summary(lm(ifelse(pDelta_Pop > 0, 1, 0) ~ SuperStar, data = AcrossCityAnalysis))
 
 #Something weird happening with current dataframe formatting
 AcrossCityAnalysis <- data.frame(AcrossCityAnalysis)
@@ -137,7 +141,7 @@ AcrossCityAnalysis <- data.frame(AcrossCityAnalysis)
 ggplot() +      #Censoring outliers in plot-- columbia, MO for stoneGeary preferences
   geom_point(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10,], aes(x = pDelta_Pop, y = pDelta_AvgType, color = PooledWage, size = Init_City_Population/1000000),alpha = 0.5) +
   geom_smooth(method = "lm") +
-  geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10,], check_overlap = T, size = 3, nudge_y = 1,
+  geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10 & AcrossCityAnalysis$SuperStar == 1,], check_overlap = T, size = 3, nudge_y = 1,
             aes(x = pDelta_Pop, y = pDelta_AvgType, label = CBSA_NAME)) + 
   scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
   xlab("Growth rate in number of households (percent)") + 
@@ -147,32 +151,89 @@ ggplot() +      #Censoring outliers in plot-- columbia, MO for stoneGeary prefer
 ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeSortingMovement_bySkill", 
               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", BASELINE_SPECIFICATION$pref, ".png"), width = 30, height = 18, units = "cm") 
 
+#____________________________________________
+#POSTER VERSION OF THIS PLOT
+#____________________________________________
+ggplot() +      #Censoring outliers in plot-- columbia, MO for stoneGeary preferences
+  geom_point(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10,], aes(x = pDelta_Pop, y = pDelta_AvgType, color = PooledWage, size = Init_City_Population/1000000),alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10 & AcrossCityAnalysis$SuperStar == 1,], check_overlap = T, size = 3, nudge_y = 1,
+            aes(x = pDelta_Pop, y = pDelta_AvgType, label = CBSA_NAME)) + 
+  scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
+  xlab("Growth rate in number of households (percent)") + 
+  ylab("Growth rate in average household skill (percent)") +
+  coord_cartesian(clip = "off") + 
+  labs(color = "Productivity", size = "Households (millions)") + 
+  theme_gray(base_size = 18.5)
+ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeSortingMovement_bySkill_forPoster", 
+              BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", BASELINE_SPECIFICATION$pref, ".png"), width = 35, height = 18, units = "cm") 
+
+#_______________________________________________________________________________________________________________________________________________
+#_________________________________________________________________________
 #What would labour productivity be if no income sorting occured?
-#Change in agg labour productivity = pop growth weighted by output shares (this is assuming everyone makes the same income)
+#Change in aggregate labour productivity = !pop growth by city weighted by output shares! (this is assuming everyone makes the same income)
 output_shares <- data.frame(getCityOutputShares(Init_eq))
 colnames(output_shares) <- c("CBSA_NAME", "OutputShares")
 AcrossCityAnalysis <- left_join(AcrossCityAnalysis, output_shares, by = c("CBSA_NAME"))
 LabProdGrowth_noincomeSorting <- sum(((AcrossCityAnalysis$pDelta_Pop + 100)*as.numeric(AcrossCityAnalysis$OutputShares))) - 100 #4x higher 
 print(paste0("Aggregate productivity growth would have been ", LabProdGrowth_noincomeSorting, " percent if there was no income sorting."))
 
+#Inputing into rows
+rows_to_output[[1]] <- c(rows_to_output[[1]], paste0(round(LabProdGrowth_noincomeSorting, digits = 2), "%"))
 
+#_____________________________________________________
+#Doing the same statistic for no endogenous amenities
+#_____________________________________________________
+Ct_NoAmenities["pDelta_Pop"] <- 100*(getCityTotalPop(Ct_NoAmenities)/getCityTotalPop(Init_eq) - 1)
+Ct_NoAmenities <- collap(Ct_NoAmenities, pDelta_Pop ~ CBSA + CBSA_NAME)
+Ct_NoAmenities  <- left_join(Ct_NoAmenities, output_shares, by = c("CBSA_NAME"))
+LabProdGrowth_noincomeSorting <- sum(((Ct_NoAmenities$pDelta_Pop + 100)*as.numeric(Ct_NoAmenities$OutputShares))) - 100 #4x higher 
 
+#Inputing into rows
+rows_to_output[[2]] <- c(rows_to_output[[2]], paste0(round(LabProdGrowth_noincomeSorting, digits = 2), "%"))
+
+#____________________________________________________________________________________________________________________
 #ROBUSTNESS: CHECK OTHER DATASET TYPES
-#Endogenous productivity at baseeline specification
+#____________________________________________________________________________________________________________________
+#Endogenous productivity at baseeline specification, no endogenous productivity
 load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
             "_EndoAmen_", TRUE, 
             "_EndoProd_", TRUE,
-            "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
+            "_bySkill_", FALSE,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
 
 Ct_Amenities <- Equilibrium_objects
+rm(Equilibrium_objects)
+load(paste0("DataV2/Counterfactuals/Init_eq_", 
+            FALSE, 
+            "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
+Init_eq <- Master
+rm(Master)
+
 print(paste0("The difference in labour productivity after deregulation is ",
              100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
                     getAggregateProductivity(Init_eq)), " percent FOR ENDOGENOUS PRODUCTIVITY.")) #Slight decrease in aggregate labour productivity
 
+rows_to_output[[3]] <- c("Yes", "Yes", "No", paste0(round(100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
+                                                                                       getAggregateProductivity(Init_eq)), 2), "%" ))
+
+#Checking what aggregate productivity would be if we muted income sorting
+Ct_Amenities["pDelta_Pop"] <- (getCityTotalPop(Ct_Amenities)/getCityTotalPop(Init_eq)) #getting population growth rates (+ 1)
+#Getting wage growth rates
+Ct_Amenities["WageGrowth"] <- Ct_Amenities$PooledWage/Init_eq$PooledWage
+Ct_Amenities <- collap(Ct_Amenities, pDelta_Pop + WageGrowth ~ CBSA + CBSA_NAME)
+Ct_Amenities  <- left_join(Ct_Amenities, output_shares, by = c("CBSA_NAME"))
+
+#Calculate total productivity growth
+LabProdGrowth_noincomeSorting <- 100*(sum((Ct_Amenities$pDelta_Pop*Ct_Amenities$WageGrowth*as.numeric(Ct_Amenities$OutputShares))) - 1) #4x higher
+#Inputting into rows
+rows_to_output[[3]] <- c(rows_to_output[[3]], paste0(round(LabProdGrowth_noincomeSorting, digits = 2), "%"))
+
+
+#___________________________________________
 #BySkill version:  
 load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
-            "_EndoAmen_", FALSE, #NOTE: WE only do bySkill == False with exogenous amenities 
+            "_EndoAmen_", TRUE, #NOTE: WE only do bySkill == False with exogenous amenities 
             "_EndoProd_", FALSE,
             "_bySkill_", TRUE,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
@@ -190,7 +251,73 @@ skillVector <-  c("College", "NoCollege")
 skillName <- c("College_", "NoCollege_") 
 print(paste0("The difference in labour productivity after deregulation is ",
              100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
-                    getAggregateProductivity(Init_eq)), " percent FOR BYSKILL == TRUE.")) #Virtually no change in labour productivity, NOTE: we turned income sorting OFF to calculate equilibrium here. 
+                    getAggregateProductivity(Init_eq)), " percent FOR BYSKILL == TRUE."))
+
+rows_to_output[[4]] <- c("Yes", "No", "Yes", paste0(round(100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
+                                                                 getAggregateProductivity(Init_eq)), 2), "%" ))
+
+#Checking what aggregate productivity would be if we muted income sorting
+Ct_Amenities["pDelta_Pop"] <- (getCityTotalPop(Ct_Amenities)/getCityTotalPop(Init_eq)) #getting population growth rates (+ 1)
+
+#Since wages does not adjust when there are no composition changes, no need to calculate wage growth
+Ct_Amenities <- collap(Ct_Amenities, pDelta_Pop ~ CBSA + CBSA_NAME)
+Ct_Amenities  <- left_join(Ct_Amenities, output_shares, by = c("CBSA_NAME"))
+
+#Calculate total productivity growth
+LabProdGrowth_noincomeSorting <- 100*(sum((Ct_Amenities$pDelta_Pop*as.numeric(Ct_Amenities$OutputShares))) - 1) 
+#Inputting into rows
+rows_to_output[[4]] <- c(rows_to_output[[4]], paste0(round(LabProdGrowth_noincomeSorting, digits = 2), "%"))
+
+
+#_____________________________________________
+#BySkill version with endogenous productivity:  
+load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
+            "_EndoAmen_", TRUE, #NOTE: WE only do bySkill == False with exogenous amenities 
+            "_EndoProd_", TRUE,
+            "_bySkill_", TRUE,
+            "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
+
+Ct_Amenities <- Equilibrium_objects
+rm(Equilibrium_objects)
+
+skillVector <-  c("College", "NoCollege")
+skillName <- c("College_", "NoCollege_") 
+print(paste0("The difference in labour productivity after deregulation is ",
+             100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
+                    getAggregateProductivity(Init_eq)), " percent FOR BYSKILL == TRUE and ENDOGENOUS PRODUCTIVITY."))
+
+rows_to_output[[5]] <- c("Yes", "Yes", "Yes", paste0(round(100*((getAggregateProductivity(Ct_Amenities) - getAggregateProductivity(Init_eq))/ 
+                                                                 getAggregateProductivity(Init_eq)), 2), "%" ))
+
+#Checking what aggregate productivity would be if we muted income sorting 
+#(Note: this is tricky because uniform city growth changes wages in counterfactual, which differentially affect different education levels, which causes income sorting)
+#What we do is assume wages are unchanged, which hardly matters because productivity changes are so small (in the ballpark of a maximum of -0.5-2%).
+
+Ct_Amenities["pDelta_Pop"] <- (getCityTotalPop(Ct_Amenities)/getCityTotalPop(Init_eq)) #getting population growth rates (+ 1)
+
+#Since wages does not adjust when there are no composition changes, no need to calculate wage growth
+Ct_Amenities <- collap(Ct_Amenities, pDelta_Pop ~ CBSA + CBSA_NAME)
+Ct_Amenities  <- left_join(Ct_Amenities, output_shares, by = c("CBSA_NAME"))
+
+#Calculate total productivity growth
+LabProdGrowth_noincomeSorting <- 100*(sum((Ct_Amenities$pDelta_Pop*as.numeric(Ct_Amenities$OutputShares))) - 1)
+#Inputting into rows
+rows_to_output[[5]] <- c(rows_to_output[[5]], paste0(round(LabProdGrowth_noincomeSorting, digits = 2), "%"))
+
+#_______________________________________________________
+#Putting this all in the table in text
+
+for (row in 1:5) {
+  Table_toOutput[row, ] <- rows_to_output[[row]]
+  
+}
+
+#Vtable output
+vtable::dftoLaTeX(Table_toOutput, 
+                  file = "DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/LabourProductivity_difCtfls.tex")
 
 
 
+#________________________________________________________________________________________________________________________________________________
+
+rm(list = ls())

@@ -63,7 +63,7 @@ US_BLOCK <- US_BLOCK[!(US_BLOCK$State == 15 | US_BLOCK$State == 72 | US_BLOCK$St
 #Covering land mass to acres (currently it appears to be square meters) https://www.census.gov/quickfacts/fact/note/US/LND110210
 US_BLOCK$ALAND <- US_BLOCK$ALAND/4046.86
 
-US_BLOCK <- US_BLOCK %>% dplyr::select(State, County, Tract, BlockGroup, CBSA, ALAND) #197,062 block groups remain. 
+US_BLOCK <- US_BLOCK %>% dplyr::select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, ALAND) #197,062 block groups remain. 
 
 #Setting each as numeric
 for (destring in c("State", "County", "Tract", "BlockGroup", "CBSA")) {
@@ -73,6 +73,10 @@ for (destring in c("State", "County", "Tract", "BlockGroup", "CBSA")) {
 #Saving in STATA format for use with other programs
 US_BLOCK_2DTA <- US_BLOCK %>% st_drop_geometry()
 write_dta(US_BLOCK_2DTA, "DataV2/US_Data/Output/SampleGeography.dta")
+rm(US_BLOCK_2DTA)
+
+#Removing CBSA_NAME to save data
+US_BLOCK <- US_BLOCK %>% select(-CBSA_NAME)
 
 #US BLOCK is our dataset of in-sample block groups within our 2013-definition MSAs.
 #transforming US_BLOCK to lat/lon coordinates

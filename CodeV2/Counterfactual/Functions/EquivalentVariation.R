@@ -72,7 +72,7 @@ GetWelfareEqVar <- function(Master_data, skill, incomeType, demandParameters, Eq
     
     #Calculating vector of consumption indices in each neighborhood
     consIndex <- log((rowSums((consValue_adjusted^(wN_elast))*regulated_unit_shares))^(1/wN_elast))
-    consIndex <- consIndex*consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]*adjustment_factor_temp
+    consIndex <- consIndex*consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]*adjustment_factor_temp #adjusting consIndex
     
     #Finally, using neighborhood consumption indices to calculate welfare
     Master_data[paste0("Val_temp", name_of_skill, incomeType)] <- (exp(consIndex)*

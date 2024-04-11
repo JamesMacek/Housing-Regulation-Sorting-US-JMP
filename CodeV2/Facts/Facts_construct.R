@@ -19,16 +19,28 @@ options(scipen = 5) #limit scientific
 #Date created: August 26th, 2022
 #requires output from a whole host of programs-- namely Merge_stringency.R and NaNDA_Construct.R
 
+
+#_______PARAMETERS_____________________________________________________________________________________________
+source("CodeV2/Facts/Parameters/Facts_parameters.R")
+#______________________________________________________________________________________________________________
+
 #importing data
+load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
 load(file = "DataV2/US_Data/Output/Constructed_Block_V2.Rdata")
+US_BLOCK$Housing_density <- US_BLOCK$Housing_density*640 #NOTE:density is people per acre, see currentAssess_construct.R. 640 is conversion factor between square miles and acres
+US_BLOCK <- US_BLOCK[US_BLOCK$Housing_density > Censor_density,]
+
+#Quantiles of city distributions on various statistics for robustness
 load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
-load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_quantiles_pop.Rdata")
+load(file = "DataV2/US_Data/Output/CBSA_quantiles_wage.Rdata")
+
+#LOAD CITY PRODUCTIVITY QUANTILES..(Note: this is constructed via model)
 
 #Formulas to use for regressions
-controls <- "+ demeaned_median_bage + demeaned_household_size + demeaned_car_share + demeaned_family_share + demeaned_car_transport_share + 
-               demeaned_public_transport_share + demeaned_avg_travel_time + 
+controls <- "+ demeaned_median_bage + demeaned_household_size + demeaned_car_share + demeaned_family_share + dm_car_transport_share + 
+               dm_public_transport_share + demeaned_avg_travel_time + demeaned_white_share + 
                demeaned_perf_arts_dens + demeaned_spec_sports_dens + 
                demeaned_casino_dens + demeaned_rec_act_dens + demeaned_prop_park_area_tract + 
                demeaned_count_tri_facilities + demeaned_stops_per_sqmile + demeaned_frestaurant_dens + 
@@ -41,9 +53,12 @@ excluded_controls_income_formula <- as.formula('demeaned_log_Income ~ s(rank_den
 
 included_controls_income_formula <- as.formula(paste('demeaned_log_Income ~ s(rank_density_CBSA, k = 5, bs = "cr")', controls, sep = " "))
 
-excluded_controls_stringency_formula <- as.formula('demeaned_stringency ~ s(rank_density_CBSA, k = 5, bs = "cr")')
+excluded_controls_stringency_formula <- as.formula('demeaned_stringency ~ s(rank_density_CBSA, k = 3, bs = "cr")')
 
-included_controls_stringency_formula <- as.formula(paste('demeaned_stringency ~ s(rank_density_CBSA, k = 5, bs = "cr")', controls, sep = " "))
+included_controls_stringency_formula <- as.formula(paste('demeaned_stringency ~ s(rank_density_CBSA, k = 3, bs = "cr")', controls, sep = " "))
+
+#CENSORING LOW DENSITY LOCATIONS
+
 
 
 #Sample definitions
@@ -79,6 +94,18 @@ Income.plot <- ggplot() +
   ggtitle("Panel A")
 ggsave("DataV2/US_Data/Output/income.png", plot = Income.plot, width = 24, height = 15, units = "cm")
 
+#ADDITIONAL PLOT + ADDITIONAL CONTEXT FOR POSTER VERSION
+Income.plot_Poster <- ggplot() +
+  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
+  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = paste0('Superstar: Top 25% in density', '\n', 'and house values') )) + 
+  
+  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'All other cities')) + 
+  scale_colour_manual(name="Sample", values = c("blue","red")) + 
+  xlab("Within city density quantile (Block group level)") +
+  ylab("Log Average Income (demeaned by MSA)") + 
+  ggtitle("Stronger income sorting in superstars") +
+  theme_gray(base_size = 22) 
 
 #Estimating linear model after residualizing other variables (this is temporary-- can estimate a partial linear model later)
 #Estimating partial linear model (i.e. residualizing by building age) (i.e. using globally fitted parameter)
@@ -203,10 +230,8 @@ summary(lm_robust(formula = linear_income_formula, data = bot)) #Same idea.
 
 
 #Replicating negative income sorting on density plots allowing for average intercept to differ
-t25d_int <- US_BLOCK[US_BLOCK$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) & 
-                  US_BLOCK$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]
-b25d_int <- US_BLOCK[US_BLOCK$City_housing_density < as.numeric(quantile_CBSA_dens["50.0%"]) & 
-                  US_BLOCK$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["50.0%"]),]
+t25d_int <- top
+b25d_int <- bot
 
 #Regressions allowing for average intercept to vary
 reg_t25 <- gam(excluded_controls_income_formula,
@@ -225,18 +250,19 @@ t25_smooth$est <- t25_smooth$est + mean(log(t25d_int$Average_income), na.rm = TR
 b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>%
   add_confint()
 
-#Plotting these residualized plots
-ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
-  scale_colour_manual(name="Sample", values = c("red","blue")) + 
-  xlab("Ranked housing unit density (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") +
-  ggtitle("intercept varies by sample")
-
+#Plotting these residualized plots, storing
+IncomeIntercept.plot <- ggplot() +
+                        geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+                        geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
+                        geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+                        geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
+                        scale_colour_manual(name="Sample", values = c("red","blue")) + 
+                        xlab("Ranked housing unit density (Block Group level)") +
+                        ylab(paste0("Log Average Income", "\n", "(demeaned by MSA, intercept varies by sample)")) +
+                        ggtitle("Panel B")
+#Saving combined plot with intercept and original graph
+Income.plot + IncomeIntercept.plot + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+ggsave("DataV2/US_Data/Output/income_combined_int.png", width = 24, height = 15, units = "cm")
 
 #Regressions allowing for average intercept to vary: Demeaned stringency
 reg_t25 <- gam(excluded_controls_stringency_formula,
@@ -248,9 +274,9 @@ reg_b25 <- gam(excluded_controls_stringency_formula,
 #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
 t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
   add_confint()  #from gratia, extracts gam estimates + add confidence intervals
-t25_smooth$lower_ci <- t25_smooth$lower_ci + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
-t25_smooth$upper_ci <- t25_smooth$upper_ci + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
-t25_smooth$est <- t25_smooth$est + mean(t25d_int$IncomeStringency, na.rm = TRUE) - mean(b25d_int$IncomeStringency, na.rm = TRUE) #add differences in intercept
+t25_smooth$lower_ci <- t25_smooth$lower_ci + mean(t25d_int$IncomeStringency_cl, na.rm = TRUE) - mean(b25d_int$IncomeStringency_cl, na.rm = TRUE) #add differences in intercept
+t25_smooth$upper_ci <- t25_smooth$upper_ci + mean(t25d_int$IncomeStringency_cl, na.rm = TRUE) - mean(b25d_int$IncomeStringency_cl, na.rm = TRUE) #add differences in intercept
+t25_smooth$est <- t25_smooth$est + mean(t25d_int$IncomeStringency_cl, na.rm = TRUE) - mean(b25d_int$IncomeStringency_cl, na.rm = TRUE) #add differences in intercept
 
 b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>%
   add_confint()
@@ -269,5 +295,37 @@ IncomeStringency_intercept.plot <- ggplot() +
 
 IncomeStringency.plot + IncomeStringency_intercept.plot + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 ggsave("DataV2/US_Data/Output/incomestringency_combined.png", width = 24, height = 15, units = "cm")
+
+
+#ADDITIONAL PLOT FOR POSTER -- INCOME STRINGENCY
+IncomeStringency_intercept.plot_forPoster <- ggplot() +
+  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = paste0('Superstar: Top 25% in density', '\n', 'and house values') )) + 
+  
+  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'All other cities')) + 
+  scale_colour_manual(name="Sample", values = c("blue","red")) + 
+  xlab("Within city density quantile (Block Group level)") +
+  labs(y = paste0("Regulation measure", "\n", "(demeaned by MSA, intercept varies by sample)")) +
+  ggtitle("Matches patterns of regulation") + 
+  theme_gray(base_size = 22)
+
+Income.plot_Poster + IncomeStringency_intercept.plot_forPoster + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+ggsave("DataV2/US_Data/Output/Poster_combined.png", width = 40, height = 25, units = "cm")
+
+
+#________________RAW REGRESSIONS OF INCOME ON STRINGENCY________________________
+print("Raw regressions of income on stringency (linear specification")
+print(summary(lm( log(Average_income) ~ IncomeStringency_cl, data = US_BLOCK))) #almost uncorrelated!
+
+print("Raw regression removing neighborhoods where minimal lot costs more than 1 million a year")
+print(summary(lm( log(Average_income) ~ IncomeStringency_cl, data = US_BLOCK[US_BLOCK$IncomeStringency_cl < 2500000,]))) #33 % of variation in neighborhood income predicted in US cross-sexction
+
+#This suggests that outliers (ultra stringent neighborhoods) report lower labour income 
+
+#_______________________________________________________________________
+
+
+
 
 rm(list = ls())
