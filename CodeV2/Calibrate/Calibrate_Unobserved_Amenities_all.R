@@ -17,7 +17,9 @@ source("CodeV2/Calibrate/Parameters/GlobalParameters.R") #Harmonized list of par
 BASELINE_SPECIFICATION <- list(pref = "SG", bySkill_to_pass = FALSE) #Estimating omega will not work for bySkill == True at current codebase, though little reason to believe this matters.
 #                                                                    #So make sure this is set to false
                                                                      #Will also output historical data for placebo test
-
+#Logs...
+sink("DataV2/Counterfactuals/logs/Calibration_amenities.txt")
+print(paste0("Calibrating amenities at ", Sys.time()))
 
 for (bySkill_to_pass in c(FALSE, TRUE)) { #BySkill or Pooled
   for (pref in c("CD", "SG")) { #Cobb-Douglas, StoneGeary
@@ -91,14 +93,15 @@ for (bySkill_to_pass in c(FALSE, TRUE)) { #BySkill or Pooled
 
       #Creating matrix/dataframe of these adjustments to pass to other program to solve for equilibrium values
 
-      #NOTE: In Calibrate_ConsumptionValues_SupplyShifters.R, we used an adjustment factor because of computational reasons to construct the consumption index. Correcting for this.
-      adjustment_factor_temp <- as.numeric(select(Master, starts_with("ability_grp"))[1,])
+      #NOTE: In Calibrate_ConsumptionValues_SupplyShifters.R, we used an adjustment factor
+      #because of computational reasons to construct the consumption index. Correcting for this.
+      adjustment_factor_temp <- as.numeric(select(Master, starts_with("ability_grp"))[1,]) 
 
       #Incorporating this adjustment factor into this index for use with other programs.
       #NOTE: ONLY SAVE CALIBRATION FACTOR FOR CURRENT SAMPLE
       if (sample == "current") {
         for (row in 1:nrow(consumption_AdjustmentFactor)) {
-          consumption_AdjustmentFactor[row ,] <- consumption_AdjustmentFactor[row, ]/adjustment_factor_temp #adjusting!
+          consumption_AdjustmentFactor[row,] <- consumption_AdjustmentFactor[row, ]/adjustment_factor_temp #adjusting!
         }
         save(consumption_AdjustmentFactor, file = paste0("DataV2/Counterfactuals/Calibration_Output/consumption_AdjustmentFactor_bySkill", bySkill_to_pass, "_pref_", pref, ".Rdata"))
       }
@@ -332,6 +335,7 @@ for (bySkill_to_pass in c(FALSE, TRUE)) { #BySkill or Pooled
   
 rm(list = ls())
 
-
+#Closing logs
+sink(NULL)
 
 

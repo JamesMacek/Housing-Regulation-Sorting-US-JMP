@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{amsthm, thmtools}
+\usepackage[legalpaper, margin=1in]{geometry}
+
+%Propositions, facts, remarks
+\declaretheorem{Fact}
+\declaretheorem{Proposition}
+\declaretheorem{Remark}
+
+
+\usepackage[font=scriptsize,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\spacing{1.3}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+\usepackage{comment}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+%opening
+\title{}
+\author{}
+\date{October 26, 2023}
+
+\begin{document}
+
+\maketitle
+
+\paragraph*{Decomposing welfare} I have emphasized three margins by which deregulation affects welfare: 1) housing affordability by increasing the supply of low quality housing, 2) aggregate labour productivity achieved by the expansion of productive cities, and 3) externalities in neighborhood choice. I decompose the welfare equation to elucidate these three channels. To this end, suppose preferences are Cobb-Douglas ($\bar{A} = 0$) and households are perfectly mobile ($\theta = \rho = \infty$), and there is only one zone per neighborhood. In Appendix (xx), I show that log welfare of a type $z$ agent can be expressed as 
+
+\begin{equation}
+	\log \boldsymbol{W}(z) =  \underbrace{ \frac{G(z)}{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z)} }_{\text{Affordability-weighted aggregate productivity}} + \underbrace{ \frac{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z) \log b(i, z)}{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z)} }_{\text{Affordability-weighted amenities}}
+\end{equation}
+
+where 
+\begin{itemize}
+	\item  $G(z)$ is the aggregate output produced by type $z$ households across all cities
+	
+	\item  $P(i)$ is the price per unit of housing services in neighborhood $i$
+	
+	\item $\beta$ is the spending share on housing absent regulation 
+	
+	\item $D(i, z)$ is the \textit{distortion factor}, which is the discount factor on consumption caused by binding regulation (the one I show in the paper)
+	
+	\item $L(i, z)$ is the population of type $z$ agents in $i$
+	
+	\item $b(i, z)$ is the type $z$ amenities in $i$ (both exogenous and endogenous).
+	
+	\item $c$ indexes cities
+\end{itemize}
+
+I call the first term \textit{affordability-weighted aggregate productivity}, which is very similar to Equation (9) of Hsieh and Moretti (2019). This just measures how much type $z$ agents are producing relative to some aggregate measure of housing prices. If we expect regulation to expand productive cities while also causing outflow of high $z$ types, we'd expect $G(z)$ to be positive for low $z$ types and smaller (or negative) for high $z$ types.  If there where only one type (no heterogeneity), then $G(z)$ can only be positive as we deregulate productive cities. 
+
+\paragraph*{}
+You make a good point of telling me to explicitly show why heterogeneity matters. With this decomposition, I'm thinking something like the $G(z)$ term gains for low $z$ types offset by $G(z)$ losses for high $z$ types. I cannot analytically show this using something in the flavour of Hulten's theorem, because $G(z)$ responds directly to labour flows across cities by type, which is a first order response and depends crucially on specific values of model parameters. 
+
+\paragraph*{}
+The main point of this decomposition is that it shows the three welfare channels well. You have output divided by an aggregate measure of housing affordability, and an additional term that captures the aggregate amenity value of neighborhoods. The argument is that the most action is on that aggregate measure of housing affordability. 
+
+
+\paragraph*{}I'm not sure if I'm getting at something useful to say here. Your suggestions are valuable and I want to implement them in a way that makes sense. Would be happy for your feedback. 
+
+%where $G(z)$ is the aggregate output produced by type $z$ households, $P(i)$ is the housing price in neighborhood $i$, $\beta$ is the spending share on housing absent regulation and $D(i, z)$ is the \textit{distortion factor}, which is the discount factor on consumption caused by binding regulation, and $L(i, z)$ is the neighborhood $i$
+
+
+
+\end{document}

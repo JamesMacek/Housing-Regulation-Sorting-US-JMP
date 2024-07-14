@@ -42,3 +42,50 @@ get_tile <- function(url) {
   
   png::readPNG(local_png)
 }
+
+createMappingArgs <- function(boundingBox,#bounding box is coordinates of box map
+                             additionalZoom) { #additional zoom will do something to make map pretty
+  
+  #Extracting open street map tiles to overlay zoning districts
+  # see https://yutani.rbind.io/post/2018-06-09-plot-osm-tiles/ for code
+  x_len <-  boundingBox["xmax"] -  boundingBox["xmin"]
+  y_len <-  boundingBox["ymax"] -  boundingBox["ymin"]
+  
+  # calculate the minimum zoom level that is smaller than the lengths
+  x_zoom <- sum(x_len < 360 / 2^(0:19)) - 1
+  y_zoom <- sum(y_len < 170.1022 / 2^(0:19)) - 1
+  zoom <- min(x_zoom, y_zoom)
+  
+  #add additional zoom
+  zoom <- zoom + additionalZoom
+  rm(x_zoom, y_zoom)
+  
+  #Create tiles
+  xy <- lonlat2xy(boundingBox[c("xmin", "xmax")],  boundingBox[c("ymin", "ymax")], zoom)
+  tiles <- expand.grid(x = seq(xy$x["xmin"], xy$x["xmax"]),
+                       y = seq(xy$y["ymin"], xy$y["ymax"]))
+  
+  #Open street map api tiles
+  urls <- sprintf("https://a.tile.openstreetmap.org/%d/%d/%d.png", zoom, tiles$x, tiles$y)
+  
+  #Using get tiles function for pngs, read them directly into R
+  pngs <- map(urls, get_tile)
+  
+  #Getting tile positions
+  nw_corners <- pmap_dfr(tiles, xy2lonlat, zoom = zoom)
+  # add 1 to x and y to get the south-east corners
+  se_corners <- pmap_dfr(mutate_all(tiles, `+`, 1), xy2lonlat, zoom = zoom)
+  
+  names(nw_corners) <- c("xmin", "ymax")
+  names(se_corners) <- c("xmax", "ymin")
+  
+  tile_positions <- bind_cols(nw_corners, se_corners)
+  rm(se_corners, nw_corners)
+  
+  #Setting up data to use pmap for plotting
+  args <- tile_positions %>% mutate(raster = pngs)
+  
+  return(args)
+  
+}
+

@@ -78,6 +78,9 @@ colnames(Table_toOutput) <- c("End. Amenities", "End. Productivity", "Education"
 rows_to_output <- list() #list of rows to put into table for appending
 
 
+#Start logs
+sink("DataV2/Counterfactuals/logs/AnalyzeLabourProductivity.txt")
+
 #_______________________________________________________________________________
 #PART 1: 
 #Checking changes in aggregate labour productivity across equilibria
@@ -134,46 +137,57 @@ print(cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta
 print(cor.test(AcrossCityAnalysis$IncomeStringency_cl, AcrossCityAnalysis$pDelta_AvgType, method = "pearson"))
 
 
-#Something weird happening with current dataframe formatting
+#Something weird happening with current dataframe formatting. Coercing back to original data frame
 AcrossCityAnalysis <- data.frame(AcrossCityAnalysis)
 
+#Creating productivity quartiles to better capture variation on plot
+AcrossCityAnalysis <- AcrossCityAnalysis %>% mutate(PooledWage_quartiles = 
+                                                                 cut(PooledWage, breaks = unique(quantile(PooledWage, seq(0, 1, 0.25))), 
+                                                                 label = FALSE))
+#NA in lowest prod. city belongs in lowest quartile
+AcrossCityAnalysis$PooledWage_quartiles[is.na(AcrossCityAnalysis$PooledWage_quartiles)] <- 1
 
-ggplot() +      #Censoring outliers in plot-- columbia, MO for stoneGeary preferences
-  geom_point(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10,], aes(x = pDelta_Pop, y = pDelta_AvgType, color = PooledWage, size = Init_City_Population/1000000),alpha = 0.5) +
-  geom_smooth(method = "lm") +
-  geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10 & AcrossCityAnalysis$SuperStar == 1,], check_overlap = T, size = 3, nudge_y = 1,
-            aes(x = pDelta_Pop, y = pDelta_AvgType, label = CBSA_NAME)) + 
-  scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
-  xlab("Growth rate in number of households (percent)") + 
-  ylab("Growth rate in average household type (percent)") +
-  coord_cartesian(clip = "off") + 
-  labs(color = "Productivity", size = "Households (millions)")#Setting ranges
-ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeSortingMovement_bySkill", 
-              BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", BASELINE_SPECIFICATION$pref, ".png"), width = 30, height = 18, units = "cm") 
+#Calculating mean productivity by quartile
+AcrossCityAnalysis <- AcrossCityAnalysis %>% group_by(PooledWage_quartiles) %>% 
+                                             mutate(PooledWage_quartiles_center = round(mean(PooledWage), 2)) %>% ungroup()
 
 #____________________________________________
-#POSTER VERSION OF THIS PLOT
+# Plot income sorting and movement for text
 #____________________________________________
-ggplot() +      #Censoring outliers in plot-- columbia, MO for stoneGeary preferences
-  geom_point(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10,], aes(x = pDelta_Pop, y = pDelta_AvgType, color = PooledWage, size = Init_City_Population/1000000),alpha = 0.5) +
-  geom_smooth(method = "lm") +
-  geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$pDelta_AvgType < 10 & AcrossCityAnalysis$SuperStar == 1,], check_overlap = T, size = 3, nudge_y = 1,
-            aes(x = pDelta_Pop, y = pDelta_AvgType, label = CBSA_NAME)) + 
-  scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
-  xlab("Growth rate in number of households (percent)") + 
-  ylab("Growth rate in average household skill (percent)") +
-  coord_cartesian(clip = "off") + 
-  labs(color = "Productivity", size = "Households (millions)") + 
-  theme_gray(base_size = 18.5)
-ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeSortingMovement_bySkill_forPoster", 
-              BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", BASELINE_SPECIFICATION$pref, ".png"), width = 35, height = 18, units = "cm") 
+mainPlot <- ggplot() +      
+                      geom_point(data = AcrossCityAnalysis, 
+                                 aes(x = pDelta_Pop, y = pDelta_AvgType, color = PooledWage_quartiles_center, size = Init_City_Population/1000000), alpha = 0.45) +
+                      geom_smooth(method = "lm") +
+                      geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$SuperStar == 1,], check_overlap = T, size = 4.5, nudge_y = 1,
+                                aes(x = pDelta_Pop, y = pDelta_AvgType, label = CBSA_NAME)) + 
+                      scale_color_gradient(low = "blue", high = "red", name = "Productivity \n (binned quartiles)") +
+                      xlab("Growth rate in number of households (percent)") + 
+                      ylab("Growth rate in average household skill (percent)") +
+                      coord_cartesian(clip = "off") + 
+                      labs(color = "Productivity", size = "Households \n (millions)") + 
+                      theme_gray(base_size = 18) + theme(legend.position = "bottom", 
+                                                         plot.title = element_text(hjust = 0.5),
+                                                         legend.key.size = unit(1, units = "cm")) #Expand legend sizes
 
+ggsave(plot = mainPlot,
+       filename = paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeSortingMovement_bySkill_", 
+               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", BASELINE_SPECIFICATION$pref, ".png"), 
+       width = 35, height = 21, units = "cm") 
+
+
+
+
+
+#___________________________
+#
+# Variance decomposition for text
 #_______________________________________________________________________________________________________________________________________________
 #_________________________________________________________________________
 #What would labour productivity be if no income sorting occured?
 #Change in aggregate labour productivity = !pop growth by city weighted by output shares! (this is assuming everyone makes the same income)
-output_shares <- data.frame(getCityOutputShares(Init_eq))
-colnames(output_shares) <- c("CBSA_NAME", "OutputShares")
+
+output_shares <- data.frame(getCityOutputShares(Init_eq)) #calculate CBSA output shares to capture agg productivity changes
+colnames(output_shares) <- c("CBSA_NAME", "OutputShares") 
 AcrossCityAnalysis <- left_join(AcrossCityAnalysis, output_shares, by = c("CBSA_NAME"))
 LabProdGrowth_noincomeSorting <- sum(((AcrossCityAnalysis$pDelta_Pop + 100)*as.numeric(AcrossCityAnalysis$OutputShares))) - 100 #4x higher 
 print(paste0("Aggregate productivity growth would have been ", LabProdGrowth_noincomeSorting, " percent if there was no income sorting."))
@@ -319,5 +333,13 @@ vtable::dftoLaTeX(Table_toOutput,
 
 
 #________________________________________________________________________________________________________________________________________________
+# Contribution of movement of each income type to aggregate productivity using decomposition.
+#________________________________________________________________________________________________________________________________________________
 
+
+
+#________________
+
+#End logs
+sink()
 rm(list = ls())

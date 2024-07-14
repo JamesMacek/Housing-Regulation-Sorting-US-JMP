@@ -1,6 +1,6 @@
 #Date created: Feb 18th, 2023
 
-#This file shows what happens in the counterfactual in terms of the spatial distribution of activity (primarily within cities)
+#This file shows what happens in the complete deregulation counterfactual in terms of the spatial distribution of activity (primarily within cities)
 #Connects counterfactual output to the facts. 
 
 library(dplyr)
@@ -22,6 +22,7 @@ source("CodeV2/Counterfactual/Parameters/GlobalParameters.R")
 #FUNCTIONS
 source("CodeV2/Counterfactual/Functions/Solve_Equilibrium_Functions_FullDereg_current.R")
 source("CodeV2/Counterfactual/Functions/Analysis_Functions.R")
+source("CodeV2/Facts/Functions/Facts_functions.R") #Plotting link of functions to facts
 
 #_______________________________________________________________________________ PRELIMINARIES
 
@@ -80,11 +81,6 @@ Ct_NoAmenities["ALAND"] <- Init_eq$ALAND
 
 
 #__________________________________________________________________________________________________
-
-#Importing city density distribution
-load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
-load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
-
 #Setting NA to 0 (as we do before)
 Init_eq$IncomeStringency_cl[is.na(Init_eq$IncomeStringency_cl)]  <- 0
 
@@ -98,7 +94,7 @@ population_Ct <- rep(0, nrow(Ct_Amenities))
 population_Init <- rep(0, nrow(Init_eq))
 population_CtNoAm <- rep(0, nrow(Ct_NoAmenities))
 
-#Households in neighborhood 
+#Populations (and their equilibrium response)
 for (skill in skillVector) {
   name_of_skill <- skillName[which(skill == skillVector)]
   for (incomeType in 1:7) {
@@ -115,64 +111,62 @@ Ct_NoAmenities["Housing_density"] <- population_CtNoAm/Init_eq$ALAND
 
 rm(population_Ct, population_Init)
 
+#Retain initial CBSA density ranking and CBD distance ranking
 Ct_Amenities["rank_density_CBSA"] <- Init_eq$rank_density_CBSA
 Ct_NoAmenities["rank_density_CBSA"] <- Init_eq$rank_density_CBSA
+Ct_Amenities["rank_inv_D2CBD"] <- Init_eq$rank_inv_D2CBD
+Ct_NoAmenities["rank_inv_D2CBD"] <- Init_eq$rank_inv_D2CBD
 
-excluded_controls_income_formula <- as.formula('demeaned_log_Income ~ s(rank_density_CBSA, k = 5, bs = "cr")')
 
-#Original graph
-reg_t25 <- gam(formula = excluded_controls_income_formula,
-               data = Ct_Amenities[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                    Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
+#Formula for income
+excluded_controls_income_formula <- as.formula('demeaned_log_Income ~ s(rank_density_CBSA, k = 1, bs = "cr") + rank_inv_D2CBD')
 
-reg_b25 <- gam(formula = excluded_controls_income_formula,
-               data = Ct_Amenities[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                     Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),]) 
 
-#Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
-t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
-  add_confint()  #from gratia, extracts gam estimates + add confidence intervals
-b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>% #unconditional confidence intervals not working for some reason. i.e. arg unconditional = TRUE does not work
-  add_confint()
+#__________________________________________________________________________________________________
 
-#Plotting
-Income.plot.initial <- ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
-  scale_colour_manual(name="Sample", values = c("red","blue")) + 
-  xlab("Ranked housing unit density (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") + 
-  ggtitle("Panel A: Counterfactual Equilibrium")
+#Importing quantiles from empirical facts
+#Quantiles of city distributions on various statistics for robustness
+for (qtile in c("", "_dens", "_pop", "_wage")) {
+  load(file = paste0("DataV2/US_Data/Output/CBSA_quantiles", qtile, ".Rdata"))
+}
 
-#new graoh
-reg_t25 <- gam(formula = excluded_controls_income_formula,
-               data = Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                              Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
+#Baseline Sample definitions of superstar cities based on productivity
+top_init <- Init_eq[Init_eq$PooledWage > as.numeric(quantile_CBSA_wage["75.0%"]),]
+bot_init <- Init_eq[Init_eq$PooledWage < as.numeric(quantile_CBSA_wage["75.0%"]),]
 
-reg_b25 <- gam(formula = excluded_controls_income_formula,
-               data = Init_eq[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),]) 
+top_ct <- Ct_Amenities[Ct_Amenities$PooledWage > as.numeric(quantile_CBSA_wage["75.0%"]),]
+bot_ct <- Ct_Amenities[Ct_Amenities$PooledWage < as.numeric(quantile_CBSA_wage["75.0%"]),]
 
-#Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
-t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
-  add_confint()  #from gratia, extracts gam estimates + add confidence intervals
-b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>% #unconditional confidence intervals not working for some reason. i.e. arg unconditional = TRUE does not work
-  add_confint()
+baselineSampleNames =  list("Superstar" = "Top 25% \n Productivity",
+                            "nonSuperstar" = "All other cities") #Passes to flexibleEstimation function 
+#__________________________________________________________________________________________________
 
-#Plotting
-Income.plot.new <- ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Top 25%')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Bot 75%')) + 
-  scale_colour_manual(name="Sample", values = c("red","blue")) + 
-  xlab("Ranked housing unit density (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") + 
-  ggtitle("Panel B: Initial Equilibrium")
+
+#___________________________
+# START FIGURES HERE
+#___________________________
+
+  #1. Replicating Fact 1 under counterfactual equilibrium
+Income.plot.new <- flexibleEstimation(Dataframe_list = list("Superstar" = top_ct,
+                                                                "nonSuperstar" = bot_ct),
+                                          formula = excluded_controls_income_formula,
+                                          SampleNames = baselineSampleNames) +
+                       xlab("Density quantiles (Block Group level)") +
+                       ylab("Log Average Income (demeaned by MSA)") + ggtitle("Panel B: Counterfactual Equilibrium") +
+                       theme_gray(base_size = 15) & 
+                       theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+
+
+
+  #Plotting initial for reference
+Income.plot.initial <- flexibleEstimation(Dataframe_list = list("Superstar" = top_init,
+                                                                "nonSuperstar" = bot_init),
+                                          formula = excluded_controls_income_formula,
+                                          SampleNames = baselineSampleNames) +
+                                     xlab("Density quantiles (Block Group level)") +
+                                     ylab("Log Average Income (demeaned by MSA)") + ggtitle("Panel A: Initial Equilibrium") +
+                                     theme_gray(base_size = 15) & 
+                                     theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 
 Income.plot.initial + Income.plot.new + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl",
@@ -184,27 +178,21 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Inc
 #CHECKING GRADIENT VALUES!!!!!
 print("COUNTERFACTUAL AT BASELINE GRADIENTS")
 print("\n")
-print( summary(lm(demeaned_log_Income ~ rank_density_CBSA, data = Ct_Amenities[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                                                          Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])) )
-print( summary(lm(demeaned_log_Income ~ rank_density_CBSA, data = Ct_Amenities[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                                                          Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),])) )
+print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = top_ct) ))
+print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = bot_ct) )) #Same level!
 print("INITIAL AT BASELINE GRADIENTS")
 print("\n")
-print( summary(lm(demeaned_log_Income ~ rank_density_CBSA, data = Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                                                     Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),])) )
-print( summary(lm(demeaned_log_Income ~ rank_density_CBSA, data = Init_eq[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                                                     Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),])) ) 
-#All of the differences are gone in current model!
+print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = top_init) ))
+print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = bot_init) )) 
 
-
-#Alternate graph 
+#_____________________
+#Alternate graph _____
+#_____________________
 reg_t25 <- gam(formula = excluded_controls_income_formula,
-               data = Init_eq[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),]) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
+               data = bot_init) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
 
 reg_b25 <- gam(formula = excluded_controls_income_formula,
-               data = Ct_Amenities[Init_eq$City_housing_density < as.numeric(quantile_CBSA_dens["75.0%"]) |
-                                     Init_eq$CBSA_med_house_value < as.numeric(quantile_CBSA_houseval["75.0%"]),]) 
+               data = bot_ct) 
 
 #Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
 t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
@@ -212,98 +200,65 @@ t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
 b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>% #unconditional confidence intervals not working for some reason. i.e. arg unconditional = TRUE does not work
   add_confint()
 
-#Plotting
-Income.plot.initial <- ggplot() +
+#plot bottom
+Income.plot.initial_forPres <- ggplot() +
   geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
   geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
   
   geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
   geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
   scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
-  xlab("Ranked housing unit density (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") + 
-  ggtitle("Panel A: Bottom 75%")
-
-#______________________________________
-#ADDITIONAL POSTER PLOT________________
-#______________________________________
-Income.plot.initial_forPoster <- ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
-  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
-  xlab("Within city density quantile (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") + 
-  theme_gray(base_size = 18.5) + 
-  ggtitle("Panel A: All other cities")
-
-
-#new graoh
-reg_t25 <- gam(formula = excluded_controls_income_formula,
-               data = Init_eq[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
-
-reg_b25 <- gam(formula = excluded_controls_income_formula,
-               data = Ct_Amenities[Init_eq$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"]) &
-                                     Init_eq$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]),]) 
-
-#Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
-t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
-  add_confint()  #from gratia, extracts gam estimates + add confidence intervals
-b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>% #unconditional confidence intervals not working for some reason. i.e. arg unconditional = TRUE does not work
-  add_confint()
-
-#Plotting
-Income.plot.new <- ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
-  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
-  xlab("Ranked housing unit density (Block Group level)") +
-  ylab("Log Average Income (demeaned by MSA)") + 
-  ggtitle("Panel B: Top 25%")
-
-#______________________________________
-#ADDITIONAL POSTER PLOT________________
-#______________________________________
-
-Income.plot.new_forPoster <- ggplot() +
-  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
-  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
-  
-  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
-  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
-  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
-  xlab("Within city density quantile (Block Group level)") +
+  xlab("Density quantile (Block Group level)") +
   ylab("Log Average Income (demeaned by MSA)") +
-  theme_gray(base_size = 18.5) + 
-  ggtitle(paste0("Panel B: Superstars", "\n", "Top 25% in density and housing prices"))
+  ggtitle("Panel B: \n All other cities") + theme_gray(base_size = 15) & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
 
-#Plotting base plot
-Income.plot.initial + Income.plot.new + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
-ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl_alternate",
-               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-               BASELINE_SPECIFICATION$pref, ".png"),
-                  width = 24, height = 15, units = "cm") 
+#Repeating for high productivity cities
+reg_t25 <- gam(formula = excluded_controls_income_formula,
+               data = top_init) #use high smoothing penalty gamma for this application, though it doesn't matter much. 
+
+reg_b25 <- gam(formula = excluded_controls_income_formula,
+               data = top_ct) 
+
+#Plotting manually with GGPlot2 (Extracting partially linear plot using gratia package)
+t25_smooth <- smooth_estimates(reg_t25, n = 1000) %>%
+  add_confint()  #from gratia, extracts gam estimates + add confidence intervals
+b25_smooth <- smooth_estimates(reg_b25, n = 1000) %>% #unconditional confidence intervals not working for some reason. i.e. arg unconditional = TRUE does not work
+  add_confint()
+
+#Plot top
+
+Income.plot.new_forPres <- ggplot() +
+  geom_ribbon(data = t25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA),alpha = 0.2) +
+  geom_line(data = t25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Initial Equilibrium')) + 
+  
+  geom_ribbon(data = b25_smooth, aes(ymin = lower_ci, ymax = upper_ci, x = rank_density_CBSA), alpha = 0.2) +
+  geom_line(data = b25_smooth, aes(x = rank_density_CBSA, y = est, color = 'Counterfactual')) + 
+  scale_colour_manual(name="Sample", values = c("yellow","purple")) + 
+  xlab("Density quantile (Block Group level)") +
+  ylab("Log Average Income (demeaned by MSA)") +
+  ggtitle("Panel A: \n Top 25% Productivity") + theme_gray(base_size = 15) & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+
 #Plotting poster plot
-Income.plot.initial_forPoster + Income.plot.new_forPoster + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
-ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl_alternate_forPoster_",
+Income.plot.new_forPres + Income.plot.initial_forPres + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/IncomeDensityGradCtfl_alternate_",
               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
               BASELINE_SPECIFICATION$pref, ".png"),
-                  width = 33, height = 17, units = "cm") 
+                  width = 24, height = 15, units = "cm") 
 
 
 
-#Changes in Density Gradients
+#______________________________________________________________
+#__ Changes in Density Gradients_______________________________
+#______________________________________________________________
+
+
+#Demeaning housing density in levels...
 Ct_Amenities <- Ct_Amenities %>% group_by(CBSA) %>% mutate(demeaned_Housing_density = Housing_density/mean(Housing_density, na.rm = TRUE))
-
 Init_eq <- Init_eq %>% group_by(CBSA) %>% mutate(demeaned_Housing_density = Housing_density/mean(Housing_density, na.rm = TRUE))
-
 Ct_NoAmenities <- Ct_NoAmenities %>% group_by(CBSA) %>% mutate(demeaned_Housing_density = Housing_density/mean(Housing_density, na.rm = TRUE))
+
+
+#Running regressions
 
 reg_Ct <- gam(formula = demeaned_Housing_density ~  s(rank_density_CBSA, k = 5, bs = "cr"),
            data = Ct_Amenities)

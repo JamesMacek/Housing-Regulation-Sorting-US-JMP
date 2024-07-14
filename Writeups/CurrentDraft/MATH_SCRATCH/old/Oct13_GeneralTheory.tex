@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{amsthm, thmtools}
+\usepackage[legalpaper, margin=1in]{geometry}
+
+%Propositions, facts, remarks
+\declaretheorem{Fact}
+\declaretheorem{Proposition}
+\declaretheorem{Remark}
+
+
+\usepackage[font=scriptsize,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\spacing{1.3}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+\usepackage{comment}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+%opening
+\title{}
+\author{}
+\date{October 13, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section*{Proposition 2 Cleanup}
+
+\begin{Proposition}\label{Prop:NeighborhoodChoiceExt}
+		Suppose $\Omega(z) = \Omega$ for all $z$, $\bar{A} = 0$, and all households are perfectly mobile across space. Recall that $\beta$ is the Cobb-Douglas weight on housing consumption and $\epsilon$ is the housing supply elasticity in each neighborhood. 
+		
+		\paragraph*{}\noindent Suppose $k\Omega > \frac{\beta}{1 + \epsilon}$ for some $k > 0$. Then,
+		
+		\begin{enumerate}
+			\item If income sorting absent regulation is \textbf{strong}, imposing a marginal increase in the minimum lot size in $i_{1}$ around a deregulated equilibrium benefits all renters. 
+			
+			\item If income sorting absent regulation is \textbf{weak} and type $z_{m}$ households have higher income than the average household, imposing a marginal increase in the minimum lot size in $i_{1}$ around the deregulated equilibrium hurts low income renters $z_{l}$ and benefits all other renters. 
+		\end{enumerate}
+	
+\end{Proposition}
+
+\paragraph*{}
+\paragraph*{Decomposing welfare} I have emphasized three margins by which deregulation affects welfare: 1) housing affordability by increasing the supply of low quality housing, 2) aggregate labour productivity achieved by the expansion of productive cities, and 3) externalities in neighborhood choice. I decompose the welfare equation (xx) to elucidate these three channels. To this end, suppose preferences are Cobb-Douglas ($\bar{A} = 0$) and households are perfectly mobile ($\theta = \rho = \infty$). In Appendix (xx), I show that log welfare of a type $z$ agent can be expressed as 
+
+\begin{equation}
+	\log \boldsymbol{W}(z) =  \underbrace{ \frac{G(z)}{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z)} }_{\text{Affordability-weighted aggregate productivity}} + \underbrace{ \frac{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z) \log b(i, z)}{\sum_{c \in C}\sum_{i \in N(c)}\frac{P(i)^{\beta}}{D(i, z)}L(i, z)} }_{\text{Affordability-weighted amenities}}
+\end{equation}
+where $G(z)$ is the aggregate output produced by type $z$ households, $P(i)$ is the housing price in neighborhood $i$, $\beta$ is the spending share on housing absent regulation and $D(i, z)$ is the \textit{distortion factor}, which is the discount factor on consumption caused by binding regulation, and $L(i, z)$ is the neighborhood $i$
+
+
+
+\end{document}

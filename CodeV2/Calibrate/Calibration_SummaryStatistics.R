@@ -6,9 +6,10 @@ library(haven)
 library(dplyr)
 library(vtable) #for easy conditional tables
 
-#Importing quantiles that define superstar cities definition
-load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
-load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
+#Quantiles of city distributions on various statistics for robustness
+for (qtile in c("", "_dens", "_pop", "_wage")) {
+  load(file = paste0("DataV2/US_Data/Output/CBSA_quantiles", qtile, ".Rdata"))
+}
 
 
 #Baseline specification for output
@@ -26,8 +27,7 @@ calibrated_dta <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibratio
                                   "_amenities.dta"))
 #Creating SuperStar city dummy for output tables
 calibrated_dta["SuperStar"] <- rep("No", nrow(calibrated_dta))
-calibrated_dta$SuperStar[calibrated_dta$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]) &
-                           calibrated_dta$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"])] <- "Yes" #superstar dummy
+calibrated_dta$SuperStar[calibrated_dta$PooledWage > as.numeric(quantile_CBSA_wage["75.0%"])] <- "Yes" #superstar dummy
 
 for (incomeType in 1:7) {
   calibrated_dta[paste0("log_Amenity_", incomeType)] <- log(calibrated_dta[[paste0("Amenity_", incomeType)]])
@@ -58,29 +58,22 @@ changeColnames <- c("MSA", "SuperStar city",
 
 colnames(calibrated_dta) <- changeColnames
 
-
+#Creating new appended dataframe without superstar grouping
+hecalibrated_dta <- rbind(calibrated_dta, 
+                        mutate(select(calibrated_dta, -contains("SuperStar")), `SuperStar city` = "Aggregate") )
 
 #_______________________________________________________________________________
 #Creating tables.
 #_______________________________________________________________________________
 
 #Aggregate table:
-  vtable::st(calibrated_dta[,!names(calibrated_dta) == "SuperStar city"],
-             out = "latex",
-             file = "DataV2/Counterfactuals/Calibration_Output/Calibration_summarystats_aggregate.tex",
-             summ = c('notNA(x)','mean(x)','sd(x)', 'median(x)'),
-             summ.names = c("N", "Mean", "Sd", "Median"),
-             digits = 2)
-
   
-
 #Table by superstar city
-  vtable::st(calibrated_dta, out = "latex",
+  vtable::st(hecalibrated_dta, out = "latex",
              file = "DataV2/Counterfactuals/Calibration_Output/Calibration_summarystats_SuperStar.tex",
-             summ = c('notNA(x)','mean(x)','sd(x)', 'median(x)'),
-             summ.names = c("N", "Mean", "Sd", "Median"),
+             summ = c('notNA(x)','mean(x)','sd(x)'),
+             summ.names = c("N", "Mean", "Sd"),
              group = "SuperStar city",
-             digits = 2) #specify wide format for this group
+             digits = 2,
+             fit.page = "0.9\\textwidth",) #specify wide format for this group
 
-
-#Maybe a map (for later?)

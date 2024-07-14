@@ -83,7 +83,6 @@ US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_stringency_precovid 
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_densrestriction = UnitDensityRestriction_cl - mean(UnitDensityRestriction_cl, na.rm = TRUE))
 US_BLOCK <- US_BLOCK %>% group_by(CBSA) %>% mutate(demeaned_stringency_raw = IncomeStringency - mean(IncomeStringency, na.rm = TRUE)) #for robustness (not cleaned minimum lot sizes)
 
-
 rm(Main_regulation)
 
 #Constructing Lat/Lon coordinates for use with other programs

@@ -155,13 +155,13 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     if (variation == "Compensating") {
       source("CodeV2/Counterfactual/Functions/CompensatingVariation.R") #Load compensating variation function, changes getVariation
       saveString <- "Comp"
-      plotTitle <- "Inverse Compensating Variation (percent of income)"
+      plotTitle <- "Inverse Compensating Variation (% of income)"
     }
   
     if (variation == "Equivalent") {
       source("CodeV2/Counterfactual/Functions/EquivalentVariation.R")
       saveString <- "Eq"
-      plotTitle <- "Equivalent Variation (percent of income)"
+      plotTitle <- "Equivalent Variation (% of income)"
     }
 
     var_Amen <- matrix(NA, length(skillVector) , 7)
@@ -222,13 +222,13 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     
         index <- 2*(i - 1) + 1
   
-        Welfare_barchart[[skill_to_pass]][index] <- var_Amen[skillIndex, i] - 1
-        Welfare_barchart[[skill_to_pass]][index + 1] <- var_NoAmen[skillIndex, i] - 1
+        Welfare_barchart[[skill_to_pass]][index] <- 100*(var_Amen[skillIndex, i] - 1)
+        Welfare_barchart[[skill_to_pass]][index + 1] <- 100*(var_NoAmen[skillIndex, i] - 1)
     
       }
   
-      Welfare_barchart[[skill_to_pass]][index + 2] <- total_Welfare_Amen - 1
-      Welfare_barchart[[skill_to_pass]][index + 3]  <- total_Welfare_NoAmen - 1
+      Welfare_barchart[[skill_to_pass]][index + 2] <- 100*(total_Welfare_Amen - 1)
+      Welfare_barchart[[skill_to_pass]][index + 3]  <- 100*(total_Welfare_NoAmen - 1)
   
     }
 
@@ -236,11 +236,11 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     BarplotDF <- data.frame() #initializing data frame
 
     for (skill_to_pass in skillVector) {
-      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1: 0 - 25,000", 2), rep("2: 25,000 - 50,000", 2), rep("3: 50,000 - 75,000", 2), 
-                                                  rep("4: 75,000 - 100,000", 2), rep("5: 100,000 - 150,000", 2), rep("6: 150,000 - 200,000", 2), 
-                                                  rep("7: 200,000+", 2), rep("Social Welfare", 2)), 
-                                                rep(c("Endogenous Amenities", "Exogenous Amenities"), 2),
-                                                100*Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
+      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
+                                                  rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
+                                                  rep("7. 200k+", 2), rep("Social Welfare", 2)), 
+                                                rep(c("Endogenous", "Exogenous"), 2),
+                                                Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
   
     }
 
@@ -252,27 +252,13 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggplot(BarplotDF, aes(fill = Amenities, y = Value, x = factor(Income))) + 
              geom_bar(position = "dodge", stat = "identity") +
              xlab("Household type (income in average city, 2020 USD)") + 
-             ylab(plotTitle) + 
-             theme(axis.text.x=element_text(size=rel(1), angle=90))
+             ylab(plotTitle) + theme_gray(base_size = 15) +
+             theme(axis.text.x=element_text(size=rel(1), angle=90), 
+                   legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_", saveString, "_var_bySkill_", 
                    BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                    BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
  
-  
-    #__________________________________________
-    # SAVE POSTER VERSION OF WELFARE OUTPUT
-    #__________________________________________
-    ggplot(BarplotDF, aes(fill = Amenities, y = Value, x = factor(Income))) + 
-      geom_bar(position = "dodge", stat = "identity") +
-      xlab("Household income (in an average city, 2020 USD)") + 
-      ylab("Willingness to pay for deregulation (% of income)") + 
-      theme(axis.title.y = element_text(size = rel(1.4), angle = 90),
-            axis.title.x = element_text(size = rel(1.8), angle = 0),
-            axis.text.x = element_text(size=rel(1), angle=90)) 
-    ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_forPoster_", saveString, "_var_bySkill_", 
-                  BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                  BASELINE_SPECIFICATION$pref, ".png"), width = 24, height = 16, units = "cm") 
-     rm(BarplotDF)
   
   
     }else{
@@ -281,8 +267,9 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
             geom_bar(position = "dodge", stat = "identity") + 
             facet_wrap(~Education) + 
             xlab("Household type (income in average city, 2020 USD)") + 
-            ylab(plotTitle) + 
-            theme(axis.text.x=element_text(size=rel(1), angle=90))
+            ylab(plotTitle) + theme_gray(base_size = 15) +
+        theme(axis.text.x=element_text(size=rel(1), angle=90), 
+              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_", saveString, "_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
@@ -384,12 +371,12 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     
     if (variation == "Compensating") {
       saveString <- "Comp"
-      plotTitle <- "Inverse Compensating Variation (percent of income)"
+      plotTitle <- "Inverse Compensating Variation (% of income)"
     }
     
     if (variation == "Equivalent") {
       saveString <- "Eq"
-      plotTitle <- "Equivalent Variation (percent of income)"
+      plotTitle <- "Equivalent Variation (% of income)"
     }
     
     Amenity_shapely_norm <- 100*(Amenity_shapely/tWelfare)*(comp_Var_store[[variation]]) #comp_Var_store was created in welfare calculation above
@@ -441,9 +428,9 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
   
     for (skill_to_pass in skillVector) {
     
-      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1: 0 - 25,000", 2), rep("2: 25,000 - 50,000", 2), rep("3: 50,000 - 75,000", 2), 
-                                                  rep("4: 75,000 - 100,000", 2), rep("5: 100,000 - 150,000", 2), rep("6: 150,000 - 200,000", 2), 
-                                                  rep("7: 200,000+", 2), rep("Social Welfare", 2)), 
+      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
+                                                  rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
+                                                  rep("7. 200k+", 2), rep("Social Welfare", 2)), 
                                                   rep(c("Consumption", "Amenity"), 2),
                                                   Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
     
@@ -458,8 +445,9 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
         geom_bar(position = "dodge", stat = "identity") +
         xlab("Household type (income in average city, 2020 USD)") + 
-        ylab(plotTitle) + 
-        theme(axis.text.x=element_text(size=rel(1), angle=90))
+        ylab(plotTitle) + theme_gray(base_size = 15) +
+        theme(axis.text.x=element_text(size=rel(1), angle=90), 
+              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/WelfareDecomp_", saveString,"_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
@@ -470,8 +458,9 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
         geom_bar(position = "dodge", stat = "identity") + 
         facet_wrap(~Education) + 
         xlab("Household type (income in average city, 2020 USD)") + 
-        ylab(plotTitle) +  
-        theme(axis.text.x=element_text(size=rel(1), angle=90))
+        ylab(plotTitle) + theme_gray(base_size = 15) +
+        theme(axis.text.x=element_text(size=rel(1), angle=90), 
+              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/WelfareDecomp_", saveString,"_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
@@ -555,7 +544,7 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
      name_of_skill <- skillName[which(skill_to_pass == skillVector)]
      
      for (i in 1:7) {
-        comp_var_homeowner[skillIndex, i] <- (1 - housing_exposure_weights[skillIndex, i])*comp_Var_store[["Compensating"]][skillIndex, i] + 
+        comp_var_homeowner[skillIndex, i] <- (1 - housing_exposure_weights[skillIndex, i])*comp_Var_store[["Equivalent"]][skillIndex, i] + 
                                              housing_exposure_weights[skillIndex, i]*(growthRate_landval)   
        
        
@@ -610,9 +599,9 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     
     for (skill_to_pass in skillVector) {
       
-      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1: 0 - 25,000", 1), rep("2: 25,000 - 50,000", 1), rep("3: 50,000 - 75,000", 1), 
-                                                  rep("4: 75,000 - 100,000", 1), rep("5: 100,000 - 150,000", 1), rep("6: 150,000 - 200,000", 1), 
-                                                  rep("7: 200,000+", 1), rep("Social Welfare", 1)), 
+      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 1), rep("2. 25-50k", 1), rep("3. 50-75k", 1), 
+                                                  rep("4. 75-100k", 1), rep("5. 100-150k", 1), rep("6. 150-200k", 1), 
+                                                  rep("7. 200k+", 1), rep("Social Welfare", 1)), 
                                                 rep(c("Welfare"), 1),
                                                 Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
       
@@ -627,9 +616,11 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggplot(BarplotDF, aes(y = Value, x = factor(Income))) + 
         geom_bar(position = "dodge", stat = "identity", color= "#F8761D", fill = "#00BFC4") +
         xlab("Household type (income in average city, 2020 USD)") + 
-        ylab("Inverse Compensating variation (% of income)") + 
-        theme(axis.text.x=element_text(size=rel(1), angle=90))
-      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Comp_var_bySkill_", 
+        ylab("Equivalent Variation (% of income)") + 
+        theme_gray(base_size = 15) +
+        theme(axis.text.x=element_text(size=rel(1), angle=90), 
+              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
+      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Eq_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
       
@@ -639,9 +630,11 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
         geom_bar(position = "dodge", stat = "identity", color="#F8761D", fill = "#00BFC4") + 
         facet_wrap(~Education) + 
         xlab("Household type (income in average city, 2020 USD)") + 
-        ylab("Inverse Compensating variation (% of income)") + 
-        theme(axis.text.x=element_text(size=rel(1), angle=90))
-      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Comp_var_bySkill_", 
+        ylab("Equivalent Variation (% of income)") + 
+        theme_gray(base_size = 15) +
+        theme(axis.text.x=element_text(size=rel(1), angle=90), 
+              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
+      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Eq_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
       

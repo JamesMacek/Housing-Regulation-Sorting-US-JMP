@@ -1,0 +1,128 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{amsthm, thmtools}
+\usepackage[legalpaper, margin=1in]{geometry}
+
+%Propositions, facts, remarks
+\declaretheorem{Fact}
+\declaretheorem{Proposition}
+\declaretheorem{Remark}
+
+
+\usepackage[font=scriptsize,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\spacing{1.3}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+\usepackage{comment}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+%opening
+\title{Proving some theorems about the neighborhood choice externality}
+\author{}
+\date{October 26, 2023}
+
+\begin{document}
+
+\maketitle
+\subsection{Prop1 Evolved}
+\paragraph*{}
+Generalize replication of the facts assuming $\Omega(z) = 0$ for every $z$ (this helps a lot). This should be quite easy. Use much less of a modeling, assume Cobb Douglas preferences and all locations look the same on the supply side. Assume all locations have fixed minimum lot sizes. Assume non-perfect labour mobility. 
+
+\subsection{Prop2 Evolved}
+\paragraph*{Step 1: Parameterizing income sorting} Consider a closed city $c$ (i.e. $\mathbb{C} = 1$  above) and consider a set $N(c)$ of neighborhoods enumerated by $\{1, 2, 3 \dots N\}$ with $N$ even, and three income types $\{z_{l}, z_{m}, z_{h}\}$. Each neighborhood has an identical production technology for housing. These neighborhoods will be inversely ordered by affluence in an unregulated equilibrium (actually, ordered by weakly by first order stochastic dominance in their income distributions). The variation of average income across these neighborhoods -- the \textit{strength} of income sorting absent regulation -- will govern the scope of regulation in rich neighborhoods to cause reallocations of middle income types to poor neighborhoods. If such reallocations are made, amenity values increase in all neighborhoods simultenously. 
+
+\paragraph*{}
+I will construct a structure of amenities for two different parameterizations of the model. The first is an extreme case of income sorting where high and low income types are completely separated. The second characterizes no income sorting -- a parameterization that yields no meaningful variation in incomes across locations -- where every amenity value is the same.
+
+\paragraph*{}
+How do we construct each parameterization?
+
+\begin{enumerate}
+	\item Set $\nu_{1}(i, z_{l}) = 0$ for $i \in \{1 \dots \frac{N}{2}\}$, and $\nu(i, z_{h}) = 0$ for $i \in \{\frac{N}{2} + 1, N\}$ so that no $l$ types sort in $1$ and no $h$ types sort in $N$. This is an extreme case of income sorting. Also assume $\nu_{1}(i, z_{m}) = 1$ for all other income types in neighborhoods $1$ and $N$. What is important is that, under this parameterization, income distributions in equilibrium are ordered by first order stochastic dominance. That is, for any two neighborhoods $n_{1}, n_{2}$, $n_{1}$ weakly f.o.s.d $n_{2}$ if and only if $n_{1} < n_{2}$. (Easy to show).
+	
+	\paragraph*{}
+	In some sense, this parameterization induces the \textit{maximal} variation in average income across neighborhoods. 
+	
+	\item Set $\nu_{0}(i, z) = 1$ for every $i, z$ pair. If there is a unique equilibrium, then that equilibrium is such that
+	 all locations look the same.
+\end{enumerate}
+
+\paragraph*{}
+We now index a set of \textit{economies} parameterized by $t \in [0, 1]$. Define the amenity value of an economy of type $t$ for $(i, z)$ agents are $tv_{0}(i, z) + (1-t)v_{1}(i, z)$. Assume equilibrium outcomes are continuous in $t$ and regulation $I(i)$, which will require some sort of stability conditions/uniqueness of equilibria\footnote{Big assumption}. That means the income of all locations in equilibrium is continuous in the parameter $t$. Moreover,  equilibrium outcomes are continuous in regulation $I(i)$ in each neighborhood $i$. Obviously, $t = 1$ yields the most income sorting-- the variation in income across locations must be largest here\footnote{This will need to be proven in a lemma}. 
+
+\paragraph*{}
+Consider a small increase in regulation $I(i)$ in neighborhoods $\{1 \dots \frac{N}{2}\}$ for economy $t = 1$ around an equilibrium where regulation is just about non-binding for $z_{m}$ types (when $I(i) = \beta z_{m})$.  Need to prove that this increase in regulation must induce increases in income in all locations. Fix 
+
+\paragraph*{}
+How to proceed? 
+	
+	
+	
+	
+	
+	\newpage
+
+\section{WHAT GOES IN TEXT AS REPLACEMENT FOR \\ "Replicating the facts with the model"}
+
+
+
+\section{WHAT GOES IN TEXT AS REPLACEMENT FOR \\ "When does regulation benefit all renters?"}
+	
+	\paragraph*{}
+	Under the model structure assumed in Proposition \ref{Prop:ReproduceFacts}, all income segregation across neighborhoods and cities is induced only by regulation. The regulated, high income neighborhoods in the productive city offers cheaper prices per unit of housing services to compensate for the fact that too much housing services are needed to be purchased to live there\footnote{Or, in the full model with endogenous amenities, these neighborhoods could offer higher amenities as another compensating differential for regulation.}. Additional inequality between the two income types is induced by the creation of this high value neighborhood. In other words, regulation causes mostly distributional consequences, so that the value of the policy depends solely on how much weight high income households are given in the social welfare function. In this section, I contrast this regressive outcome with another extreme parameterization of the model: one where a specific structure of minimum lot sizes can be used to increase incomes and amenity values in all locations. This is achieved by reallocating the poorest households in rich neighborhoods to become the richest households of poor neighborhoods. This result requires strong income sorting in the absence of regulation, which is governed by the fundamental amenities $\nu(i, z)$\footnote{The idea that income sorting creates an externality by which too many lower income households crowd rich neighborhoods has previously been used to argue that fiscal centralization across neighborhoods is typically more efficient than decentralization \citep{ineffTiebout}. The reasoning behind this argument is the same reasoning I use here.}. 
+	
+	\paragraph*{}
+	To this end, suppose there is instead three income types $z_{l} < z_{m} < z_{h}$ (low, medium and high), one closed city, and $N$ neighborhoods with an identical production technology for housing. These neighborhoods will be ordered in equilibrium by affluence. I consider a set of \textit{economies} that are parameterized by $t \in [0, 1]$. These economies will vary by the structure of fundamental amenities. The $t = 0$ economy will be characterized by no variation in income across neighborhoods, which can be achieved by setting $\nu_{t = 0}(i, z) = 1$ across all neighborhoods and types\footnote{Since the scale of amenities do not matter for equilibrium outcomes or welfare measurement, the choice of $\nu(i, z) = 1$ is arbitrary. Any positive number works under the same argument.}. Conversely, the $t = 1$ economy is associated with the maximal possible variance in neighborhood income subject to a given allocation of $z_{m}$ types. This is achieved under the following restrictions on $\nu(i, z)$:
+	\begin{eqnarray*}
+		\text{For every $i > \frac{N}{2}$} &\quad \quad \quad \quad & \text{For every $i' \leq \frac{N}{2}$} \\
+		\nu_{t = 1}(i, z_{l})  = 1, & & \nu_{t = 1}(i', z_{l}) = 0 \\
+		\nu_{t = 1}(i, z_{m})  = 1  & &\nu_{t = 1}(i', z_{m})  = 1 \\ 
+		\nu_{t = 1}(i, z_{h})  = 0  & &\nu_{t = 1}(i', z_{h})  = 1
+	\end{eqnarray*}
+	Under this restriction, income sorting is at its strongest because there will be complete segregation of $z_{l}$ and $z_{h}$ types, with each residing in either half of the neighborhoods. Finally, for any economy $t \in (0, 1)$, define the fundamental amenity as the linear combination $\nu_{t}(i, z) = (1-t)\nu_{t = 0}(i, z) + t\nu_{t = 1}(i, z)$. 
+	
+	\paragraph*{} 
+	Introducing equal regulation across all neighborhoods in the set $\{1 \dots \frac{N}{2}\}$ for the $t = 1$ economy must reallocate \textit{only} $z_{m}$ types away from high amenity, rich neighborhoods and toward low amenity, poor neighborhoods; increasing income in both locations. Conversely, imposing regulation in the $t = 0$ economy must create rich and poor neighborhoods -- there is no scope for regulation to increase amenity values in all neighborhoods simultaneously. I argue that, for economies sufficiently close to the $t = 1$ and $t = 0$ economies, this same logic holds. This leads to Proposition \ref{Prop:NeighborhoodChoiceExt}: 
+
+	\begin{Proposition}\label{Prop:NeighborhoodChoiceExt}
+		Assume amenities take the described form for a set of economies parameterized by $t \in [0, 1]$. Then, the following is true about an equilibrium where regulation does not bind:
+	
+		\begin{enumerate}
+			\item The $t = 1$ economy has the maximal variation of income across neighborhoods for a given allocation of $z_{m}$ types. Conversely, $t = 0$ has an equilibrium with zero variation in income across neighborhoods.
+		
+			\item There exists a $t^{\uparrow} \in [0, 1]$ such that, for every $t \in (t^{\uparrow}, 1]$, a small increase in regulation in all neighborhoods in $\{1 \dots \frac{N}{2}\}$ increases average income in all locations.
+		
+			\item There exists a $t_{\downarrow} \in [0, 1]$ such that, for every $t \in [0, t^{\downarrow})$, increasing regulation in any neighborhood(s) does not increase average income in all locations. Instead, average income across neighborhoods weighted by the population of $z_{h}$ types increases. 
+		\end{enumerate}
+	\end{Proposition}
+	\begin{proof}
+		See Appendix \ref{Proof:NeighborhoodChoiceExt}
+	\end{proof}
+	
+	\paragraph*{}
+	Proposition \ref{Prop:NeighborhoodChoiceExt}  suggests that different parameterizations of the model have different distributional consequences. They also hint at different welfare implications for different households. An important question is which, if any, of these examples better characterizes the actual world we live in. A contribution of this paper is to have a model that can nest these competing hypotheses. In the deregulation exercise of Section \ref{Section:Counterfactuals}, I find that the contribution of the neighborhood choice externality to overall welfare is minimal for the average household, and has important distributional consequences. This suggests that the data is probably better described by little income sorting absent regulation, as in the $t = 0$ economy. This is commensurate with the idea that minimum lot sizes drive a large portion of income sorting on density within and across cities (Facts \ref{FIncomeDens} and \ref{FStringency}), which I show. Moreover, if the economy is characterized by less income sorting absent regulation, then much of the correlation between neighborhood income and regulatory stringency should disappear after regulation. This is also what I find.
+	
+	\paragraph*{}
+	Proposition \ref{Prop:NeighborhoodChoiceExt} does not directly speak to the aggregate welfare and distributional consequences of regulation. In Appendix \ref{xx}, I show that regulation can lead to Pareto improvements for renters in the $t = 1$ economy and not in the $t = 0$ economy. This is done with a few additional assumptions on the income preference parameters $\Omega(z)$, the housing supply elasticity $\epsilon$, and preference parameters over housing.
+	
+	\paragraph*{}
+	In the following section, I detail a calibration strategy that will distinguish between the competing hypotheses of Proposition \ref{Prop:NeighborhoodChoiceExt}. 
+	
+
+
+
+
+\end{document}

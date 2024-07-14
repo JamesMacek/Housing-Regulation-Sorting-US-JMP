@@ -120,7 +120,7 @@ Init_eq["Avg_income_ctfl"] <- Ct_Amenities$Avg_income #counterfactual incomes
 Init_eq["Init_nPop"] <- getNeighborhoodPop(Init_eq) #Initial neighborhood populations
 Init_eq["Ct_nPop"] <- getNeighborhoodPop(Ct_Amenities) #Initial neighborhood populations 
 
-SF_df <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA" & Init_eq$County == 75,] %>% #san francisco county is 75
+SF_df <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",] %>% #san francisco county is 75
         select(LandValGrowth, IncomeStringency_cl, starts_with("Avg_income"), ends_with("nPop"), UnitDensityRestriction_cl, land_regulated, final_land_for_res, starts_with("Amenity"), starts_with("consumption"),
                regulated_housingUnit_share, LandValueDensity_matched, IncomeStringency_model_rents, rank_density_CBSA, starts_with("Population_type"), State, County, Tract, BlockGroup, CBSA_NAME)
 
@@ -253,7 +253,7 @@ var_Amen <- matrix(NA, length(skillVector) , 7)
 
   
 #_________________________________________________________________________________________________________
-# PART 3: LABOUR PRODUCTIVITY AND COMPOSITION OF INFLOWERS 
+# PART 3: LABOUR PRODUCTIVITY AND COMPOSITION OF INFLOWERS________________________________________________
 #_________________________________________________________________________________________________________
 #Checking changes in aggregate labour productivity across equilibria
 print(paste0("The difference in labour productivity after deregulating San Francisco is ",
@@ -274,8 +274,9 @@ print(paste0("The difference in labour productivity after deregulating San Franc
   output_shares <- data.frame(getCityOutputShares(Init_eq))
   colnames(output_shares) <- c("CBSA_NAME", "OutputShares")
 
-
   AcrossCityAnalysis <- left_join(AcrossCityAnalysis, output_shares, by = c("CBSA_NAME"))
+  
+  #Taking population flows holding income composition fixed, effect on agg productivity is PopFlow(%)*Output Share in initial equilibrium
   LabProdGrowth_noincomeSorting <- sum(((AcrossCityAnalysis$pDelta_Pop + 100)*as.numeric(AcrossCityAnalysis$OutputShares))) - 100 #4x higher 
   print(paste0("Aggregate productivity growth would have been ", LabProdGrowth_noincomeSorting, " percent if there was no income sorting.")) #would have been 0.171 percent if higher, san francisco grows by 12% in equilibrium, 
                                                                                                                                              #but average income falls by 6% in SF
@@ -283,7 +284,7 @@ print(paste0("The difference in labour productivity after deregulating San Franc
   
   
 #__________________________________________________________________________________________________________
-# Part 4: Maps showing changes in income, initial regulation, etc
+# Part 4: Maps showing changes in income, initial regulation, etc__________________________________________
 #__________________________________________________________________________________________________________
 #   #Getting bounding box for the geometry of SF
   
@@ -302,55 +303,49 @@ print(paste0("The difference in labour productivity after deregulating San Franc
   #Setting IncomeStringency_cl to zero if NA (for graph, this was imputed missing for Merge_stringency.R)
   SF_df$IncomeStringency_cl[is.na(SF_df$IncomeStringency_cl)] <- 0
   
+  #Getting arguments for map
+  args <- createMappingArgs(boundingBox = SanFran_bbox,
+                            additionalZoom = 2)
   
-  #Extracting open street map tiles to overlay zoning districts
-  # see https://yutani.rbind.io/post/2018-06-09-plot-osm-tiles/ for code
-  x_len <- SanFran_bbox["xmax"] - SanFran_bbox["xmin"]
-  y_len <- SanFran_bbox["ymax"] - SanFran_bbox["ymin"]
+  #Bin each outcome by quantiles for better viewing of the map: 
+  SF_df <-  SF_df %>% mutate(Avg_income_quartiles = cut(Avg_income/1000, breaks = unique(quantile(Avg_income/1000, seq(0, 1, 0.25))), 
+                                                        label = FALSE),
+                             IncomeStringency_cl_quartiles = cut(IncomeStringency_cl/1000000, breaks = unique(quantile(IncomeStringency_cl/1000000, seq(0, 1, 0.25))), 
+                                                                 label = FALSE),
+                             Income_change_quartiles = cut(100*((Avg_income_ctfl/Avg_income) - 1), breaks = unique(quantile(100*((Avg_income_ctfl/Avg_income) - 1), seq(0, 1, 0.1))), 
+                                                           label = FALSE),
+                             LandVal_change_quartiles = cut(100*(exp(LandValGrowth) - 1), breaks = unique(quantile(100*(exp(LandValGrowth) - 1), seq(0, 1, 0.1))), 
+                                                            label = FALSE)
+                        )
   
-  # calculate the minimum zoom level that is smaller than the lengths
-  x_zoom <- sum(x_len < 360 / 2^(0:19)) - 1
-  y_zoom <- sum(y_len < 170.1022 / 2^(0:19)) - 1
-  zoom <- min(x_zoom, y_zoom)
-  
-  #add additional zoom
-  zoom <- zoom + 3
-  rm(x_zoom, y_zoom)
-  
-  #Create tiles
-  xy <- lonlat2xy(SanFran_bbox[c("xmin", "xmax")],  SanFran_bbox[c("ymin", "ymax")], zoom)
-  tiles <- expand.grid(x = seq(xy$x["xmin"], xy$x["xmax"]),
-                       y = seq(xy$y["ymin"], xy$y["ymax"]))
-  
-  #Open street map api tiles
-  urls <- sprintf("https://a.tile.openstreetmap.org/%d/%d/%d.png", zoom, tiles$x, tiles$y)
-  
-  #Using get tiles function for pngs, read them directly into R
-  pngs <- map(urls, get_tile)
+  SF_df$Avg_income_quartiles[is.na(SF_df$Avg_income_quartiles)] <- 1 #Set unregulated locations for first quartile.
+  SF_df$IncomeStringency_cl_quartiles[is.na(SF_df$IncomeStringency_cl_quartiles)] <- 1 #Set unregulated locations for first quartile.
+  SF_df$Income_change_quartiles[is.na(SF_df$Income_change_quartiles)] <- 1 #Set unregulated locations for first quartile.
+  SF_df$LandVal_change_quartiles[is.na(SF_df$LandVal_change_quartiles)] <- 1 #Set unregulated locations for first quartile.
   
   
-  #Getting tile positions
-  nw_corners <- pmap_dfr(tiles, xy2lonlat, zoom = zoom)
-  # add 1 to x and y to get the south-east corners
-  se_corners <- pmap_dfr(mutate_all(tiles, `+`, 1), xy2lonlat, zoom = zoom)
   
-  names(nw_corners) <- c("xmin", "ymax")
-  names(se_corners) <- c("xmax", "ymin")
+  #Creating bins
+  SF_df <- SF_df %>% group_by(Avg_income_quartiles) %>% mutate(Avg_income_quartiles_center = round(mean(Avg_income/1000), 2)) %>%
+                     group_by(IncomeStringency_cl_quartiles) %>% mutate(IncomeStringency_cl_quartiles_center = round(mean(IncomeStringency_cl/1000000), 2)) %>%
+                     group_by(Income_change_quartiles) %>% mutate(Income_change_quartiles_center = round(mean(100*((Avg_income_ctfl/Avg_income) - 1)), 2)) %>%
+                     group_by(LandVal_change_quartiles) %>% mutate(LandVal_change_quartiles_center = round(mean(100*(exp(LandValGrowth) - 1)), 2))
   
-  tile_positions <- bind_cols(nw_corners, se_corners)
-  rm(se_corners, nw_corners)
-  
-  #Setting up data to use pmap for plotting
-  args <- tile_positions %>% mutate(raster = pngs)
   
   #PLOTTING ALL OUTPUT MAPS
 InitIncome_plot <-  ggplot() + coord_sf() +
     pmap(args, annotation_raster, interpolate = TRUE) + 
     geom_sf(data = SF_df,
-            mapping = aes(fill = Avg_income/1000), alpha = 0.45) + 
-            scale_fill_gradientn(colours=magma(6), name = "") + 
-    ggtitle(paste0("Panel A:", "\n", "Income distribution (in 1000's, pre-deregulation)")) + 
-    theme_gray(base_size = 20)
+            mapping = aes(fill = Avg_income_quartiles_center), 
+            alpha = 0.6, lwd = 0) +
+    coord_sf(expand = FALSE) + 
+            scale_fill_gradientn(colours=magma(6), name = "") +    
+    theme_gray(base_size = 20) +
+    theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.text = element_text(size = 12)) + 
+    ggtitle(paste0("Panel C:", "\n", "Income distribution (in 1000's, pre-deregulation)")) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodIncome_map.png", plot = InitIncome_plot,  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
@@ -358,52 +353,53 @@ InitIncome_plot <-  ggplot() + coord_sf() +
 ChIncome_plot <- ggplot() + coord_sf() +
     pmap(args, annotation_raster, interpolate = TRUE) + 
     geom_sf(data = SF_df,
-            mapping = aes(fill = 100*((Avg_income_ctfl/Avg_income) - 1)), alpha = 0.45) + 
-    scale_fill_gradientn(colours=turbo(6), name = "") + 
-    ggtitle(paste0("Panel B:", "\n", "Changes in income to counterfactual (%)")) + 
-  theme_gray(base_size = 20)
+            mapping = aes(fill = Income_change_quartiles_center), alpha = 0.6, lwd = 0) + 
+    coord_sf(expand = FALSE) + 
+    scale_fill_gradientn(colours= c("red", "blue"), name = "") + 
+    ggtitle(paste0("Panel A:", "\n", "Changes in income to counterfactual (%)")) + 
+  theme_gray(base_size = 20) + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.text = element_text(size = 12)) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodIncome_change_map.png", plot = ChIncome_plot,  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
+  
+  InitString_plot <-  ggplot() + coord_sf() +
+    pmap(args, annotation_raster, interpolate = TRUE) + 
+    geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot
+            mapping = aes(fill = IncomeStringency_cl_quartiles_center), alpha = 0.6, lwd = 0) +
+    coord_sf(expand = FALSE) + 
+    scale_fill_gradientn(colours=magma(6), name = "") + 
+    ggtitle(paste0("Panel D:", "\n", "Regulatory stringency (in millions USD, pre-deregulation)")) + 
+    theme_gray(base_size = 20) + 
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          legend.text = element_text(size = 12)) 
+  ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_stringency_equilibrium.png", plot = InitString_plot, 
+         width = 35, height = 21.875, units = "cm", type = "cairo") 
+  
   
   #Change in Land Values to counterfactual
 ChLandVal_plot <-  ggplot() + coord_sf() +
     pmap(args, annotation_raster, interpolate = TRUE) + 
-    geom_sf(data = SF_df[SF_df$LandValGrowth < 0.79,], #censor for graph scale, one outlier where land values change a lot (because its a high density neighborhood with very stringent regulation)
-            mapping = aes(fill = 100*(exp(LandValGrowth) - 1)), alpha = 0.45) + 
-    scale_fill_gradientn(colours=turbo(6), name = "") + 
-    ggtitle(paste0("Panel D:", "\n", "Changes in land values to counterfactual (%)")) + 
-  theme_gray(base_size = 20)
+    geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot (because its a high density neighborhood with very stringent regulation)
+            mapping = aes(fill = LandVal_change_quartiles_center), alpha = 0.6, lwd = 0) + 
+    coord_sf(expand = FALSE) + 
+    scale_fill_gradientn(colours=c("red", "blue"), name = "") + 
+    ggtitle(paste0("Panel B:", "\n", "Changes in land values to counterfactual (%)")) + 
+  theme_gray(base_size = 20) + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.text = element_text(size = 12)) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodLandVal_change_map.png", plot = ChLandVal_plot, 
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
 
-  #Initial stringency (log + 1 transform to include)
-InitString_plot <-  ggplot() + coord_sf() +
-    pmap(args, annotation_raster, interpolate = TRUE) + 
-    geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot
-            mapping = aes(fill = IncomeStringency_cl/1000000), alpha = 0.45) + 
-    scale_fill_gradientn(colours=magma(6), name = "") + 
-    ggtitle(paste0("Panel C:", "\n", "Regulatory stringency (in millions USD, pre-deregulation)")) + 
-  theme_gray(base_size = 20)
-  ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_stringency_equilibrium.png", plot = InitString_plot, 
-         width = 35, height = 21.875, units = "cm", type = "cairo") 
-  
-  #Initial population density (strongly correlated)
-  ggplot() + coord_sf() +
-    pmap(args, annotation_raster, interpolate = TRUE) + 
-    geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot
-            mapping = aes(fill = rank_density_CBSA), alpha = 0.45) + 
-    scale_fill_gradientn(colours=rev(plasma(6)), name = "") + 
-    ggtitle("Density ranking in initial equilibrium") + 
-    theme_gray(base_size = 20)
-  
-  ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_density_ranking_initial.png",  
-         width = 35, height = 21.875, units = "cm", type = "cairo") 
-  
-  
   #Putting plots into patchwork graph, increasing size of font
-  InitIncome_plot + ChIncome_plot + InitString_plot + ChLandVal_plot +
-    theme_gray(base_size = 20)
+   ChIncome_plot + ChLandVal_plot + InitString_plot + InitIncome_plot 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_combined.png",  
          width = 50, height = 50, units = "cm", type = "cairo")
   

@@ -1,0 +1,48 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Data and Motivating Evidence}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Data}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Motivating Evidence}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Theoretical framework}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{The Quantitative Spatial Model}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Model Extensions}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Replicating the facts with the model}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.4}{When does regulation correct the neighborhood choice externality?}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{Calibration and Estimation}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Productivity and local income distributions}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.2}{Consumption values C\(i, z\)}{section.4}% 12
+\BOOKMARK [2][-]{subsection.4.3}{Amenities b\(i, z\) and migration elasticities , }{section.4}% 13
+\BOOKMARK [2][-]{subsection.4.4}{Housing supply parameters}{section.4}% 14
+\BOOKMARK [1][-]{section.5}{Estimating \(z\)}{}% 15
+\BOOKMARK [2][-]{subsection.5.1}{A simple placebo test}{section.5}% 16
+\BOOKMARK [1][-]{section.6}{Counterfactuals}{}% 17
+\BOOKMARK [2][-]{subsection.6.1}{Complete deregulation}{section.6}% 18
+\BOOKMARK [2][-]{subsection.6.2}{Unilateral deregulation}{section.6}% 19
+\BOOKMARK [2][-]{subsection.6.3}{Socially optimal policy}{section.6}% 20
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 21
+\BOOKMARK [1][-]{appendix.A}{Appendix: Data and Facts Continued}{}% 22
+\BOOKMARK [2][-]{subsection.A.1}{Data Construction}{appendix.A}% 23
+\BOOKMARK [2][-]{subsection.A.2}{Constructing Zoning Districts}{appendix.A}% 24
+\BOOKMARK [2][-]{subsection.A.3}{Measuring Minimum Lot Sizes and Stringency}{appendix.A}% 25
+\BOOKMARK [2][-]{subsection.A.4}{Validating Minimum Lot Sizes}{appendix.A}% 26
+\BOOKMARK [2][-]{subsection.A.5}{Summary Statistics}{appendix.A}% 27
+\BOOKMARK [2][-]{subsection.A.6}{Discussion of Alternative Specifications}{appendix.A}% 28
+\BOOKMARK [1][-]{appendix.B}{Appendix: Theory}{}% 29
+\BOOKMARK [2][-]{subsection.B.1}{Derivation of the distortion factor}{appendix.B}% 30
+\BOOKMARK [2][-]{subsection.B.2}{Derivation of Equation \(8\)}{appendix.B}% 31
+\BOOKMARK [2][-]{subsection.B.3}{Microfoundations for endogenous amenities channel}{appendix.B}% 32
+\BOOKMARK [2][-]{subsection.B.4}{Proof of Proposition 1}{appendix.B}% 33
+\BOOKMARK [2][-]{subsection.B.5}{Proof of Proposition 2}{appendix.B}% 34
+\BOOKMARK [1][-]{appendix.C}{Appendix: Calibration}{}% 35
+\BOOKMARK [2][-]{subsection.C.1}{The complete calibration algorithm}{appendix.C}% 36
+\BOOKMARK [2][-]{subsection.C.2}{Calibration when households differ on education}{appendix.C}% 37
+\BOOKMARK [2][-]{subsection.C.3}{Summary Statistics for key calibrated parameters}{appendix.C}% 38
+\BOOKMARK [1][-]{appendix.D}{Appendix: Estimating \(z\)}{}% 39
+\BOOKMARK [2][-]{subsection.D.1}{Econometric model}{appendix.D}% 40
+\BOOKMARK [2][-]{subsection.D.2}{First Stage Regression}{appendix.D}% 41
+\BOOKMARK [2][-]{subsection.D.3}{OLS}{appendix.D}% 42
+\BOOKMARK [2][-]{subsection.D.4}{Robustness}{appendix.D}% 43
+\BOOKMARK [1][-]{appendix.E}{Appendix: Counterfactuals}{}% 44
+\BOOKMARK [2][-]{subsection.E.1}{Algorithm for computing counterfactuals}{appendix.E}% 45
+\BOOKMARK [2][-]{subsection.E.2}{Weighing renters and landowners welfare: continued}{appendix.E}% 46
+\BOOKMARK [2][-]{subsection.E.3}{Shapely value decomposition}{appendix.E}% 47
+\BOOKMARK [2][-]{subsection.E.4}{Supplementary figures}{appendix.E}% 48

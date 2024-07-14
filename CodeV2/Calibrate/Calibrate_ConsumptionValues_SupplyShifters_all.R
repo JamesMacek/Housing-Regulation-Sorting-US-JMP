@@ -16,10 +16,15 @@ library(mgcv)
 library(ggplot2)
 library(gratia)
 
+#Compiling functions for greater speed.
+library(compiler) 
+
+
 #This file calibrates prices in each zone, recovering consumption values and supply shifters.
-#This file calibrates 2008-2012 consumption values to calculate for placebo check.
+#This file also calibrates 2008-2012 consumption values to calculate for placebo check.
 
-
+#Starting logs...
+sink("DataV2/Counterfactuals/logs/Calibration_preprocess.txt")
 
 for (sample in c("current", "historical")) { #loop over cross sections
   
@@ -37,7 +42,7 @@ for (sample in c("current", "historical")) { #loop over cross sections
 
   BlockGroup <- read_dta("DataV2/US_Data/Output/Constructed_Block_V2.dta") %>% #Block group level variables
                 select(State, County, Tract, BlockGroup,
-                       rank_density_CBSA, City_housing_density, CBSA_med_house_value)
+                       rank_density_CBSA, rank_inv_D2CBD, City_housing_density, CBSA_med_house_value) #Some variables we may want to retain for analysis later on. 
 
   #Importing sample geography
   SmpleGeo <- read_dta("DataV2/US_Data/Output/SampleGeography.dta") %>% select(-CBSA)
@@ -113,8 +118,6 @@ for (sample in c("current", "historical")) { #loop over cross sections
    Regulation, Wages, Wages_V2, SpendShare,
    SmpleGeo, BlockGroup, Regulation_V2)
 
-  #Normalizing average income type in midpoint income group to 1 to measure welfare
-  adjustment_factor_temp <- as.numeric(select(Master, starts_with("ability_grp"))[1,]) #divide by ability_grp for computational purposes, has no affect on computation.
 
   #Dropping block groups with zero land mass and zero population (this is the same sample of block groups used in the facts.)
   Master <- Master[Master$total_housing_units_cen > 0 & Master$ALAND > 0 & !is.na(Master$ALAND) & !is.na(Master$total_housing_units_cen),]
@@ -149,7 +152,7 @@ for (sample in c("current", "historical")) { #loop over cross sections
 
   #Note: lambda is not defined for zero regulated neighborhoods (it is not separately identifiable from land mass). So set land mass in these block groups == ALAND. (measured land mass of the tract)
 
-  #Creating hedonicPrice variable from hedonic regressions.
+  #Creating hedonicPrice variable from hedonic regressions. This will be a parameter in calibration.
   Master["hedonicPrice"] <- rep(NA, nrow(Master))
   Master$hedonicPrice[Master$Regulation_code == 1 | Master$Regulation_code == 2] <- Master$hedonicPrice_regulated[Master$Regulation_code == 1 | Master$Regulation_code == 2]
   Master$hedonicPrice[Master$Regulation_code == 0] <- Master$hedonicPrice_total[Master$Regulation_code == 0]
@@ -161,12 +164,10 @@ for (sample in c("current", "historical")) { #loop over cross sections
 
 
   #1.1: Measure of stringency of regulation = LandValueDensity/acre x Minimum lot size (acres)
-
   #Normalizing land value density == 0 if UnitDensityRestriction == 0 --this does NOT matter for unregulated neighborhoods.
   
 
-
-  #Assume implicit rent == 0.06*house value (maintenance cost of housing + interest payments)
+  #Converting land values to flow costs. 
   #Convert_value_to_yr_flow_cost is in GlobalParameters, telling us how to make the adjustment. 
   if (sample == "current") {
     Master$LandValueDensity_matched[Master$UnitDensityRestriction_cl == 0] <- 0
@@ -201,15 +202,19 @@ for (sample in c("current", "historical")) { #loop over cross sections
   print(paste0("The mean income stringency for sample ", sample, " is ", mean(Master$IncomeStringency_model_rents)))
   print(paste0("The mean income stringency (conditional on positive regulation) for sample ", sample, " is ",
                mean(Master[Master$UnitDensityRestriction_cl > 0,]$IncomeStringency_model_rents))) #Conditional on a unit density restriction
-
+  
+  
   #Importing function to solve for block group level prices, housing expenditure shares, etc.
   #Loop over all possible model calibrations we want to see...
 
   for (bySkill_to_pass in c(FALSE, TRUE)) { #BySkill or Pooled
     for (pref in c("CD", "SG")) { #Cobb-Douglas, StoneGeary
     
-      #reloading parameters
+      #reloading parameters and function, compiling functions for additional speed
       source("CodeV2/Calibrate/Parameters/GlobalParameters.R") #Harmonized list of parameters
+      source("CodeV2/Calibrate/Functions/Calibration_Functions_global.R")
+      Calibrate_prices <- cmpfun(Calibrate_prices)
+      ExcessDemand <- cmpfun(ExcessDemand)
       
       
       #Check if historical sample and baseline specification, else continue
@@ -217,39 +222,29 @@ for (sample in c("current", "historical")) { #loop over cross sections
         next #continue on loop if historical AND not baseline specification
       }
       
-      
-    
-      #Setup variables to pass to functions
+      #Setup skill names to pass to functions
       if (bySkill_to_pass == TRUE) {
       
         skillVector <-  c("College", "NoCollege")
         skillName <- c("College_", "NoCollege_") 
-      
-        source("CodeV2/Calibrate/Functions/Calibration_Functions_StoneGeary_bySkill.R")
-      
-      
+
       }else{
       
         skillVector <- c("Pooled")
         skillName <- c("")
-      
-        source("CodeV2/Calibrate/Functions/Calibration_Functions_StoneGeary.R")
-      
-      
+  
       }
-    
+      
+      #Setting up preference parameters
       if (pref == "CD"){ #if cobb-douglas preferences
       
         demandParameters_to_pass <- c(beta, 0) #min_hReq = 0  => Cobb-Douglas
         rm(min_hReq, beta_StGeary)
       
-      }else{ #if stone geary preferences, pass new preference parameters
-      
+      }else{ #if stone geary preferences, pass new preference parameter
         demandParameters_to_pass <- c(beta_StGeary, min_hReq)
       }
       
-    
-    
     
       #START CALIBRATION _____________________________________________
     
@@ -258,16 +253,17 @@ for (sample in c("current", "historical")) { #loop over cross sections
 
       #Setting up number of cores (we want to conserve ram as this program is reasonably ram intensive)
       registerDoParallel(ncores)
-    
-      range <- 1:nrow(Master)
 
       #Running dopar loop to solve for all variables
       print(paste0("Calibrating model bySkill=", bySkill_to_pass, " ", pref, " at ", Sys.time()))  
-      tmp <- foreach(row = range,
-                     .errorhandling = "pass") %dopar% { 
+      tmp <- foreach(row = 1:nrow(Master),
+                     .errorhandling = "pass", .packages = c("dplyr")) %dopar% { 
                  
                        #FOREACH output
-                       return(Calibrate_prices(Master[row,], demandParameters = demandParameters_to_pass))
+                       return(   Calibrate_prices(Master[row,], 
+                                                  demandParameters = demandParameters_to_pass,
+                                                  bySkillVector = skillVector,
+                                                  bySkillNames = skillName)    )
                  
                      }
       print(paste0("Calibrated model bySkill=", bySkill_to_pass, " ", pref, " at ", Sys.time()))  
@@ -279,8 +275,7 @@ for (sample in c("current", "historical")) { #loop over cross sections
       save(tmp, file = "DataV2/Counterfactuals/Calibration_Output/SupplyShifter_sln.RData")
 
 
-      #Putting all these objects into the master data frame for use with other objects
-
+      #Putting all these objects into the master data frame for use with other objects...
       Excess_demand_index <- rep(NA, nrow(Master))
       price_reg <- rep(NA, nrow(Master))
       lambda <- rep(NA, nrow(Master))
@@ -324,7 +319,7 @@ for (sample in c("current", "historical")) { #loop over cross sections
      
     #Regulated housing price
     Master_out["price_regulated"] <- Master_out$hedonicPrice #measured hedonic price for regulated structures only
-    Master_out["price_unregulated"] <- price_reg
+    Master_out["price_unregulated"] <- price_reg #regulated price solution. 
    
     #If completely regulated/unregulated
     Master_out$price_unregulated[Master_out$Regulation_code == 2 | Master_out$Regulation_code == 0] <- Master_out$price_regulated[Master_out$Regulation_code == 2 | Master_out$Regulation_code == 0] #setting reg=unreg price if no within-block-group variation in regulation
@@ -349,7 +344,7 @@ for (sample in c("current", "historical")) { #loop over cross sections
   
      #If regulation_code == 1 or 2, calculate lambda the traditional way (to target the measured land value per acre)
      Master_out$lambda[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2] <- (Master_out$IncomeStringency_model_rents[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]/Master_out$UnitDensityRestriction_cl[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2])/
-                                                                                           (Master_out$price_regulated[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]^(Master_out$HS_Elasticity_imputed[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2] + 1))
+                                                                                             (Master_out$price_regulated[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]^(Master_out$HS_Elasticity_imputed[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2] + 1))
 
      #Otherwise, assume land mass == ALAND and calculate lambda (for these regions this is a normalization and thus has NO impact on counterfactuals. This is because land mass and productivity per unit of land serve identical functions)
      Master_out$lambda[Master_out$Regulation_code == 0] <- houseExp_regulated[Master_out$Regulation_code == 0]/(Master_out$ALAND[Master_out$Regulation_code == 0]*(Master_out$price_regulated[Master_out$Regulation_code == 0]^(Master_out$HS_Elasticity_imputed[Master_out$Regulation_code == 0] + 1)))
@@ -360,14 +355,11 @@ for (sample in c("current", "historical")) { #loop over cross sections
 
      #if Regulation_code == 0, set ALAND = land (as a normalization!!)
      Master_out$land_unregulated[Master_out$Regulation_code == 0] <- Master_out$ALAND[Master_out$Regulation_code == 0] 
-     Master_out$land_regulated[Master_out$Regulation_code == 0] <- 0
+     Master_out$land_regulated[Master_out$Regulation_code == 0] <- 0 #zero land for this regulation code
 
      #If Regulation_code == 1 or 2, calculate regulated land the normal way (to clear housing markets) (this is the ratio between total housing spending and value per acre)
      Master_out$land_regulated[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2] <- houseExp_regulated[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]/
-                                                                                                   (Master_out$IncomeStringency_model_rents[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]/Master_out$UnitDensityRestriction_cl[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2])
-
-    #Note: by the old calibration strategy, these measures aren't correlated with direct measurement of land. This is because the static model cannot match all key moments. We need to choose the best moments to target.
-
+                                                                                                     (Master_out$IncomeStringency_model_rents[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2]/Master_out$UnitDensityRestriction_cl[Master_out$Regulation_code == 1 | Master_out$Regulation_code == 2])
 
      #If Regulation code == 1, calculate unregulated land to clear housing markets (assuming no variation in lambda within block groups)
      Master_out$land_unregulated[Master_out$Regulation_code == 1] <-  houseExp_unregulated[Master_out$Regulation_code == 1]/
@@ -405,6 +397,6 @@ for (sample in c("current", "historical")) { #loop over cross sections
 } #end loop over samples
 
 
-
+sink()
 
 

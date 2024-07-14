@@ -239,11 +239,12 @@ BarplotDF <- data.frame() #initializing data frame
 
 for (skill_to_pass in skillVector) {
   
-  BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1: 0 - 25,000", 2), rep("2: 25,000 - 50,000", 2), rep("3: 50,000 - 75,000", 2), 
-                                              rep("4: 75,000 - 100,000", 2), rep("5: 100,000 - 150,000", 2), rep("6: 150,000 - 200,000", 2), 
-                                              rep("7: 200,000+", 2), rep("Social Welfare", 2)), 
+  BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
+                                              rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
+                                              rep("7. 200k+", 2), rep("Social Welfare", 2)), 
                                             rep(c("Consumption", "Amenity"), 2),
                                             Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
+  
   
 }
 
@@ -256,8 +257,9 @@ if (BASELINE_SPECIFICATION$bySkill_to_pass == FALSE) {
   ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
     geom_bar(position = "dodge", stat = "identity") +
     xlab("Household type (income in average city, 2020 USD)") + 
-    ylab("Equivalent variation (% of income, by component)") + 
-    theme(axis.text.x=element_text(size=rel(1), angle=90))
+    ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
+    theme(axis.text.x=element_text(size=rel(1), angle=90)) & 
+    theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
   ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
                 BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                 BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
@@ -268,8 +270,9 @@ if (BASELINE_SPECIFICATION$bySkill_to_pass == FALSE) {
     geom_bar(position = "dodge", stat = "identity") + 
     facet_wrap(~Education) + 
     xlab("Household type (income in average city, 2020 USD)") + 
-    ylab("Equivalent variation (% of income, by component)") + 
-    theme(axis.text.x=element_text(size=rel(1), angle=90))
+    ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
+    theme(axis.text.x=element_text(size=rel(1), angle=90)) & 
+    theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
   ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
                 BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                 BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 

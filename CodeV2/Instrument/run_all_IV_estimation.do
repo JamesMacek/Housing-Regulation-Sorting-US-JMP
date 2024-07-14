@@ -195,13 +195,13 @@ global dist_cutoff = 35
 *The following do files take very long to run, as calculating Bartlett standard errors is time consuming. 
 
 *1) Quicker estimation using MSA clustering first (used for testing)
-include "CodeV2/Instrument/Full_IV_clusterMSA.do"
+include "CodeV2/Instrument/Functions/Full_IV_clusterMSA.do"
 
 *2) Baseline estimates using Bartlett kernel + placebo tests
-*include "CodeV2/Instrument/Full_IV_clusterBartlett.do"
+include "CodeV2/Instrument/Functions/Full_IV_clusterBartlett.do"
 
 *3) First stage estimates using Bartlett kernel
-*include "CodeV2/Instrument/FirstStage_clusterBartlett.do"
+include "CodeV2/Instrument/Functions/FirstStage_clusterBartlett.do"
 
-*4) Placebo tests
-*include "CodeV2/Instrument/Placebo.do"
+*4) Placebo tests (Requires locals from Full_IV_clusterMSA.do)
+*include "CodeV2/Instrument/Functions/Placebo.do"

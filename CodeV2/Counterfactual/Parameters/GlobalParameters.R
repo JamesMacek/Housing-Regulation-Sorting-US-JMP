@@ -16,9 +16,9 @@ bySkill_agg_matrix <- cbind(c(0.003, 0.044), c(0.02, 0.053)) #pairwise agglomera
 #Zone-level migration elasticites for effective computation of solution...
 wN_elast_ctfl <- 8.5 #set equal to within-city elasticity (for now)
 
-#_______________________________________________________________________________________
-#For crude welfare measurement assuming households are both homeowners and landowners___
-#_______________________________________________________________________________________
+#_______________________________________________________________________________________________
+#For crude welfare measurement assuming households are renters who also own a national portfolio
+#_______________________________________________________________________________________________
 #Owner occupier rates (from ownerOccupier_byIncomeType.do)
 ownerOccupier_rate <- c(0.375, 0.511, 0.618, 0.708, 0.793, 0.857, 0.89)
 spendShares_targeted <- c(0.389, 0.232, 0.177, 0.153, 0.138, 0.122, 0.088) #spend shares from data to rationalize national equilibrium 

@@ -1,4 +1,4 @@
-#This file takes all unilateral deregulation output and creates a table for welfare analysis for 
+#This file takes all unilateral deregulation output and creates a table for welfare analysis for different cities. 
 #Renters and homeowners
 
 #Packages
@@ -202,11 +202,21 @@ for (amen in c("EndoAmen", "ExoAmen")) {
     }
   }
   
-  
   #Writing table
   vtable::dftoLaTeX(Table_toOutput, 
                     file = "DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/Welfare_UnilateralDereg.tex",
                     note = "Changes in renter welfare are conditional on living in the respective city post deregulation (as % of income).")
+  
+  #_____________________________________________________
+  #Write long table using San Francisco only.
+  #_____________________________________________________
+  
+  LongTable_toOutput <- as.data.frame(t(Table_toOutput[1:2, c(3:11)]))
+  LongTable_toOutput  <-   LongTable_toOutput  %>% mutate(Firstrow = rownames(LongTable_toOutput)) %>% select(Firstrow, 1, 2)
+  colnames(LongTable_toOutput) <- LongTable_toOutput[1, ] 
+  LongTable_toOutput <- LongTable_toOutput[-1, ]
+  vtable::dftoLaTeX(LongTable_toOutput, file = "DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_dereg_long.tex")
+  
   
   
   
