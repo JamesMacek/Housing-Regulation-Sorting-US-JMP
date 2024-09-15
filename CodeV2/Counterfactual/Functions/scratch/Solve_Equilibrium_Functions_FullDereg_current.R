@@ -19,9 +19,9 @@ getHousingPrices_Full <- function(Master_data) {
       for (incomeType in 1:7) {
         
         Demand <- Demand + ((1-beta_StGeary)*min((price*min_hReq)/(Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]), 1) + beta_StGeary)* #Spending Share
-                                             Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]* #Income
-                                             Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
-         
+          Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]* #Income
+          Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
+        
         
       }
     }
@@ -41,9 +41,9 @@ getHousingPrices_Full <- function(Master_data) {
   for (skill in skillVector) {
     name_of_skill <- skillName[which(skill == skillVector)]
     for (incomeType in 1:7) {
-    
+      
       low_b_Spending <- low_b_Spending + beta_StGeary*(Master_data[[paste0("ability_grp", incomeType)]]*Master_data[[paste0(skill, "Wage")]])*Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]
-    
+      
     }
   }
   
@@ -56,10 +56,10 @@ getHousingPrices_Full <- function(Master_data) {
   for (skill in skillVector) {
     name_of_skill <- skillName[which(skill == skillVector)]
     for (incomeType in 1:7) {
-    
+      
       up_b_Spending <- up_b_Spending +  Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]* #Income
-                                        Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
-    
+        Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
+      
     }
   }
   
@@ -82,12 +82,12 @@ getHousingPrices <- function(Master_data) { #This function solves housing market
   h_spending <- 0
   
   for (skill in skillVector) {
-  name_of_skill <- skillName[which(skill == skillVector)]
-  for (incomeType in 1:7) {
-    
-    h_spending <- h_spending    +   Master_data[[paste0("hSpendShare_", name_of_skill, incomeType)]]* #Spending Share (not updated every iteration)
-                                    Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]* #Income
-                                    Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
+    name_of_skill <- skillName[which(skill == skillVector)]
+    for (incomeType in 1:7) {
+      
+      h_spending <- h_spending    +   Master_data[[paste0("hSpendShare_", name_of_skill, incomeType)]]* #Spending Share (not updated every iteration)
+        Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]* #Income
+        Master_data[[paste0("Population_type_", name_of_skill, incomeType)]] #Population
     }
   }
   
@@ -104,14 +104,14 @@ getHousingPrices <- cmpfun(getHousingPrices) #compiling function
 #____________________________________________________________________________________________________________________________________________
 #This function solves for consumption values 
 getConsumptionValues <- function(Master_data, skill, incomeType, demandParameters) {
-    
-    #demandParameters[1] is beta
-    #demandParameters[2] is the minimum housing unit requirement
-    
-    #parallel maxima of 0
-    consumptionValue <- pmax((Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]] - Master_data$housingPrice*demandParameters[2])/(Master_data$housingPrice^(demandParameters[1])), rep(0, nrow(Master_data)))* #Take vanilla consumption index
-                              (consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]) #adjusting by consumption adjustment factor calculated in calibrate_unobserved_amenities.R
-    return(consumptionValue)
+  
+  #demandParameters[1] is beta
+  #demandParameters[2] is the minimum housing unit requirement
+  
+  #parallel maxima of 0
+  consumptionValue <- pmax((Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]] - Master_data$housingPrice*demandParameters[2])/(Master_data$housingPrice^(demandParameters[1])), rep(0, nrow(Master_data)))* #Take vanilla consumption index
+    (consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]) #adjusting by consumption adjustment factor calculated in calibrate_unobserved_amenities.R
+  return(consumptionValue)
   
   
 } #End retrieval of housing prices
@@ -120,19 +120,19 @@ getConsumptionValues <- function(Master_data, skill, incomeType, demandParameter
 #Function to retrieve average income
 getAvgIncome <- function(Master_data) {
   
-    total_income <- rep(0, nrow(Master_data))
-    total_population <- rep(0, nrow(Master_data))
-    
-    for (skill in skillVector) {
-      name_of_skill <- skillName[which(skill == skillVector)]
-      for (incomeType in 1:7) {
-        total_income <- total_income + Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]*Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]
-        total_population <- total_population + Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]
-      }
+  total_income <- rep(0, nrow(Master_data))
+  total_population <- rep(0, nrow(Master_data))
+  
+  for (skill in skillVector) {
+    name_of_skill <- skillName[which(skill == skillVector)]
+    for (incomeType in 1:7) {
+      total_income <- total_income + Master_data[[paste0(skill, "Wage")]]*Master_data[[paste0("ability_grp", incomeType)]]*Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]
+      total_population <- total_population + Master_data[[paste0("Population_type_", name_of_skill, incomeType)]]
     }
-    
-    return(total_income/total_population)
-    
+  }
+  
+  return(total_income/total_population)
+  
 }
 #____________________________________________________________________________________________________________________________________________
 
@@ -165,14 +165,14 @@ getSkillWages <- function(Master_data) { #only works if bySkill == TRUE!
   #Collapsing labour supply by city
   Master_data_collap <- collap(select(Master_data, CBSA, starts_with("labs_skill_"), starts_with("Productivity_")), 
                                by = labs_skill_College + labs_skill_NoCollege +  
-                                    Productivity_College + Productivity_NoCollege ~ CBSA, FUN = list(fsum, fmean)) %>% 
-                        select(CBSA, starts_with("fsum.labs_skill_"), starts_with("fmean.Productivity_"))
+                                 Productivity_College + Productivity_NoCollege ~ CBSA, FUN = list(fsum, fmean)) %>% 
+    select(CBSA, starts_with("fsum.labs_skill_"), starts_with("fmean.Productivity_"))
   
   #Calculating output by city using productivity 
   Master_data_collap["output_city"] <- ( ((Master_data_collap$fmean.Productivity_College*Master_data_collap$fsum.labs_skill_College)^((sigma - 1)/(sigma))) + 
-                                         ((Master_data_collap$fmean.Productivity_NoCollege*Master_data_collap$fsum.labs_skill_NoCollege)^((sigma - 1)/(sigma))) )^(sigma/(sigma - 1))
-                                                                                                                          
-    
+                                           ((Master_data_collap$fmean.Productivity_NoCollege*Master_data_collap$fsum.labs_skill_NoCollege)^((sigma - 1)/(sigma))) )^(sigma/(sigma - 1))
+  
+  
   #Calculating wage given FOC
   for (skill in skillVector) {
     Master_data_collap[paste0(skill, "Wage")] <- ( (Master_data_collap$output_city)^(1/sigma) )*( (Master_data_collap[[paste0("fmean.Productivity_", skill)]])^((sigma - 1)/(sigma)) )*
@@ -180,7 +180,7 @@ getSkillWages <- function(Master_data) { #only works if bySkill == TRUE!
   }
   
   Master_data_collap <- Master_data_collap %>% select(CBSA, ends_with("Wage")) 
-   
+  
   #Merging back as vector of length nrow(Equilibrium_objects) 
   Master_data <- Master_data %>% select(CBSA)
   Master_data <- left_join(Master_data, Master_data_collap, by = c("CBSA"))
@@ -188,7 +188,7 @@ getSkillWages <- function(Master_data) { #only works if bySkill == TRUE!
   #Returning list with vector of college wages
   return(list(College = Master_data$CollegeWage, 
               NoCollege = Master_data$NoCollegeWage))
-
+  
 }
 getSkillWages <- cmpfun(getSkillWages) #compiling function
 #____________________________________________________________________________________________________________________________________________

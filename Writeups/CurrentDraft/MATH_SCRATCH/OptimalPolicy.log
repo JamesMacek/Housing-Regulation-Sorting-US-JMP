@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2024.6.15)  14 JUL 2024 12:44
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2024.6.15)  28 AUG 2024 12:54
 entering extended mode
 **./OptimalPolicy.tex
 (OptimalPolicy.tex
@@ -479,35 +479,49 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 40.
 (C:\Users\James\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
+Underfull \hbox (badness 10000) in paragraph at lines 76--77
+
+ []
+
 [1
 
-{C:/Users/James/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]
-(OptimalPolicy.aux)
+{C:/Users/James/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] [2] [3]
+[4] (OptimalPolicy.aux)
 Package rerunfilecheck Info: File `OptimalPolicy.out' has not changed.
-(rerunfilecheck)             Checksum: 4ECC0F752DBE949ADF225046846C414C;297.
+(rerunfilecheck)             Checksum: 676F92C5A360E01A53B0E2112DD20F7D;134.
  )
 (\end occurred inside a group at level 1)
 
 ### semi simple group (level 1) entered at line 19 (\begingroup)
 ### bottom level 
 Here is how much of TeX's memory you used:
- 8878 strings out of 479697
- 141181 string characters out of 2867133
- 443959 words of memory out of 3000000
- 25792 multiletter control sequences out of 15000+200000
- 415334 words of font info for 62 fonts, out of 3000000 for 9000
+ 8925 strings out of 479697
+ 141642 string characters out of 2867133
+ 458959 words of memory out of 3000000
+ 25804 multiletter control sequences out of 15000+200000
+ 420278 words of font info for 77 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 66i,6n,72p,268b,1856s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 66i,20n,72p,523b,1862s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/b
 ase/8r.enc}<C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmmi10.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/p
-ublic/amsfonts/cm/cmmi8.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts
-/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/James/AppData/Local/Programs/MiKT
-eX/fonts/type1/urw/palatino/uplb8a.pfb><C:/Users/James/AppData/Local/Programs/M
-iKTeX/fonts/type1/urw/palatino/uplr8a.pfb>
-Output written on OptimalPolicy.pdf (1 page, 68077 bytes).
+fonts/cm/cmex10.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/p
+ublic/amsfonts/cm/cmmi10.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/font
+s/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/James/AppData/Local/Programs/MiK
+TeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/James/AppData/Local/Prog
+rams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmib10.pfb><C:/Users/James/AppData/
+Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb><C:/Users/
+James/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C
+:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6
+.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmr8.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/public/am
+sfonts/cm/cmsy10.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmsy6.pfb><C:/Users/James/AppData/Local/Programs/MiKTeX/font
+s/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/James/AppData/Local/Programs/MiK
+TeX/fonts/type1/urw/palatino/uplb8a.pfb><C:/Users/James/AppData/Local/Programs/
+MiKTeX/fonts/type1/urw/palatino/uplr8a.pfb>
+Output written on OptimalPolicy.pdf (4 pages, 171662 bytes).
 PDF statistics:
- 53 PDF objects out of 1000 (max. 8388607)
- 8 named destinations out of 1000 (max. 500000)
- 33 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 119 PDF objects out of 1000 (max. 8388607)
+ 31 named destinations out of 1000 (max. 500000)
+ 17 words of extra memory for PDF output out of 10000 (max. 10000000)
 

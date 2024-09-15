@@ -142,6 +142,13 @@ ZoneAggregation <- cmpfun(ZoneAggregation) #compiling function
 #_____________________________________________________________________________________________________________________________________________
 
 
+
+
+
+#
+#______________________________________________________________________________________________________________________________________________
+# Basic functions that remain the same for both complete and partial deregulation
+
 #Function to retrieve average income
 getAvgIncome <- function(Master_data) {
   

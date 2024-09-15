@@ -15,7 +15,6 @@ library(forcats)
 source("CodeV2/Counterfactual/Parameters/GlobalParameters.R")
 
 #FUNCTIONS
-source("CodeV2/Counterfactual/Functions/Solve_Equilibrium_Functions_FullDereg_current.R")
 source("CodeV2/Counterfactual/Functions/Analysis_Functions.R")
 
 
@@ -51,8 +50,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 #Importing all files from Counterfactual_Output (Exogenous amenities)
 load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
@@ -60,8 +59,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_NoAmenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_NoAmenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 
 
@@ -77,6 +76,7 @@ rm(Master)
 load(paste0("DataV2/Counterfactuals/Calibration_output/consumption_AdjustmentFactor_bySkill",
               BASELINE_SPECIFICATION$bySkill_to_pass,
               "_pref_", BASELINE_SPECIFICATION$pref, ".Rdata"))
+
 #Final land for residential use 
 Init_eq["final_land_for_res"] <- Init_eq$land_regulated + Init_eq$land_unregulated
 Ct_Amenities["ALAND"] <- Init_eq$ALAND #official landmass from census shapefiles
@@ -86,17 +86,17 @@ Ct_NoAmenities["ALAND"] <- Init_eq$ALAND
 #PART 1: analyzing the welfare of landlords by asking about the change in the average value of land across all locations.
 #___________________________________________________________________________________________________________________________________
 
-#Calculating change in land values given model counterpart
+#Calculating initial land values by zone
+Init_eq["LandValAmenities"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_Amenities$housingPrice^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
+Init_eq["LandValNoAmenities"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_NoAmenities$housingPrice^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
 
-Init_eq["LandValAmenities"] <- (Ct_Amenities$housingPrice^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
-Init_eq["LandValNoAmenities"] <- (Ct_NoAmenities$housingPrice^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
+#Calculating initial land values by zone
+Init_eq["LandValInitEq_regulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_regulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
+Init_eq["LandValInitEq_unregulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda #land type weighted land values per acre.
 
-#Calculating land values in initial regulated vs. unregulated equilibrium
-Init_eq["LandValInitEq_regulated"] <- (Init_eq$price_regulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
-Init_eq["LandValInitEq_unregulated"] <- (Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda #land type weighted land values per acre.
-
-#total land value in initial neighborhood
-Init_eq["Total_land_values_initial"] <- Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated
+#Total land value in initial neighborhood (note: we include the fixed land's share of income in production for housing)
+Init_eq["Total_land_values_initial"] <- (Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated) #land type weighted land values per acre.
+                                                #Share of land in production                            #Total expenditure on housing services in the neighborhood
 
 #Calculating growth at neighborhood level (log differences in land value weighted growth)
 Init_eq["LandValGrowth"] <- log( ((Init_eq$land_regulated*Init_eq$LandValInitEq_regulated)/(Init_eq$Total_land_values_initial))* #weights
@@ -120,13 +120,14 @@ growthRate_landval_NoAm <- weighted.mean(exp(Init_eq$LandValGrowthNoAm), w = Ini
 print(paste0("The national growth rate in land values is ", growthRate_landval*100, " percent.")) #large losses to landowners.
 print(paste0("The national growth rate in land values is exogenous amenities at baseline is ", growthRate_landval_NoAm*100, " percent."))
 
-#Plotting graph
+#Plotting graph of relationship between land value growth and stringency in initial equilibrium
 ggplot() + 
   geom_point(data = Init_eq[Init_eq$IncomeStringency_cl > 0,], aes(x = log(IncomeStringency_cl), y = LandValGrowth), color = "red", size = 0.25, alpha = 0.05) +
   geom_point(data = Init_eq[Init_eq$IncomeStringency_cl > 0,], aes(x = log(IncomeStringency_cl), y = LandValGrowthNoAm), color = "blue", size = 0.25, alpha = 0.05) + #censor graph for locations with minimum lot sizes
   geom_smooth(data = Init_eq[Init_eq$IncomeStringency_cl > 0,], aes(x = log(IncomeStringency_cl), y = LandValGrowth, color = "Endogenous"), method = "lm") +
   geom_smooth(data = Init_eq[Init_eq$IncomeStringency_cl > 0,], aes(x = log(IncomeStringency_cl), y = LandValGrowthNoAm, color = "Exogenous"), method = "lm") +
-  scale_colour_manual(name="Model Amenities", values = c("red4", "royalblue4")) + 
+  scale_colour_manual(name="Model Amenities", values = c("red4", "royalblue4")) +
+  theme_gray(base_size = 15) +  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) +
   xlab("log Lot Size Stringency in Initial Equilibrium (from Data, in 2020 USD)") + 
   ylab("Log Differences in Land Value") +
   coord_cartesian(xlim = c(min(log(Init_eq[Init_eq$IncomeStringency_cl > 0 & 
@@ -139,7 +140,7 @@ ggplot() +
                                                                         probs = c(0.001), na.rm = TRUE),]$LandValGrowth),
                            max(Init_eq[Init_eq$LandValGrowth < quantile(Init_eq$LandValGrowth, 
                                                                               probs = c(0.999), na.rm = TRUE),]$LandValGrowth, na.rm = TRUE) ) ) #manual axes
-#Note: plot does not include zeros but it does not matter for conclusions.
+#Note: plot does not include zeros but it does not matter for conclusions (checked manually)
 ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/StringencyChangeLandVal", 
               BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
               BASELINE_SPECIFICATION$pref, ".png"), width = 20, height = 12, units = "cm") 
@@ -162,6 +163,7 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       source("CodeV2/Counterfactual/Functions/EquivalentVariation.R")
       saveString <- "Eq"
       plotTitle <- "Equivalent Variation (% of income)"
+      plotTitle_nopercent <- "Equivalent Variation ($/year)"
     }
 
     var_Amen <- matrix(NA, length(skillVector) , 7)
@@ -178,8 +180,18 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
         }
       
         if (variation == "Equivalent") {
-          var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Ct = Ct_Amenities, incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
-          var_NoAmen[skillIndex, i] <- getVariation(Init = Init_eq, Ct = Ct_NoAmenities, incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
+          
+          new_welfare <- GetWelfareEqVar(Master_data = Ct_Amenities, EqVar = 1, FullDereg = TRUE, #This call just calculates welfare in utils in ctfl
+                                         skill = skill_to_pass, incomeType = i, demandParameters = demandParameters_to_pass)
+                                         
+          var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Welfare = new_welfare, #Pass new welfare to function
+                                                  incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
+          
+          new_welfare <- GetWelfareEqVar(Master_data = Ct_NoAmenities, EqVar = 1, FullDereg = TRUE, #This call just calculates welfare in utils in ctfl
+                                         skill = skill_to_pass, incomeType = i, demandParameters = demandParameters_to_pass)
+          
+          var_NoAmen[skillIndex, i] <- getVariation(Init = Init_eq, Welfare = new_welfare, #Pass new welfare to function
+                                                    incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
         }
       
       }
@@ -258,7 +270,35 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_", saveString, "_var_bySkill_", 
                    BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                    BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
- 
+      
+      #In addition, also look at variation in dollar terms using ability_grp values
+      
+      if (variation == "Equivalent") {
+        
+        ability_grp_vec <- as.numeric(as.matrix(select(ungroup(Ct_Amenities), starts_with("ability_grp"))[1, ]))
+        df_to_match <- data.frame(c("1. 0-25k", "2. 25-50k", "3. 50-75k", "4. 75-100k", "5. 100-150k", "6. 150-200k", "7. 200k+"),
+                                  ability_grp_vec) 
+        colnames(df_to_match) <- c("Income", "ability")
+        BarplotDF <- left_join(BarplotDF, df_to_match)
+        BarplotDF["Value_no_percent"] <- BarplotDF$ability*BarplotDF$Value/100
+        
+        #Calculate social welfare
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Amenities == "Endogenous"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Amenities == "Endogenous" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+          
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Amenities == "Exogenous"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Amenities == "Exogenous" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        
+          ggplot(BarplotDF, aes(fill = Amenities, y = Value_no_percent, x = factor(Income))) + 
+            geom_bar(position = "dodge", stat = "identity") +
+            xlab("Household type (income in average city, 2020 USD)") + 
+            ylab(plotTitle_nopercent) + theme_gray(base_size = 15) +
+            theme(axis.text.x=element_text(size=rel(1), angle=90), 
+                  legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
+          ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_", saveString, "nopercent_var_bySkill_", 
+                        BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                        BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
+      }
   
   
     }else{
@@ -273,7 +313,6 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Welfare_", saveString, "_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
-      rm(BarplotDF)
     }
 
     rm(skillIndex, skill_to_pass)
@@ -361,10 +400,20 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
   
   print("Average income faced by type relative to baseline")
   print(Income_exposure) 
-  #Above average income has less exposure!
+  #Above average income has less exposure, and vice versa. net desegregation overall.
+  
+  #Population weighted average neighborhood income (weights taken at initial population distribution -- measure of average neighborhood amenity increase) 
+  pop_weighted_avg_income_ctfl <- (sum(getNeighborhoodPop(Init_eq)*Ct_Amenities$Avg_income))/(sum(getNeighborhoodPop(Init_eq)))
+  pop_weighted_avg_income_init <- (sum(getNeighborhoodPop(Init_eq)*Init_eq$Avg_income))/(sum(getNeighborhoodPop(Init_eq)))
+  print(paste0("Average neighborhood income increases by ", 100*(pop_weighted_avg_income_ctfl/pop_weighted_avg_income_init - 1 ), "% using baseline population shares as weights."))
+  
+  pop_weighted_avg_income_ctfl <- (sum(getNeighborhoodPop(Ct_Amenities)*Ct_Amenities$Avg_income))/(sum(getNeighborhoodPop(Ct_Amenities)))
+  pop_weighted_avg_income_init <- (sum(getNeighborhoodPop(Ct_Amenities)*Init_eq$Avg_income))/(sum(getNeighborhoodPop(Ct_Amenities)))
+  print(paste0("Average neighborhood income increases by ", 100*(pop_weighted_avg_income_ctfl/pop_weighted_avg_income_init - 1 ), "% using ctfl population shares as weights."))
+
 
   #_________________________________Putting this all in another barchart_________________________________________
-  #(Rescaling Amenity_shapely and Consumption_shapely using $$ estimates)
+  #        
   
   
   for (variation in c("Compensating", "Equivalent")) {
@@ -451,6 +500,38 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/WelfareDecomp_", saveString,"_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
+      
+      if (variation == "Equivalent") {
+        
+        ability_grp_vec <- as.numeric(as.matrix(select(ungroup(Ct_Amenities), starts_with("ability_grp"))[1, ]))
+        df_to_match <- data.frame(c("1. 0-25k", "2. 25-50k", "3. 50-75k", "4. 75-100k", "5. 100-150k", "6. 150-200k", "7. 200k+"),
+                                  ability_grp_vec) 
+        colnames(df_to_match) <- c("Income", "ability")
+        BarplotDF <- left_join(BarplotDF, df_to_match)
+        BarplotDF["Value_no_percent"] <- BarplotDF$ability*BarplotDF$Value/100
+        
+        #Calculate social welfare
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Decomposition == "Consumption"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Decomposition == "Consumption" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Decomposition == "Amenity"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Decomposition == "Amenity" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        
+        
+        ggplot(BarplotDF, aes(fill = Decomposition, y = Value_no_percent, x = factor(Income))) + 
+          geom_bar(position = "dodge", stat = "identity") +
+          xlab("Household type (income in average city, 2020 USD)") + 
+          ylab(plotTitle_nopercent) + theme_gray(base_size = 15) +
+          theme(axis.text.x=element_text(size=rel(1), angle=90), 
+                legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
+        ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/WelfareDecomp_", saveString,"nopercent_var_bySkill_", 
+                      BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                      BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
+
+      }
+      
+      
+      
     
     }else{
     
@@ -467,60 +548,122 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     
     }
   
-    rm(BarplotDF)
   } #End loop over equivalent and compensating variations
-#____________________________________________________________________________________________________________________
-#PART 4: Welfare changes assuming home-ownership (i.e. accounting for capital losses on housing assets by income type)
-#____________________________________________________________________________________________________________________
-  
-  # What are we assuming...? 
-  #1) Homeowners own all land wealth across the country (do not own capital used to produce structures)
-  #2) Initial Fraction of income received from the !net! rental income on housing services (not rental income they pay to themselves))
-  #Note: If net rental income on housing services is precisely zero (not negative), then homeowners (with debt) only pay user cost of owning housing 
-  #(which we assume is == rental rates by assuming away tax advantages of owner occupied housing-- mortgage interest deductions--
-  # and a no arbitrage condition)
-  #But they also get capital gains...
-  
-  #Note: we cannot apply this more rigorously in a baseline model because we do not observe housing wealth and debt.
-  #Does not make any sense to ascribe to households any non-level of debt.
   
   
-  #Method to calculate s(z) weights in the paper
-  #1) Calculate aggregate expenditure on housing by income type.
+#______________________________________________________________________________________________________________________________________________
+#__ PART 4: Welfare changes accounting for capital gains/losses; See extention in paper _______________________________________________________
+#______________________________________________________________________________________________________________________________________________
   
-  #National housing expenditure by income type -- used to build total portfolio size by income type
-  Init_eq["total_spending"] <- rep(0, nrow(Init_eq))
+  # Assume: Total household spending portfolio rebated to homeowners only. 
+  # What fraction is rebated depends on both 1) Total spending on housing and 2) fraction of owner-occupiers in that class.
+  # We do not account for GE effects caused by re-sorting of owner occupiers vs renters, etc.
   
-  for (skill in skillVector) {
+  
+  #1. Create total spending measures and location based spending. 
+  
+  for (skill_to_pass in skillVector) {
     name_of_skill <- skillName[which(skill_to_pass == skillVector)]
     for (i in 1:7) {
-      Init_eq[[paste0("total_spending_type_", name_of_skill, i)]] <- sum(Init_eq[[paste0(skill, "Wage")]]*
-                                                                                  Init_eq[[paste0("ability_grp", i)]]*
-                                                                                  Init_eq[[paste0("Population_type_", name_of_skill, i)]]*
-                                                                                  spendShares_targeted[i])
       
-      Init_eq["total_spending"] <- Init_eq[["total_spending"]] + Init_eq[[paste0("total_spending_type_", name_of_skill, i)]]
+      #Initiate spending by type
+      Init_eq[[paste0("total_spending_type_", name_of_skill, i)]] <- rep(0, nrow(Init_eq))
       
+      #Imputing Init_eq zonal population in locations where there are not multiple zones (these are NA in original data; does not matter)
+      for (zone in c(1,2)) {
+        
+        Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]][is.na(Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]])] <-  
+          (1/2)*Init_eq[[paste0("Population_type_", name_of_skill, i)]][ is.na(Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]]) ] 
+        
+        Init_eq[[paste0("total_spending_type_", name_of_skill, i)]] <-      Init_eq[[paste0("total_spending_type_", name_of_skill, i)]] + 
+          
+                                                                            sum(Init_eq[[paste0(skill_to_pass, "Wage")]]*
+                                                                                Init_eq[[paste0("ability_grp", i)]]*
+                                                                                Init_eq[[paste0("hSpendShare_", name_of_skill, i, "_z", zone)]]*
+                                                                                (1/(1 + Init_eq$HS_Elasticity_imputed))*
+                                                                                Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]]) #Population by zone
+                                                                                                          
+                                          #Note: Multiplied by fraction (1/(1 + \epsilon)) of spending on housing services paid to landowners.
+
+       }
+      
+     }
+   }
+  
+  #2. Rebating scheme goes here:
+  # homeowners get their own housing expenditure + rebated income on rental properties proportional to the total spending by homeowners.
+  
+  #Create total aggregate spending measure for all homes and by renting households
+  total_spending_renters <- 0
+  total_spending_homeowners <- 0
+  for (skill_to_pass in skillVector) {
+    name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+    for (i in 1:7) {
+      total_spending_renters  <- total_spending_renters + (1 - ownerOccupier_rate[i])*Init_eq[[paste0("total_spending_type_", name_of_skill, i)]][1]
+      total_spending_homeowners  <- total_spending_homeowners + ownerOccupier_rate[i]*Init_eq[[paste0("total_spending_type_", name_of_skill, i)]][1]
     }
   }
-  #note: total spendign at data almost equals total spending nationally in model 
-  #(error is due to inexact calibration of spending shares)
   
-  #Taking total spending as share of total housing wealth, dividing it by the 
-  #population by type to arrive at imputed rents for homeowners
-  for (skill in skillVector) {
+  #Create housing wealth rebating income by type (i.e. what fraction of rental payments are rebated)
+  for (skill_to_pass in skillVector) {
     name_of_skill <- skillName[which(skill_to_pass == skillVector)]
     for (i in 1:7) {
-      Init_eq[[paste0("Housing_wealth_Owner_", name_of_skill, i)]] <- Init_eq[[paste0("total_spending_type_", name_of_skill, i)]]/
-                                                                      (sum(Init_eq[[paste0("Population_type_", name_of_skill, i)]])*ownerOccupier_rate[i])
+      Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]] <- ownerOccupier_rate[i]*Init_eq[[paste0("total_spending_type_", name_of_skill, i)]]/total_spending_homeowners
+    }
+  }
+  
+  
+  for (skill_to_pass in skillVector) {
+    name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+    for (i in 1:7) {
       
+     #Initial equilibrium housing wealth, in levels 
+      Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]]*(total_spending_homeowners + total_spending_renters))/ #Total land payments paid to homeowners
+                                                                              (ownerOccupier_rate[i]*Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])                           #Divide by total population of homeowners for that type
     
+      #Calculating capital loss--multiplying housing wealth by capital loss rate nationally
+      Ct_Amenities[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (1 + growthRate_landval)*Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]]  #capital losses in Ct_Amenities
+                  #This will be used to calculate the equivalent variation         #National capital loss rate calculated above. 
     }
   }
   
-  #Finally, calculating s(z) weights using ability_grp (income in an average city) as follows:
-  # s(z) = (housing_wealth_Owner)/(housing_wealth_Owner + ability_grp)
-  housing_exposure_weights <- matrix(NA, length(skillVector), 7)
+  
+  
+  #Calculating welfare of homeowners using equivalent variation
+  Eq_var_homeowner <- matrix(NA, length(skillVector), 7)
+  
+  #Getting correct function
+  source("CodeV2/Counterfactual/Functions/EquivalentVariation.R")
+  saveString <- "Eq"
+  plotTitle <- "Equivalent Variation (% of income)"
+  
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    skillIndex <- skillIndex + 1
+    name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+    
+    for (i in 1:7) {
+      
+      new_welfare <- GetWelfareEqVar(Master_data = Ct_Amenities, EqVar = 1, FullDereg = TRUE, capitalGains = TRUE, #This call just calculates welfare in utils in ctfl
+                                     skill = skill_to_pass, incomeType = i, demandParameters = demandParameters_to_pass) #calculate new welfare incorporating land income at initial equilibrium
+      
+      Eq_var_homeowner[skillIndex, i] <- getVariation(Init = Init_eq,
+                                                      Welfare = new_welfare,
+                                                      skill = skill_to_pass,
+                                                      capitalGains = TRUE, #Incorporate land income in calculation for homeowners.
+                                                      incomeType = i,
+                                                      demandParameters = demandParameters_to_pass
+                                                      ) - 1
+      
+      
+    }
+  }
+  
+  #Renters
+  Eq_var_renter <- comp_Var_store[["Equivalent"]] #renters have identical welfare measurement as before...
+  
+  #Final measure of compensating variation, pooled over renters and homeowners
+  Eq_Var_pooled_final <- matrix(NA, length(skillVector), 7)
   
   skillIndex <- 0
   for (skill in skillVector) {
@@ -528,54 +671,23 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     name_of_skill <- skillName[which(skill_to_pass == skillVector)]
     
     for (i in 1:7) {
-      housing_exposure_weights[skillIndex, i] <-     Init_eq[[paste0("Housing_wealth_Owner_", name_of_skill, i)]][1]/
-                                                     (Init_eq[[paste0("ability_grp", i)]][1] +  Init_eq[[paste0("Housing_wealth_Owner_", name_of_skill, i)]][1])
+      Eq_Var_pooled_final[skillIndex, i] <-  ownerOccupier_rate[i]*Eq_var_homeowner[skillIndex, i] + 
+                                              (1-ownerOccupier_rate[i])*Eq_var_renter[skillIndex, i]
       
       
     }
   }
   
-  #Finally, calculating welfare effect for homeowners and renters; putting into chart after pooling
-   comp_var_homeowner <- matrix(NA, length(skillVector), 7)
-   
-   skillIndex <- 0
-   for (skill in skillVector) {
-     skillIndex <- skillIndex + 1
-     name_of_skill <- skillName[which(skill_to_pass == skillVector)]
-     
-     for (i in 1:7) {
-        comp_var_homeowner[skillIndex, i] <- (1 - housing_exposure_weights[skillIndex, i])*comp_Var_store[["Equivalent"]][skillIndex, i] + 
-                                             housing_exposure_weights[skillIndex, i]*(growthRate_landval)   
-       
-       
-     }
-   }
-   
-   comp_var_renter <- comp_Var_store[["Compensating"]] #renters have identical welfare measurement as before...
-   
-   #final measure of compensating variation, pooled over renters and homeowners
-    comp_Var_pooled_final <- matrix(NA, length(skillVector), 7)
-    
-    skillIndex <- 0
-    for (skill in skillVector) {
-      skillIndex <- skillIndex + 1
-      name_of_skill <- skillName[which(skill_to_pass == skillVector)]
-      
-      for (i in 1:7) {
-              comp_Var_pooled_final[skillIndex, i] <-  ownerOccupier_rate[i]*comp_var_homeowner[skillIndex, i] + 
-                                                       (1-ownerOccupier_rate[i])*comp_var_renter[skillIndex, i]
-        
-        
-      }
-    }
-    rm(comp_var_renter, comp_var_homeowner) #rming data we don't need. 
-    comp_Var_pooled_final <- 100*comp_Var_pooled_final
+  #Percentage terms
+  Eq_Var_pooled_final <- 100*Eq_Var_pooled_final
+  Eq_var_homeowner <- 100*Eq_var_homeowner
+  
     #__________________________________________________________________
     #Start putting this in to a welfare barchart.
     Welfare_barchart <- list()
     
     for (skill_to_pass in skillVector) {
-      Welfare_barchart[[skill_to_pass]] <- rep(NA, 8)
+      Welfare_barchart[[skill_to_pass]] <- rep(NA, 2*8)
       
     }
     
@@ -583,40 +695,45 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     skillIndex <- 0
     for (skill_to_pass in skillVector) {
       skillIndex <- skillIndex + 1
+      
       for (i in 1:7) {
-
-        Welfare_barchart[[skill_to_pass]][i] <- comp_Var_pooled_final[skillIndex, i]
+        
+        index <- 2*(i - 1) + 1
+        Welfare_barchart[[skill_to_pass]][index] <- Eq_Var_pooled_final[skillIndex, i] #
+        Welfare_barchart[[skill_to_pass]][index + 1] <- Eq_var_homeowner[skillIndex, i] #Homeowners only in second position
         
       }
       
-      Welfare_barchart[[skill_to_pass]][i + 1] <- (comp_Var_pooled_final%*%t(total_population))/(sum(total_population))
+      Welfare_barchart[[skill_to_pass]][index + 2] <- (Eq_Var_pooled_final%*%t(total_population))/(sum(total_population))
+      Welfare_barchart[[skill_to_pass]][index + 3] <- (Eq_var_homeowner%*%t(total_population))/(sum(total_population)) #homeowner and pooled aggregate welfare
       
     }
-    
+    print(paste0("Pooled welfare under complete deregulation is ", Welfare_barchart[[1]][index + 2]))
     
     #BAR CHART FOR OUTPUT
     BarplotDF <- data.frame() #initializing data frame
     
     for (skill_to_pass in skillVector) {
       
-      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 1), rep("2. 25-50k", 1), rep("3. 50-75k", 1), 
-                                                  rep("4. 75-100k", 1), rep("5. 100-150k", 1), rep("6. 150-200k", 1), 
-                                                  rep("7. 200k+", 1), rep("Social Welfare", 1)), 
-                                                rep(c("Welfare"), 1),
+      BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
+                                                  rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
+                                                  rep("7. 200k+", 2), rep("Social Welfare", 2)), 
+                                                  rep(c("Owners and renters pooled", "Owners only"), 2),
                                                 Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
       
     }
     
     
-    colnames(BarplotDF) <- c("Income", "Decomposition", "Value", "Education")
+    colnames(BarplotDF) <- c("Income", "Households", "Value", "Education")
     
     
     if (BASELINE_SPECIFICATION$bySkill_to_pass == FALSE) {
       
-      ggplot(BarplotDF, aes(y = Value, x = factor(Income))) + 
-        geom_bar(position = "dodge", stat = "identity", color= "#F8761D", fill = "#00BFC4") +
+      ggplot(BarplotDF, aes(y = Value, x = factor(Income), fill = Households,)) + 
+        geom_bar(position = "dodge", stat = "identity") +
         xlab("Household type (income in average city, 2020 USD)") + 
         ylab("Equivalent Variation (% of income)") + 
+        scale_fill_manual(values = c("royalblue", "red4")) +
         theme_gray(base_size = 15) +
         theme(axis.text.x=element_text(size=rel(1), angle=90), 
               legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
@@ -624,26 +741,49 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                     BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
       
-    }else{
+        
       
-      ggplot(BarplotDF, aes(y = Value, x = factor(Income))) + 
-        geom_bar(position = "dodge", stat = "identity", color="#F8761D", fill = "#00BFC4") + 
-        facet_wrap(~Education) + 
-        xlab("Household type (income in average city, 2020 USD)") + 
-        ylab("Equivalent Variation (% of income)") + 
-        theme_gray(base_size = 15) +
-        theme(axis.text.x=element_text(size=rel(1), angle=90), 
-              legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
-      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Eq_var_bySkill_", 
-                    BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                    BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
+      #Again, doing the same in dollar terms
+        ability_grp_vec <- as.numeric(as.matrix(select(ungroup(Ct_Amenities), starts_with("ability_grp"))[1, ]))
+        df_to_match <- data.frame(c("1. 0-25k", "2. 25-50k", "3. 50-75k", "4. 75-100k", "5. 100-150k", "6. 150-200k", "7. 200k+"),
+                                  ability_grp_vec) 
+        colnames(df_to_match) <- c("Income", "ability")
+        BarplotDF <- left_join(BarplotDF, df_to_match)
+        BarplotDF["Value_no_percent"] <- BarplotDF$ability*BarplotDF$Value/100
+        
+        #Calculate social welfare
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners and renters pooled"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners and renters pooled" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        
+        BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners only"] <- 
+          sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners only" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        
+        
+        ggplot(BarplotDF, aes(y = Value_no_percent, x = factor(Income), fill = Households,)) + 
+          geom_bar(position = "dodge", stat = "identity") +
+          xlab("Household type (income in average city, 2020 USD)") + 
+          ylab("Equivalent Variation ($/year)") + 
+          scale_fill_manual(values = c("royalblue", "red4")) +
+          theme_gray(base_size = 15) +
+          theme(axis.text.x=element_text(size=rel(1), angle=90), 
+                legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
+        ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/PooledWelfare_Eqnopercent_var_bySkill_", 
+                      BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                      BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
+
       
-    }
+      
+      #Create separate version in dollar terms
+      
+    } #Dont create graph for no bySkill
     
     rm(BarplotDF)
+    
+    #Create barcharts for renters and homeowners, as well
 #_____________________________________________________________________________________________________________________________________________
 #____________ROBUSTNESS: _____________________________________________________________________________________________________________________
-#How do welfare results compare to other specifications?
+  
+  
 
 
 rm(list = ls())

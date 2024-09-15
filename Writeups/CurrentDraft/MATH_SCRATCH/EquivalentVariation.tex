@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{amsthm, thmtools}
+\usepackage[legalpaper, margin=1in]{geometry}
+
+%Propositions, facts, remarks
+\declaretheorem{Fact}
+\declaretheorem{Proposition}
+\declaretheorem{Remark}
+
+
+\usepackage[font=scriptsize,labelfont=bf]{caption}
+\bibliographystyle{chicago}
+\spacing{1.3}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=blue,      
+	urlcolor=blue,
+	citecolor=blue,
+}
+\usepackage{comment}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+%opening
+\title{Optimal Policy}
+\author{James Macek}
+\date{March 2024}
+
+
+\begin{document}
+	
+	\paragraph*{}
+	Consider neighborhood values $V(z)$ in an arbitrary neighborhood/zone pair, dropping $i$ subscripts. As derived before, this is 
+	
+	\begin{equation*}
+		\kappa(z)\beta^{-\beta}(1-\beta)^{-(1-\beta)}(R - P\bar{A})^{\beta}P^{-\beta}(wz - R)^{1 - \beta} + \log b(z)
+	\end{equation*}
+	if regulation is binding at $z$ (0 if housing unaffordable), and 
+	\begin{equation*}
+		\kappa(z)\frac{wz - P\bar{A}}{P^{\beta}}
+	\end{equation*}
+	otherwise. Let $C'(z) + \log b'(z)$ be the neighborhood value in the counterfactual equilibrium. We now want to find the compensating variation associated with a policy change. This solves the equation in $\tau$:
+	
+	\begin{equation*}
+			\kappa(z)\beta^{-\beta}(1-\beta)^{-(1-\beta)}(R - P\bar{A})^{\beta}P^{-\beta}(w\tau z - R)^{1 - \beta} = C'(z) + \log b'(z)
+	\end{equation*}
+	if $\beta w \tau z + (1-\beta)P\bar{A} < R$, or 
+	
+	\begin{equation*}
+			\kappa(z)\frac{w\tau z - P\bar{A}}{P^{\beta}} = C'(z) + \log b'(z)
+	\end{equation*}
+	otherwise. If utility is zero both before and after the policy change, we take the smallest equivalent variation measure $\tau = 1$. The equivalent variation $\tau$ thus has has the closed form solution:
+	
+	\begin{equation}
+		\tau = \bigg[ \bigg]
+	\end{equation} 
+	if $\tau$ satisfies $\beta w \tau z + (1-\beta)P\bar{A} < R$. Otherwise, the solution is 
+	
+	
+\end{document}

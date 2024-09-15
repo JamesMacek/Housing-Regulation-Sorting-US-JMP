@@ -37,7 +37,7 @@ US_BLOCK_forBoxplot <- select(US_BLOCK, CBSA_NAME, SuperStar,
 US_BLOCK <- US_BLOCK %>% select(-CBSA_med_house_value, -City_housing_density, -PooledWage, -City_housing_pop)
 
 #Changing column names
-changeColnames <- c("MSA", "SuperStar city",
+changeColnames <- c("MSA", "Superstar?",
                     "ln Average Income", 
                     "Unit Density Restriction (acres)",
                     "Stringency measure (2020 millions USD)",
@@ -60,7 +60,7 @@ vtable::st(US_BLOCK,
            file = "DataV2/US_Data/Output/Facts_summarystats_SuperStar.tex",
            summ = c('notNA(x)','mean(x)','sd(x)', 'median(x)'),
            summ.names = c("N", "Mean", "Sd", "Median"),
-           group = "SuperStar city",
+           group = "Superstar?",
            digits = 3,
            fit.page = "0.9\\textwidth")
 

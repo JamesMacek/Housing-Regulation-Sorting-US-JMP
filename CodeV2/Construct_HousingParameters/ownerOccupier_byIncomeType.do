@@ -12,7 +12,7 @@ drop if metro == 1
 *Matching all observations to 2010 PUMAs
 
 *merging m:m, only duplicates are for Corvalis and Midland, Michigan
-merge m:m statefip puma using "DataV2/US_Data/ACS_Individual/MSA2013_PUMA2010_crosswalk.dta"
+joinby statefip puma using "DataV2/US_Data/ACS_Individual/MSA2013_PUMA2010_crosswalk.dta", unmatched(master)
 sort _merge
 cap count if _merge == 0
 di "There are `r(N)' unmatched households. "

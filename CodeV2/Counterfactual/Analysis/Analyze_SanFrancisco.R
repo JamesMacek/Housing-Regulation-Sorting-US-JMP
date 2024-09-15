@@ -2,7 +2,7 @@
 #Produces 1) Maps, 
 #         2) Welfare calculations
 #         3) Labour productivity calculations
-#         4) Analyzing spatial distribution of income
+#         4) Analyzing spatial distribution of income and land values on a map
 
 library(dplyr)
 library(haven)
@@ -58,8 +58,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/",
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 #Importing master data for comparison to equilibrium
 load(paste0("DataV2/Counterfactuals/Init_eq_", 
@@ -78,23 +78,31 @@ Init_eq["final_land_for_res"] <- Init_eq$land_regulated + Init_eq$land_unregulat
 Ct_Amenities["ALAND"] <- Init_eq$ALAND #official landmass from census shapefiles
 
 #______________________________________________________________________________________________________
-# PART 1: LAND VALUES. CALCULATE San Francisco changes in land values + map of changes 
+# PART 1: LAND VALUES. CALCULATE San Francisco changes in land values
 #______________________________________________________________________________________________________
 #Replace housing price z1 and z2 equal to the other IF only regulated or unregulated land, this does not matter for calculations other to remove NaNs
-Ct_Amenities$housingPrice_z1[is.nan(Ct_Amenities$housingPrice_z1)] <- Ct_Amenities$housingPrice_z2[is.nan(Ct_Amenities$housingPrice_z1)] 
-Ct_Amenities$housingPrice_z2[is.nan(Ct_Amenities$housingPrice_z2)] <- Ct_Amenities$housingPrice_z1[is.nan(Ct_Amenities$housingPrice_z2)] 
+  Ct_Amenities$housingPrice_z1[is.nan(Ct_Amenities$housingPrice_z1)] <- Ct_Amenities$housingPrice_z2[is.nan(Ct_Amenities$housingPrice_z1)] 
+  Ct_Amenities$housingPrice_z2[is.nan(Ct_Amenities$housingPrice_z2)] <- Ct_Amenities$housingPrice_z1[is.nan(Ct_Amenities$housingPrice_z2)] 
 
-#Calculating change in land values given model counterpart
-Init_eq["LandValCtEq_regulated"] <- (Ct_Amenities$housingPrice_z1^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
-Init_eq["LandValCtEq_unregulated"] <- (Ct_Amenities$housingPrice_z2^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
+#Additional variables to feed into EquivalentVariation.R
+  Ct_Amenities["price_regulated"] <- Ct_Amenities$housingPrice_z1
+  Ct_Amenities["price_unregulated"] <- Ct_Amenities$housingPrice_z2
+  Ct_Amenities["regulated_housingUnit_share"] <- Init_eq$regulated_housingUnit_share #shares at initial equilibrium
+  Ct_Amenities["IncomeStringency_model_rents"] <- ifelse(test = (Ct_Amenities$CBSA_NAME == "San Francisco-Oakland-Hayward, CA"),       #Cutting value of minimal lot in 2 -- a bit more than eliminating SF zoning
+                                                         yes = 1/2,                                                    # 
+                                                         no = 1)*Init_eq$IncomeStringency_model_rents #NOTE: IF YOU CHANGE COUNTERFACTUAL YOU !MUST MUST MUST! CHANGE THIS
 
-#Calculating land values in initial regulated vs. unregulated equilibrium
-Init_eq["LandValInitEq_regulated"] <- (Init_eq$price_regulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
-Init_eq["LandValInitEq_unregulated"] <- (Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda #land type weighted land values per acre.
+#Calculating new land values by 
+Init_eq["LandValCtEq_regulated"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_Amenities$housingPrice_z1^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
+Init_eq["LandValCtEq_unregulated"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_Amenities$housingPrice_z2^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
+                                             #Share of land in production-- does not change W.R.T regulation
+#Calculating original land values
+Init_eq["LandValInitEq_regulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_regulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
+Init_eq["LandValInitEq_unregulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
 
 #total land value in initial neighborhood
-Init_eq["Total_land_values_initial"] <- Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated
-
+Init_eq["Total_land_values_initial"] <-  Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated #land type weighted land values per acre.
+                                                                      #Total expenditure on housing services in the neighborhood
 
 #Calculating growth at neighborhood level (log differences in land-value-weighted growth)
 Init_eq["LandValGrowth"] <- log( ((Init_eq$land_regulated*Init_eq$LandValInitEq_regulated)/(Init_eq$Total_land_values_initial))* #weights
@@ -120,13 +128,10 @@ Init_eq["Avg_income_ctfl"] <- Ct_Amenities$Avg_income #counterfactual incomes
 Init_eq["Init_nPop"] <- getNeighborhoodPop(Init_eq) #Initial neighborhood populations
 Init_eq["Ct_nPop"] <- getNeighborhoodPop(Ct_Amenities) #Initial neighborhood populations 
 
-SF_df <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",] %>% #san francisco county is 75
-        select(LandValGrowth, IncomeStringency_cl, starts_with("Avg_income"), ends_with("nPop"), UnitDensityRestriction_cl, land_regulated, final_land_for_res, starts_with("Amenity"), starts_with("consumption"),
+SF_df <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",] %>% #Take dataframe for SF-Oakland-Hayward
+         select(LandValGrowth, IncomeStringency_cl, starts_with("Avg_income"), ends_with("nPop"), UnitDensityRestriction_cl, land_regulated, final_land_for_res, starts_with("Amenity"), starts_with("consumption"),
                regulated_housingUnit_share, LandValueDensity_matched, IncomeStringency_model_rents, rank_density_CBSA, starts_with("Population_type"), State, County, Tract, BlockGroup, CBSA_NAME)
 
-#TESTING: WELFARE CONDITIONAL ON SF
-#Init_eq <- Init_eq[Init_eq$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",]
-#Ct_Amenities <- Ct_Amenities[Ct_Amenities$CBSA_NAME == "San Francisco-Oakland-Hayward, CA",]
 
 #_________________________________________________________________________________________________________
 
@@ -144,15 +149,19 @@ var_Amen <- matrix(NA, length(skillVector) , 7)
   for (skill_to_pass in skillVector) {
     skillIndex <- skillIndex + 1
     for (i in 1:7) { 
-  
-        var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Ct = Ct_Amenities, incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
+        
+        new_welfare <- GetWelfareEqVar(Master_data = Ct_Amenities, EqVar = 1, FullDereg = FALSE, capitalGains = FALSE, #This call just calculates welfare in utils in ctfl
+                                       skill = skill_to_pass, incomeType = i, demandParameters = demandParameters_to_pass)
+        var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Welfare = new_welfare,
+                                                incomeType = i, skill = skill_to_pass, #partial deregulation calculation...
+                                                demandParameters = demandParameters_to_pass)
       
     
     }
   }
   
   print(paste0("Welfare by income type from this deregulation exercise is... "))
-  print(var_Amen) #Worse for all income types, wow, I wonder why-- and worse for LOWEST INCOME (in % terms)???? huh
+  print(var_Amen) 
   
   
   #Shapely decomposition
@@ -339,13 +348,14 @@ InitIncome_plot <-  ggplot() + coord_sf() +
             mapping = aes(fill = Avg_income_quartiles_center), 
             alpha = 0.6, lwd = 0) +
     coord_sf(expand = FALSE) + 
-            scale_fill_gradientn(colours=magma(6), name = "") +    
+            scale_fill_gradientn(colours=c("orange", "steelblue"), name = "") +    
     theme_gray(base_size = 20) +
     theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
-        legend.text = element_text(size = 12)) + 
-    ggtitle(paste0("Panel C:", "\n", "Income distribution (in 1000's, pre-deregulation)")) 
+        legend.text = element_text(size = 12),
+        legend.position = "bottom", plot.title = element_text(hjust = 0.5)) + 
+    ggtitle(paste0("Panel A:", "\n", "Income distribution (in 1000's, pre-deregulation)")) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodIncome_map.png", plot = InitIncome_plot,  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
@@ -355,13 +365,14 @@ ChIncome_plot <- ggplot() + coord_sf() +
     geom_sf(data = SF_df,
             mapping = aes(fill = Income_change_quartiles_center), alpha = 0.6, lwd = 0) + 
     coord_sf(expand = FALSE) + 
-    scale_fill_gradientn(colours= c("red", "blue"), name = "") + 
-    ggtitle(paste0("Panel A:", "\n", "Changes in income to counterfactual (%)")) + 
+    scale_fill_gradientn(colours= c("dodgerblue3", "firebrick1"), name = "") + 
+    ggtitle(paste0("Panel C:", "\n", "Changes in income to counterfactual (%)")) + 
   theme_gray(base_size = 20) + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
-        legend.text = element_text(size = 12)) 
+        legend.text = element_text(size = 12),
+        legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodIncome_change_map.png", plot = ChIncome_plot,  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
@@ -370,13 +381,14 @@ ChIncome_plot <- ggplot() + coord_sf() +
     geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot
             mapping = aes(fill = IncomeStringency_cl_quartiles_center), alpha = 0.6, lwd = 0) +
     coord_sf(expand = FALSE) + 
-    scale_fill_gradientn(colours=magma(6), name = "") + 
-    ggtitle(paste0("Panel D:", "\n", "Regulatory stringency (in millions USD, pre-deregulation)")) + 
+    scale_fill_gradientn(colours= c("orange", "steelblue"), name = "") + 
+    ggtitle(paste0("Panel B:", "\n", "Regulatory stringency (in millions USD, pre-deregulation)")) + 
     theme_gray(base_size = 20) + 
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks = element_blank(),
-          legend.text = element_text(size = 12)) 
+          legend.text = element_text(size = 12),
+          legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_stringency_equilibrium.png", plot = InitString_plot, 
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
@@ -387,20 +399,21 @@ ChLandVal_plot <-  ggplot() + coord_sf() +
     geom_sf(data = SF_df, #censor for graph scale, one outlier where land values change a lot (because its a high density neighborhood with very stringent regulation)
             mapping = aes(fill = LandVal_change_quartiles_center), alpha = 0.6, lwd = 0) + 
     coord_sf(expand = FALSE) + 
-    scale_fill_gradientn(colours=c("red", "blue"), name = "") + 
-    ggtitle(paste0("Panel B:", "\n", "Changes in land values to counterfactual (%)")) + 
+    scale_fill_gradientn(colours=c("dodgerblue3", "firebrick1"), name = "") + 
+    ggtitle(paste0("Panel D:", "\n", "Changes in land values to counterfactual (%)")) + 
   theme_gray(base_size = 20) + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
-        legend.text = element_text(size = 12)) 
+        legend.text = element_text(size = 12),
+        legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_NeighborhoodLandVal_change_map.png", plot = ChLandVal_plot, 
          width = 35, height = 21.875, units = "cm", type = "cairo") 
   
 
   #Putting plots into patchwork graph, increasing size of font
-   ChIncome_plot + ChLandVal_plot + InitString_plot + InitIncome_plot 
+  InitIncome_plot + InitString_plot + ChIncome_plot + ChLandVal_plot 
   ggsave("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/SF_combined.png",  
-         width = 50, height = 50, units = "cm", type = "cairo")
+         width = 50, height = 50, units = "cm", type = "cairo") 
   
 #_________________   _________________________________________________________________________________________  

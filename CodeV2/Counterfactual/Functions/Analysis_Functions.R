@@ -125,7 +125,7 @@ getCityOutputShares <- function(Master_data) {
   
 }
 
-#Get populationsof neighborhoods
+#Get populations of neighborhoods
 getNeighborhoodPop <- function(Master_data) {
   
   neighborhood_pop <- rep(0, nrow(Master_data))

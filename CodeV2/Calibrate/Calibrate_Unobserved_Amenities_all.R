@@ -14,7 +14,7 @@ library(rlang)
 source("CodeV2/Calibrate/Parameters/GlobalParameters.R") #Harmonized list of parameters
 
 #CHOOSE BASELINE SPECIFICATION FOR ESTIMATING OMEGA
-BASELINE_SPECIFICATION <- list(pref = "SG", bySkill_to_pass = FALSE) #Estimating omega will not work for bySkill == True at current codebase, though little reason to believe this matters.
+BASELINE_SPECIFICATION <- list(pref = "SG", bySkill_to_pass = FALSE) #Estimating omega will not work for bySkill == True at current codebase; though little reason to believe this matters.
 #                                                                    #So make sure this is set to false
                                                                      #Will also output historical data for placebo test
 #Logs...
@@ -76,7 +76,7 @@ for (bySkill_to_pass in c(FALSE, TRUE)) { #BySkill or Pooled
         for (incomeType in 1:7) {
           #calculating reported variance for each income type
           consumption_AdjustmentFactor[skill, incomeType] <- sqrt(logVariance_CobbDouglas/(var(Master[[paste0("consumption_Val_", skillName[which(skill == skillVector)],
-                                                                                                     incomeType)]], na.rm = TRUE)))
+                                                                                                       incomeType)]], na.rm = TRUE)))
         }
       }
   

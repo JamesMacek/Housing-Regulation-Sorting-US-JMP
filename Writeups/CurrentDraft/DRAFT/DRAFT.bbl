@@ -201,6 +201,12 @@ Diamond, R. (2016, March).
 Dingel, J.~I. and F.~Tintelnot (2021, January).
 \newblock Spatial economics for granular settings.
 
+\bibitem[\protect\citeauthoryear{Donald, Fukui, and Miyauchi}{Donald
+  et~al.}{2024}]{DFM}
+Donald, E., M.~Fukui, and Y.~Miyauchi (2024, 03).
+\newblock Unpacking aggregate welfare in a spatial economy.
+\newblock {\em Working paper\/}.
+
 \bibitem[\protect\citeauthoryear{Duranton and Puga}{Duranton and
   Puga}{2023}]{durantonpugaurbgrowth}
 Duranton, G. and D.~Puga (2023).
@@ -219,6 +225,13 @@ Epple, D. and G.~J. Platt (1998).
 Fajgelbaum, P.~D. and C.~Gaubert (2020, 01).
 \newblock {Optimal Spatial Policies, Geography, and Sorting*}.
 \newblock {\em The Quarterly Journal of Economics\/}~{\em 135\/}(2), 959--1036.
+
+\bibitem[\protect\citeauthoryear{Fernandez and Rogerson}{Fernandez and
+  Rogerson}{1996}]{FernRogerson1996}
+Fernandez, R. and R.~Rogerson (1996, 02).
+\newblock {Income Distribution, Communities, and the Quality of Public
+  Education*}.
+\newblock {\em The Quarterly Journal of Economics\/}~{\em 111\/}(1), 135--164.
 
 \bibitem[\protect\citeauthoryear{Fernandez and Rogerson}{Fernandez and
   Rogerson}{1997}]{keepingpeopleout}
@@ -257,12 +270,6 @@ Glaeser, E. and J.~Gyourko (2018, February).
 Glaeser, E.~L., M.~E. Kahn, and J.~Rappaport (2008).
 \newblock Why do the poor live in cities? the role of public transportation.
 \newblock {\em Journal of Urban Economics\/}~{\em 63\/}(1), 1--24.
-
-\bibitem[\protect\citeauthoryear{Goldsmith-Pinkham and Shue}{Goldsmith-Pinkham
-  and Shue}{2023}]{gendergapHousing}
-Goldsmith-Pinkham, P. and K.~Shue (2023).
-\newblock The gender gap in housing returns.
-\newblock {\em The Journal of Finance\/}~{\em 78\/}(2), 1097--1145.
 
 \bibitem[\protect\citeauthoryear{Greaney}{Greaney}{2023}]{Greaney}
 Greaney, B. (2023, 10).
@@ -321,6 +328,20 @@ Heathcote, J., K.~Storesletten, and G.~L. Violante (2017, 06).
 \newblock {Optimal Tax Progressivity: An Analytical Framework*}.
 \newblock {\em The Quarterly Journal of Economics\/}~{\em 132\/}(4),
   1693--1754.
+
+\bibitem[\protect\citeauthoryear{Helsley and Strange}{Helsley and
+  Strange}{1995}]{helseystrangeGrowthControls}
+Helsley, R.~W. and W.~C. Strange (1995).
+\newblock Strategic growth controls.
+\newblock {\em Regional Science and Urban Economics\/}~{\em 25\/}(4), 435--460.
+\newblock Recent Advances in Urban Economics and Land Use: A Special Issue in
+  Honour of Hiroyuki Yamada.
+
+\bibitem[\protect\citeauthoryear{Henderson and Thisse}{Henderson and
+  Thisse}{2001}]{HendersonThisseDevelopers}
+Henderson, J.~V. and J.~Thisse (2001).
+\newblock On strategic community development.
+\newblock {\em Journal of Political Economy\/}~{\em 109\/}(3), 546--568.
 
 \bibitem[\protect\citeauthoryear{Herkenhoff, Ohanian, and Prescott}{Herkenhoff
   et~al.}{2018}]{hop}

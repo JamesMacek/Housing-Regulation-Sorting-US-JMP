@@ -3,32 +3,32 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: DRAFT.aux
 Reallocating 'name_of_file' (item size: 1) to 8 items.
 The style file: chicago.bst
-Illegal, another \bibstyle command---line 20 of file DRAFT.aux
+Illegal, another \bibstyle command---line 6 of file DRAFT.aux
  : \bibstyle
  :          {chicago}
 I'm skipping whatever remains of this command
 Reallocating 'name_of_file' (item size: 1) to 15 items.
 Database file #1: references.bib
-You're missing a field part---line 507 of file references.bib
+You're missing a field part---line 1013 of file references.bib
  :   month=
  :         ,
 I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 822 of file references.bib
+I was expecting a `,' or a `}'---line 1661 of file references.bib
  : 
  : doi = {http://dx.doi.org/10.2139/ssrn.3454631}
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 1039 of file references.bib
+I was expecting a `,' or a `}'---line 2095 of file references.bib
  : 
  : @article{whyurbineq,
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
-Repeated entry---line 1102 of file references.bib
+Repeated entry---line 2221 of file references.bib
  : @article{HILBER2013
  :                    ,
 I'm skipping whatever remains of this entry
 Warning--entry type for "straub2019" isn't style-file defined
---line 1363 of file references.bib
+--line 2743 of file references.bib
 Warning--no number and no volume in AlmagroDI
 Warning--page numbers missing in AlmagroDI
 Warning--no number and no volume in BSH
@@ -39,6 +39,8 @@ Warning--page numbers missing in Cui
 Warning--no number and no volume in davisetalracepref
 Warning--page numbers missing in davisetalracepref
 Warning--empty note in DingelTintelnot:2021
+Warning--no number and no volume in DFM
+Warning--page numbers missing in DFM
 Warning--no number and no volume in FinlayWilliams
 Warning--page numbers missing in FinlayWilliams
 Warning--no number and no volume in Greaney
@@ -50,45 +52,45 @@ Warning--page numbers missing in KSC
 Warning--page numbers missing in MolloyRSUE
 Warning--no number and no volume in Song
 Warning--page numbers missing in Song
-You've used 70 entries,
+You've used 73 entries,
             2861 wiz_defined-function locations,
-            1015 strings with 15012 characters,
-and the built_in function-call counts, 47223 in all, are:
-= -- 3985
-> -- 3382
+            1035 strings with 15538 characters,
+and the built_in function-call counts, 49359 in all, are:
+= -- 4170
+> -- 3547
 < -- 10
-+ -- 1018
-- -- 1182
-* -- 4287
-:= -- 8629
-add.period$ -- 211
-call.type$ -- 70
-change.case$ -- 493
-chr.to.int$ -- 70
-cite$ -- 91
-duplicate$ -- 1245
-empty$ -- 2856
-format.name$ -- 1382
-if$ -- 8752
++ -- 1066
+- -- 1240
+* -- 4489
+:= -- 9017
+add.period$ -- 221
+call.type$ -- 73
+change.case$ -- 515
+chr.to.int$ -- 73
+cite$ -- 96
+duplicate$ -- 1297
+empty$ -- 2976
+format.name$ -- 1452
+if$ -- 9148
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 62
-newline$ -- 352
-num.names$ -- 704
-pop$ -- 302
+missing$ -- 65
+newline$ -- 368
+num.names$ -- 734
+pop$ -- 314
 preamble$ -- 1
-purify$ -- 914
+purify$ -- 954
 quote$ -- 0
-skip$ -- 1366
+skip$ -- 1427
 stack$ -- 0
-substring$ -- 2431
-swap$ -- 412
+substring$ -- 2529
+swap$ -- 429
 text.length$ -- 10
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 1390
-warning$ -- 21
-while$ -- 672
+type$ -- 1450
+warning$ -- 23
+while$ -- 701
 width$ -- 0
-write$ -- 922
+write$ -- 963
 (There were 5 error messages)

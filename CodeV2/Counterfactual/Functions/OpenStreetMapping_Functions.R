@@ -28,7 +28,7 @@ xy2lonlat <- function(x, y, zoom) {
 get_tile <- function(url) {
   # build a local path
   path <- stringr::str_extract(url, "/\\d+/\\d+/\\d+.png")
-  local_png <- here::here(file.path("data", "osm-tiles", path))
+  local_png <- here::here(file.path("DataV2", "osm-tiles", path))
   
   if (!file.exists(local_png)) {
     dir.create(dirname(local_png), showWarnings = FALSE, recursive = TRUE)

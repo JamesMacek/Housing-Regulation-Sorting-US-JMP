@@ -38,7 +38,7 @@ for (incomeType in 1:7) {
 calibrated_dta <- calibrated_dta %>% group_by(CBSA_NAME) %>% select(SuperStar, starts_with("price"), starts_with("log_Amenity"),
                                                                     starts_with("consumption")) 
 #Renaming columns for output to table (in order they appear)
-changeColnames <- c("MSA", "SuperStar city",
+changeColnames <- c("MSA", "Superstar?",
                     "Housing price (Regulated zone)",
                     "Housing price (Unregulated zone)", 
                     "ln Amenity value (0-25k)",
@@ -73,7 +73,7 @@ hecalibrated_dta <- rbind(calibrated_dta,
              file = "DataV2/Counterfactuals/Calibration_Output/Calibration_summarystats_SuperStar.tex",
              summ = c('notNA(x)','mean(x)','sd(x)'),
              summ.names = c("N", "Mean", "Sd"),
-             group = "SuperStar city",
+             group = "Superstar?",
              digits = 2,
              fit.page = "0.9\\textwidth",) #specify wide format for this group
 

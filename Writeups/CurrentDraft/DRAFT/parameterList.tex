@@ -1,0 +1,20 @@
+\renewcommand{\arraystretch}{1.6}
+	\begin{tabular}{|ll|l|l|}
+		\hline 
+		\textbf{Parameter} & \textbf{Description} & \textbf{Value} & \textbf{Source or Target} \\ 
+		\textbf{Housing Demand} &  &  &  \\ 
+		$P_{R}(i)$ & Housing prices (regulated zone) & & Hedonic regression using CoreLogic transactions (Section \ref{Calibration:HousingPrices}) \\ 
+		$P_{U}(i)$ & Housing prices (unregulated zone) & & ACS fraction of households living in regulated structures (Section \ref{Calibration:HousingPrices2}) \\
+		($\beta$, $\bar{A}$) & Housing preference parameters & (0.08, 6000) & ACS aggregate spending on housing services by income (Section \ref{Calibration:HousingPrices2}) \\ \hline 
+		\textbf{Neighborhood Demand} &  &  &  \\ 
+		$\theta$ & Across-city migration elasticity & 4 & \cite{morettihornbeck}, after rescaling $V(i,z)$ \\ 
+		$\rho$ & Within-city migration elasticity & 8.5 & \cite{BSH}, after rescaling $V(i,z)$\\ 
+		$b(i, z)$ & Amenity values by skill & & ACS block-group income distribution (Section \ref{Calibration:Amenities}) \\ 
+		$w(c)$ & City productivity & & Mincer regression with city fixed effects on ACS household data (Section \ref{Calibration:CityProd}) \\ \hline
+		\textbf{Housing Supply} &  &  &  \\ 
+		$R(i)$ & Value of a minimal lot & & Data (Fact \ref{FStringency}) \\ 
+		$\lambda(i)$ & Construction productivity & & Clear housing markets in each zone (Section \ref{Calibration:HousingSupply})  \\ 
+		$T_{o}(i)$ & Land available for construction by zone & & Clear housing markets in each zone (Section \ref{Calibration:HousingSupply})  \\ 
+		$\epsilon(i)$ & Housing supply elasticity & & \cite{BSH}  \\ 
+		\hline 
+	\end{tabular}

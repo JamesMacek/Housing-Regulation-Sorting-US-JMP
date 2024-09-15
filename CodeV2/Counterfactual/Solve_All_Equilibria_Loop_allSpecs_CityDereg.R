@@ -14,10 +14,15 @@ library(stringr)
 #MODEL 1: HALVE MINIMUM LOT SIZES IN SFran counterfactual
 
 #FILEPATH FOR SOLUTION .R FILE
-solver <- "CodeV2/Counterfactual/Functions/Solve_Current_Equilibrium_allSpecs_PartialDeregulation.R" #Use different solver file for different results... 
+source("CodeV2/Counterfactual/Functions/Solve_Current_Equilibrium_allSpecs_vectorized.R")  
 
 #PARAMETER GUI__________________________________________________________________
 EquilibriumType <- list() #List to read which equilibrium to solve for 
+
+#Specify partial deregulation exercise, uses slower algorithm
+EquilibriumType["Partial_Dereg"] <- TRUE
+EquilibriumType["SocialOpt_gridSearch"] <- FALSE
+check_init_eq <- 0 #Must exist in memory, only for debugging
 
 #MUTUALLY EXCLUSIVE PARAMETERS LIMITING MOBILITY
 EquilibriumType["Full"] <- TRUE #Set to true/1 to solve for full counterfactual
@@ -32,16 +37,11 @@ EquilibriumType["EndogenousAmenities"] <- TRUE
 EquilibriumType["EndogenousProductivity"] <- FALSE #Baseline, no endogenous productivity
 EquilibriumType["NoFundamentals"] <- FALSE #use observed fundamental amenities
 
-if (EquilibriumType$StoneGeary == TRUE) {
-  pref <- "SG"
-}else{
-  pref <- "CD"
-}
-
 #Import initial equilibrium to create vector of unit density restrictions
-uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", pref, "_amenities.dta")) %>%
+uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", "SG", "_amenities.dta")) %>%
           select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents)
 
+#Creating counterfactual parameter vector
 IncomeStringency_ctfl <- ifelse(test = (uDR_df$CBSA_NAME == "San Francisco-Oakland-Hayward, CA"),       #Cutting value of minimal lot in 2 -- a bit more than eliminating SF zoning
                                           yes = 1/2,                                                    # 
                                           no = 1)*
@@ -58,17 +58,10 @@ source(solver)
 #Turning off endogenous amenities to isolate role of them for this counterfactual
 EquilibriumType["EndogenousAmenities"] <- FALSE
 
-if (EquilibriumType$StoneGeary == TRUE) {
-  pref <- "SG"
-}else{
-  pref <- "CD"
-}
-
 #Outputted file name for this counterfactual
 FileOutputName <- "SanFrancisco_ReZoning"
 #Run solution
-source(solver)
-
+solveEquilibrium() 
 
 
 #____________________________________________________________________
@@ -77,26 +70,27 @@ source(solver)
 
 EquilibriumType["EndogenousAmenities"] <- TRUE #Type back to endogenous amenities.
 
-cities <- c("Washington-Arlington-Alexandria, DC-VA-MD-WV", #Additional Superstars
+cities <- c(#Additional Superstars
+            "Washington-Arlington-Alexandria, DC-VA-MD-WV", 
             "Denver-Aurora-Lakewood, CO",
-            "Tampa-St. Petersburg-Clearwater, FL", #Non-Superstars
+            "Los Angeles-Long Beach-Anaheim, CA",
+            "New York-Newark-Jersey City, NY-NJ-PA",
+            
+            
+            #Non-Superstars
+            "Tampa-St. Petersburg-Clearwater, FL", 
             "San Antonio-New Braunfels, TX",
-            "Rochester, NY")
+            "Rochester, NY",
+            "Tucson, AZ",
+            "St. Louis, MO-IL")
 
-cityNames <- c("Washington", "Denver", "Tampa", "SanAntonio", "Rochester")
+cityNames <- c("Washington", "Denver", "LosAngeles", "NewYorkCity", "TampaBay", "SanAntonio", "Rochester", "Tucson", "St.Louis")
 
-#Start loop over other cities counterfactuals:  3 non-superstars, 3 superstars
+#Start loop over other cities counterfactuals:  5 non-superstars, 5 superstars
 for (city in cities) {
   
-  #Reinstating preference identifier
-  if (EquilibriumType$StoneGeary == TRUE) {
-    pref <- "SG"
-  }else{
-    pref <- "CD"
-  }
-
 #Import initial equilibrium to create vector of unit density restrictions
-  uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", pref, "_amenities.dta")) %>%
+  uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", "SG", "_amenities.dta")) %>%
     select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents)
 
   IncomeStringency_ctfl <- ifelse(test = (uDR_df$CBSA_NAME == city),       #Cutting value of minimal lot in 2 -- a bit more than eliminating SF zoning
@@ -106,7 +100,7 @@ for (city in cities) {
   #Outputted file name for this counterfactual
   FileOutputName <- paste0(cityNames[which(city == cities)], "_ReZoning")
   #Run solution
-  source(solver)
+  solveEquilibrium() 
   
 
 }
@@ -116,26 +110,11 @@ for (city in cities) {
 #____________________________________________
 EquilibriumType["EndogenousAmenities"] <- FALSE
 
-cities <- c("Washington-Arlington-Alexandria, DC-VA-MD-WV", #Additional Superstars
-            "Denver-Aurora-Lakewood, CO",
-            "Tampa-St. Petersburg-Clearwater, FL", #Non-Superstars
-            "San Antonio-New Braunfels, TX",
-            "Rochester, NY")
-
-cityNames <- c("Washington", "Denver", "Tampa", "SanAntonio", "Rochester")
-
-
 for (city in cities) {
   
-  if (EquilibriumType$StoneGeary == TRUE) {
-    pref <- "SG"
-  }else{
-    pref <- "CD"
-  }
-  
   #Import initial equilibrium to create vector of unit density restrictions
-  uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", pref, "_amenities.dta")) %>%
-    select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents)
+  uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", "SG", "_amenities.dta")) %>%
+                                                      select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents)
   
   IncomeStringency_ctfl <- ifelse(test = (uDR_df$CBSA_NAME == city),       #Cutting value of minimal lot in 2 -- a bit more than eliminating SF zoning
                                   yes = 1/2,                                                    # 
@@ -144,7 +123,7 @@ for (city in cities) {
   #Outputted file name for this counterfactual
   FileOutputName <- paste0(cityNames[which(city == cities)], "_ReZoning")
   #Run solution
-  source(solver)
+  solveEquilibrium() 
   
 
 }

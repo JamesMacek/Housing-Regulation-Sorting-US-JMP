@@ -47,8 +47,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/", "F
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 
 #Load initial equilibrium with no fundamentals, everything else equal
@@ -57,8 +57,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/", "I
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass, 
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Init_eq <- Equilibrium_objects
-rm(Equilibrium_objects)
+Init_eq <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 #Load master initial file for extra columns
 #Importing master data for comparison to equilibrium
@@ -78,208 +78,211 @@ rm(Master)
 
 
 #Consumption adjustment factors for baseline spec
-load(paste0("DataV2/Counterfactuals/Calibration_Output/consumption_AdjustmentFactor_bySkill",
-            BASELINE_SPECIFICATION$bySkill_to_pass,
-            "_pref_", BASELINE_SPECIFICATION$pref, ".Rdata"))
+  load(paste0("DataV2/Counterfactuals/Calibration_Output/consumption_AdjustmentFactor_bySkill",
+              BASELINE_SPECIFICATION$bySkill_to_pass,
+              "_pref_", BASELINE_SPECIFICATION$pref, ".Rdata"))
 
 
 #Final land for residential use 
-Init_eq["final_land_for_res"] <- Init_eq$land_regulated + Init_eq$land_unregulated #calibrated land
-Ct_Amenities["ALAND"] <- Init_eq$ALAND #official landmass from census shapefiles
+  Init_eq["final_land_for_res"] <- Init_eq$land_regulated + Init_eq$land_unregulated #calibrated land
+  Ct_Amenities["ALAND"] <- Init_eq$ALAND #official landmass from census shapefiles
 
 #Replace housing price z1 and z2 equal to the other IF only regulated or unregulated land, this does not matter for calculations other to remove NaNs from calculation. 
 #NAs appear when land in a particular zone is zero.
-Init_eq$price_regulated[is.nan(Init_eq$price_regulated)] <- Init_eq$price_unregulated[is.nan(Init_eq$price_regulated)] 
-Init_eq$price_unregulated[is.nan(Init_eq$price_unregulated)] <- Init_eq$price_regulated[is.nan(Init_eq$price_unregulated)]
+  Init_eq$price_regulated[is.nan(Init_eq$price_regulated)] <- Init_eq$price_unregulated[is.nan(Init_eq$price_regulated)] 
+  Init_eq$price_unregulated[is.nan(Init_eq$price_unregulated)] <- Init_eq$price_regulated[is.nan(Init_eq$price_unregulated)]
 
 #_____________START ANALYSIS______________________________________
-#PART 1: WELFARE 
+  #PART 1: WELFARE 
 
-source("CodeV2/Counterfactual/Functions/EquivalentVariation.R")
-var_Amen <- matrix(NA, length(skillVector) , 7)
+  source("CodeV2/Counterfactual/Functions/EquivalentVariation.R")
+  var_Amen <- matrix(NA, length(skillVector) , 7)
 
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  skillIndex <- skillIndex + 1
-  for (i in 1:7) { 
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    skillIndex <- skillIndex + 1
+    for (i in 1:7) { 
+      
+      
+      new_welfare <- GetWelfareEqVar(Master_data = Ct_Amenities, EqVar = 1, FullDereg = TRUE, capitalGains = FALSE, #This call just calculates welfare in utils in ctfl
+                                     skill = skill_to_pass, incomeType = i, demandParameters = demandParameters_to_pass)
+      var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Welfare = new_welfare,
+                                              incomeType = i, skill = skill_to_pass, 
+                                              demandParameters = demandParameters_to_pass)
     
-    var_Amen[skillIndex, i] <- getVariation(Init = Init_eq, Ct = Ct_Amenities, incomeType = i, skill = skill_to_pass, demandParameters = demandParameters_to_pass)
-    
-    
+    }
   }
-}
 
-print(paste0("Welfare by income type from this deregulation exercise is... "))
-print(var_Amen) #CONSIDERABLY LOWER. Can't tell if this is due to muting diff. in amenity value across space, tbh
+  print(paste0("Welfare by income type from this deregulation exercise is... "))
+  print(var_Amen) #Slightly lower consumption costs; not exactly comparable because we didn't aggregate properly.
 
 #Shapely decomposition
-#Amenities
-Amenity_shapely <- matrix(NA, length(skillVector), 7)
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  skillIndex <- skillIndex + 1
+  #Amenities
+  Amenity_shapely <- matrix(NA, length(skillVector), 7)
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    skillIndex <- skillIndex + 1
   
-  for (i in 1:7) {                        #Holding consumption at counterfactual levels
-    Amenity_shapely[skillIndex, i] <-   (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Ct_Amenities, 
-                                                                         skill = skill_to_pass, incomeType = i) -  
-                                                  getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Init_eq, 
-                                                                           skill = skill_to_pass, incomeType = i) ) + 
+    for (i in 1:7) {                        #Holding consumption at counterfactual levels
+      Amenity_shapely[skillIndex, i] <-   (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Ct_Amenities, 
+                                                                             skill = skill_to_pass, incomeType = i) -  
+                                                    getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Init_eq, 
+                                                                             skill = skill_to_pass, incomeType = i) ) + 
       #Holding consumption at initial equilibrium levels
-      (1/2)* ( getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Ct_Amenities, 
-                                        skill = skill_to_pass, incomeType = i) - 
-                 getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
-                                          skill = skill_to_pass, incomeType = i) ) 
-    #Making sure this is relative to initial welfare levels, as they are measured in utils
+        (1/2)* ( getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Ct_Amenities, 
+                                          skill = skill_to_pass, incomeType = i) - 
+                   getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
+                                            skill = skill_to_pass, incomeType = i) ) 
+      #Making sure this is relative to initial welfare levels, as they are measured in utils
     Amenity_shapely[skillIndex, i] <- Amenity_shapely[skillIndex, i]/getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
                                                                                               skill = skill_to_pass, incomeType = i)
+    }
+  
   }
-  
-}
 
-#Consumption
-Consumption_shapely <- matrix(NA, length(skillVector), 7)
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  skillIndex <- skillIndex + 1
-  
-  for (i in 1:7) {         #Holding Amenities at counterfactual levels
-    Consumption_shapely[skillIndex, i] <- (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Ct_Amenities, 
-                                                                           skill = skill_to_pass, incomeType = i) - 
-                                                    getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Ct_Amenities, 
-                                                                             skill = skill_to_pass, incomeType = i) ) + 
-      #Holding Amenities at initial equilibrium levels
-      (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Init_eq, 
-                                       skill = skill_to_pass, incomeType = i) - 
-                getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
-                                         skill = skill_to_pass, incomeType = i) ) 
+  #Consumption
+  Consumption_shapely <- matrix(NA, length(skillVector), 7)
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    skillIndex <- skillIndex + 1
     
-    #Making sure this is relative to initial welfare level (i.e. expressed as % change in utility)
-    Consumption_shapely[skillIndex, i] <- Consumption_shapely[skillIndex, i]/getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
+    for (i in 1:7) {         #Holding Amenities at counterfactual levels
+      Consumption_shapely[skillIndex, i] <- (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Ct_Amenities, 
+                                                                             skill = skill_to_pass, incomeType = i) - 
+                                                      getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Ct_Amenities, 
+                                                                               skill = skill_to_pass, incomeType = i) ) + 
+        #Holding Amenities at initial equilibrium levels
+        (1/2)*( getWelfare_ShapelyDecomp(Consumption_data = Ct_Amenities, Amenity_data = Init_eq, 
+                                         skill = skill_to_pass, incomeType = i) - 
+                  getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
+                                         skill = skill_to_pass, incomeType = i) ) 
+      
+      #Making sure this is relative to initial welfare level (i.e. expressed as % change in utility)
+      Consumption_shapely[skillIndex, i] <- Consumption_shapely[skillIndex, i]/getWelfare_ShapelyDecomp(Consumption_data = Init_eq, Amenity_data = Init_eq, 
                                                                                                       skill = skill_to_pass, incomeType = i)
     
+    }
+  
   }
-  
-}
 
-#Total % change in welfare by type (in $ via equivalent variation)
-tWelfare <- Amenity_shapely + Consumption_shapely
-Amenity_shapely <- 100*(Amenity_shapely/tWelfare)*(var_Amen - 1) #comp_Var_store was created in welfare calculation above
-Consumption_shapely <- 100*(Consumption_shapely/tWelfare)*(var_Amen - 1) 
+  #Total % change in welfare by type (in $ via equivalent variation)
+  tWelfare <- Amenity_shapely + Consumption_shapely
+  Amenity_shapely <- 100*(Amenity_shapely/tWelfare)*(var_Amen - 1) #comp_Var_store was created in welfare calculation above
+  Consumption_shapely <- 100*(Consumption_shapely/tWelfare)*(var_Amen - 1) 
 
+  print(paste0("Amenity shapely component:"))
+  print(Amenity_shapely)
+  print(paste0("Consumption shapely component:"))
+  print(Consumption_shapely)
 
-print(Amenity_shapely)
-print(Consumption_shapely) 
-
-
-#Income exposure metric: How population-weighted neighborhood income changes by type
-Income_exposure <- matrix(NA, length(skillVector), 7) #Average income faced by income type 
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  name_of_skill <- skillName[which(skill_to_pass == skillVector)]
-  skillIndex <- skillIndex + 1 
-  for (i in 1:7) { 
-    Income_exposure[skillIndex, i] <- sum(Ct_Amenities$Avg_income*Ct_Amenities[[paste0("Population_type_", name_of_skill, i)]]/Ct_Amenities[[paste0("Total_Population_type_", name_of_skill, i)]])/
-      sum(Init_eq$Avg_income*Init_eq[[paste0("Population_type_", name_of_skill, i)]]/Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])
+  #Income exposure metric: How type-population-weighted neighborhood income changes by type
+  Income_exposure <- matrix(NA, length(skillVector), 7) #Average income faced by income type 
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+    skillIndex <- skillIndex + 1 
+    for (i in 1:7) { 
+      Income_exposure[skillIndex, i] <- sum(Ct_Amenities$Avg_income*Ct_Amenities[[paste0("Population_type_", name_of_skill, i)]]/Ct_Amenities[[paste0("Total_Population_type_", name_of_skill, i)]])/
+                                        sum(Init_eq$Avg_income*Init_eq[[paste0("Population_type_", name_of_skill, i)]]/Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])
     
+    }
   }
-}
 
-#Alternative measure: neighborhood income growth weighted by initial population (has origins as first order approximation)
+  #Alternative measure: neighborhood income growth weighted by initial population (has origins as first order approximation)
+  
+  print("Average income faced by type relative to baseline")
+  print(Income_exposure) #Considerably more exposure of low income households to richer neighborhoods.
 
-print("Average income faced by type relative to baseline")
-print(Income_exposure) #Similar levels of desegregation to exposure
+  #AMENITY SHAPELY IS POSITIVE FOR NO FUNDAMENTALS LOW INCOME, HIGHLY NEGATIVE FOR HIGH INCOME.
+  #Suggesting income sorting matters, but pales in comparison to welfare effects of desegregation!
 
-#AMENITY SHAPELY IS POSITIVE FOR NO FUNDAMENTALS LOW INCOME, HIGHLY NEGATIVE FOR HIGH INCOME.
-#Suggesting income sorting matters, but pales in comparison to welfare effects of desegregation!
-
-#Aggregate welfare effects by component
-total_population <- matrix(NA, length(skillVector), 7)
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  name_of_skill <- skillName[which(skill_to_pass == skillVector)]
-  skillIndex <- skillIndex + 1
-  for (i in 1:7) {
-    total_population[skillIndex, i] <- Ct_Amenities[[paste0("Total_Population_type_", name_of_skill, i)]][1]
+  #Doing aggregate welfare changes by component
+  total_population <- matrix(NA, length(skillVector), 7)
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+    skillIndex <- skillIndex + 1
+    for (i in 1:7) {
+      total_population[skillIndex, i] <- Ct_Amenities[[paste0("Total_Population_type_", name_of_skill, i)]][1]
+    }
   }
-}
 
-total_Consumption_shapely <- (Consumption_shapely%*%t(total_population))/(sum(total_population))
-total_Amenity_shapely <- (Amenity_shapely%*%t(total_population))/(sum(total_population))
+  total_Consumption_shapely <- (Consumption_shapely%*%t(total_population))/(sum(total_population))
+  total_Amenity_shapely <- (Amenity_shapely%*%t(total_population))/(sum(total_population))
 
-#Putting this all in a graph. 
-
-Welfare_barchart <- list()
-
-for (skill_to_pass in skillVector) {
-  Welfare_barchart[[skill_to_pass]] <- rep(NA, 2*8)
+  #Putting this all in a graph. 
   
-}
+  Welfare_barchart <- list()
 
-#Putting in estimates into the list
-skillIndex <- 0
-for (skill_to_pass in skillVector) {
-  skillIndex <- skillIndex + 1
-  for (i in 1:7) {
-    
-    index <- 2*(i - 1) + 1
-    
-    Welfare_barchart[[skill_to_pass]][index] <- Consumption_shapely[skillIndex, i]
-    Welfare_barchart[[skill_to_pass]][index + 1] <- Amenity_shapely[skillIndex, i] 
-    
+  for (skill_to_pass in skillVector) {
+    Welfare_barchart[[skill_to_pass]] <- rep(NA, 2*8)
+  
   }
+
+  #Putting in estimates into the list
+  skillIndex <- 0
+  for (skill_to_pass in skillVector) {
+    skillIndex <- skillIndex + 1
+    for (i in 1:7) {
+    
+      index <- 2*(i - 1) + 1
+    
+      Welfare_barchart[[skill_to_pass]][index] <- Consumption_shapely[skillIndex, i]
+      Welfare_barchart[[skill_to_pass]][index + 1] <- Amenity_shapely[skillIndex, i] 
+    
+    }
   
-  Welfare_barchart[[skill_to_pass]][index + 2] <- total_Consumption_shapely 
-  Welfare_barchart[[skill_to_pass]][index + 3]  <- total_Amenity_shapely 
+    Welfare_barchart[[skill_to_pass]][index + 2] <- total_Consumption_shapely 
+    Welfare_barchart[[skill_to_pass]][index + 3]  <- total_Amenity_shapely 
   
-}
+  }
 
 
-#BAR CHART FOR OUTPUT
-BarplotDF <- data.frame() #initializing data frame
+  #BAR CHART FOR OUTPUT
+  BarplotDF <- data.frame() #initializing data frame
 
-for (skill_to_pass in skillVector) {
+  for (skill_to_pass in skillVector) {
+    
+    BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
+                                                rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
+                                                rep("7. 200k+", 2), rep("Social Welfare", 2)), 
+                                                rep(c("Consumption", "Amenity"), 2),
+                                              Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
   
-  BarplotDF <- rbind(BarplotDF,  data.frame(c(rep("1. 0-25k", 2), rep("2. 25-50k", 2), rep("3. 50-75k", 2), 
-                                              rep("4. 75-100k", 2), rep("5. 100-150k", 2), rep("6. 150-200k", 2), 
-                                              rep("7. 200k+", 2), rep("Social Welfare", 2)), 
-                                            rep(c("Consumption", "Amenity"), 2),
-                                            Welfare_barchart[[skill_to_pass]], skill_to_pass)   )#end rbind
   
+  }
+
+
+  colnames(BarplotDF) <- c("Income", "Decomposition", "Value", "Education")
+
+
+  if (BASELINE_SPECIFICATION$bySkill_to_pass == FALSE) {
   
-}
-
-
-colnames(BarplotDF) <- c("Income", "Decomposition", "Value", "Education")
-
-
-if (BASELINE_SPECIFICATION$bySkill_to_pass == FALSE) {
-  
-  ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
-    geom_bar(position = "dodge", stat = "identity") +
-    xlab("Household type (income in average city, 2020 USD)") + 
-    ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
-    theme(axis.text.x=element_text(size=rel(1), angle=90)) & 
-    theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
-  ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
+    ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
+          geom_bar(position = "dodge", stat = "identity") +
+          xlab("Household type (income in average city, 2020 USD)") + 
+          ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
+          theme(axis.text.x=element_text(size=rel(1), angle=90), 
+                legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+    ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
                 BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                 BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
   
-}else{
+  }else{
   
-  ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
-    geom_bar(position = "dodge", stat = "identity") + 
-    facet_wrap(~Education) + 
-    xlab("Household type (income in average city, 2020 USD)") + 
-    ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
-    theme(axis.text.x=element_text(size=rel(1), angle=90)) & 
-    theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
-  ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
+    ggplot(BarplotDF, aes(fill = Decomposition, y = Value, x = factor(Income))) + 
+          geom_bar(position = "dodge", stat = "identity") + 
+          facet_wrap(~Education) + 
+          xlab("Household type (income in average city, 2020 USD)") + 
+          ylab("Equivalent variation (% of income)") + theme_gray(base_size = 15) +
+           theme(axis.text.x=element_text(size=rel(1), angle=90), 
+            legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+      ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/DiffFundamentals/WelfareDecompNoFund_Eq_var_bySkill_", 
                 BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                 BASELINE_SPECIFICATION$pref, ".png"), width = 25, height = 15, units = "cm") 
   
-}
+  }
 
-rm(BarplotDF)
 
 
 #Ending program

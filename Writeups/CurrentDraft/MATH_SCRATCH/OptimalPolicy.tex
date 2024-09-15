@@ -39,27 +39,135 @@
 	\maketitle
 
 	
-	\section{Optimal Policy Definition}
+	\section{The unconstrained social planner's problem}
+	
 	\paragraph*{}
-	Fix some level of regulation $R(i)$ and consider equilibrium outcomes $P_{o}(i)$, $L_{o}(i, z)$, solving the equilibrium conditions. The \textbf{Social planner's problem} for a set of weights $\alpha(z)$ is defined as 
+	Abstract away from different zones within a neighborhood here as they provide no new empirical content (apart from perfect labour mobility). We also set $\theta = \rho$ for simplicity. Case where $\theta \to \infty$ ignores re distribution motive because of idiosyncratic preference shocks.
+	
+	\paragraph*{}
+	The \textbf{Social planner's problem} for a set of weights $\{\alpha(z)\}_{z \in Z}$ and $\alpha^{L}$ is defined as choosing numeraire consumption allocations $g^{C}(i, z)$, $g^{L}(i, z)$, housing consumption allocations $A(i, z)$, and total capital inputs into housing production $g^{A}(i)$ such that
+	\begin{equation}
+		\max   \sum_{z \in \boldsymbol{Z}}\alpha(z)\log \boldsymbol{W}(z) +\alpha^{L}\Pi
+	\end{equation}
+	where $\log \boldsymbol{W}(z)$ is the average renter welfare and $\Pi:= \sum_{i \in N}g^{L}(i)$ is the total numeraire consumption paid to landowners, subject to the following resource and free mobility constraints:
+	
+	\begin{eqnarray}
+		\sum_{i \in N}\big[\sum_{z \in Z}g^{C}(i, z)L(i, z)\big] + g^{A}(i) + g^{L}(i)& = & \underbrace{\sum_{c \in C}\bigg[\iota(c)\sum_{i \in N(c), z \in Z}zL(i, z) \bigg]}_{\text{Total production of numeraire}} \\
+		\forall i, \; \; \sum_{z \in Z}A(i, z) & = & \underbrace{\tilde{\lambda}(i)g^{A}(i)^{\frac{\epsilon(i)}{1 + \epsilon(i)}}T(i)^{\frac{1}{1 + \epsilon(i)}}}_{\text{Local production of housing services}} \\
+		\forall i, z,	\; \; V(i, z) - \frac{1}{\theta}L(i, z)	 & = & \log \boldsymbol{W}(z)	\\
+		\forall z,	\; \;\sum_{i \in N}L(i, z) & = & L(z)	
+	\end{eqnarray}
+	
+	
+	where
 	
 	\begin{equation*}
-		\max_{}
+		V(i, z) := \underbrace{\kappa(z)\beta^{-\beta}(1-\beta)^{-(1-\beta)}(A(i, z) - \bar{A})^{\beta}g^{C}(i, z)^{1-\beta}}_{\text{Consumption value}} + \underbrace{\Omega(z)\text{Inc}(i) + \log\nu(i, z)}_{\text{Amenity value}}
 	\end{equation*}
-	
-	
-	
-	\section{The Marginal Returns to Deregulation}
-	
-	\section{Section: does the no regulation equilibrium with no externalities solve an SPP for some weights?}
-	
-	\section{}
+	and $\text{Inc}(i)$ is neighborhood average income. In practice, we use our definition of the equivalent variation (expressed as a percentative of income relative to the baseline equilibrium that matches data) in lieu of $\log \boldsymbol{W}(z)$ above. This means I am are abstracting away from differences in the marginal utility of income across skill levels. 
 	
 	\paragraph*{}
+	Let $\Lambda^{C}$ be the lagrange multiplier for (2), $\Lambda^{A}(i)$ for (3), $\Lambda^{FM}(i, z)$ for (4) and $\Lambda^{L}(z)$ for (5). 
 	
 	
 	
 	
+	\section{First order conditions}
+	(Objective; later find conditions that do not depend on welfare weights to put in the body of the paper). \\
 	
+	The following important first order conditions hold in a socially optimal allocation when $\Omega(z) = 0$ for all $z$:
+	
+	\begin{enumerate}
+		\item FOC w.r.t $g^{C}(i, z)$ for fixed $z, i$
 		
+		\begin{equation}
+		  -\underbrace{\Lambda^{FM}(i, z)\frac{\partial V(i, z)}{\partial g^{C}(i, z)}}_{\text{Weighted marginal utility of numeraire}}  = \Lambda^{C}L(i, z)
+		\end{equation}
+		
+		\item FOC w.r.t. $L(i, z)$ 
+		
+		\begin{equation}
+			\sum_{z' \in Z}-\Lambda^{FM}(i, z')\Omega(z')\frac{\partial \log \text{Inc}(i)}{\partial L(i, z)} + \Lambda^{FM}(i, z')\frac{1}{\theta}\frac{1}{L(i, z)} + \Lambda^{C}\iota(i)z - \Lambda^{C} - \Lambda^{L}(z) = 0
+		\end{equation}
+
+
+
+
+		\item FOC w.r.t $A(i, z)$ for fixed $z, i$
+		
+		\begin{equation}
+				 \underbrace{\Lambda^{FM}(i, z)\frac{\partial V(i, z)}{\partial A(i, z)}}_{\text{Weighted marginal utility of housing services}} = \Lambda^{A}(i)
+		\end{equation}
+		
+		\item FOC w.r.t. $g^{A}(i)$ 
+		\begin{equation}
+			\underbrace{ \tilde{\lambda}(i)\frac{\epsilon(i)}{1 + \epsilon(i)} \bigg[\frac{g^{A}(i)}{T(i)} \bigg]^{-\frac{1}{1 + \epsilon(i)}}}_{\text{Marginal product of capital in $i$'s housing sector }} = \frac{\Lambda^{C}}{\Lambda^{A}(i)}
+		\end{equation}
+
+	\end{enumerate}
+		
+		
+	\paragraph{A condition for within-neighborhood production and consumption efficiency} We now characterize conditions that are free of welfare weights $\alpha(z)$. We start with how a social planner trades off numeraire and housing consumption in each location. We can divide after rearranging equations (6) by (8), then substituting 
+	\begin{equation}
+	\underbrace{\frac{\partial V(i, z)}{\partial g^{C}(i, z)}/\frac{\partial V(i, z)}{\partial A(i, z)}}_{\text{-MRS of housing for numeraire}} = 	\underbrace{ \tilde{\lambda}(i)\frac{\epsilon(i)}{1 + \epsilon(i)} \bigg[\frac{g^{A}(i)}{T(i)} \bigg]^{-\frac{1}{1 + \epsilon(i)}}}_{\text{Marginal product of capital in $i$'s housing sector }}
+	\end{equation}
+	This is the standard MRS = MRTS result in general equilbrium. This cannot be achieved with minimum lot size regulation because it necessarily distorts housing consumption for a given set of equilibrium prices. 
+	
+	\paragraph*{A condition for an efficient spatial distribution} Next, we can combine (6) and (7) to arrive at a spatial efficiency condition:
+	
+	\begin{equation*}
+	\sum_{z' \in Z}\Omega(z')\frac{\partial \log \text{Inc}(i)}{\partial L(i, z)}V_{g}(i, z')^{-1}L(i, z') + \iota(i)z- \frac{1}{\theta}V_{g}(i, z)^{-1}= \frac{\Lambda^{L}(z) }{\Lambda^{C}} + 1
+	\end{equation*}
+	This expression is informative. It says that a social planner needs to balance the benefits of redistributing labour across each neighborhood by skill level. These benefits are, respectively: 1) the total willingness to pay for all households in a neighborhood (measured in units of the numeraire good) for a marginal increase in neighborhood amenity value; 2) the marginal increase in output created by an additional resident and 3) distributional concerns arising from location preference shocks. 
+	
+	
+	\section*{Constrained social planner's problem}
+	
+	The \textbf{Constrained social planner's problem} for a set of weights $\{\alpha(z), \alpha^{L}\}$ is defined as choosing the level of regulation $R(i)$ in every neighborhood to maximize utility subject to the equilibrium conditions outlined above. This is equivalent to choosing $R(i)$, $P(i)$ and $L(i, z)$ to solve 
+	
+	\begin{equation}
+		\max  \sum_{z \in \boldsymbol{Z}}\alpha(z)\log \boldsymbol{W}(z) +\alpha^{L}\Pi
+	\end{equation}
+	where welfare retains the same definition as before and $\Pi$ is the sum of payments to landowners $\Pi = \sum_{i \in N}\frac{1}{1 + \epsilon(i)}\lambda(i)P(i)^{1 + \epsilon(i)}T(i)$; subject to equilibrium constraints
+	
+	\begin{eqnarray}
+		\forall i, \; \; \underbrace{\sum_{z \in Z^{c}(i)}R(i)L(i, z) + \sum_{z \in Z\notin Z^{c}(i)}\bigg[\beta wz + (1 - \beta)P(i)\bar{A}\bigg]L(i, z)}_{\text{Total spending on housing services}} & = & \underbrace{\lambda(i)P(i)^{1 + \epsilon(i)}T(i)}_{\text{Value of supplied housing services}} \\
+		\forall i, z,	\; \; V(i, z) - \frac{1}{\theta}L(i, z)	 & = & \log \boldsymbol{W}(z)	\\
+		\forall z,	\; \;\sum_{i \in N}L(i, z) & = & L(z)	
+	\end{eqnarray}
+	where
+	\begin{equation*}
+		V(i, z) := \underbrace{k(z)wz\bigg[\frac{1-\frac{P(i)\bar{A}}{wz}}{P(i)^{\beta}}\bigg]s(i, z)}_{\text{Consumption value}} + \underbrace{\Omega(z)\text{Inc}(i) + \log\nu(i, z)}_{\text{Amenity value}}
+	\end{equation*}
+	and $s(i, z) := \bigg[\frac{\big(1 - \frac{R(i)}{wz}\big)\big(1 - \frac{P(i)\bar{A}}{wz}\big)^{-1}}{1-\beta}\bigg]^{1-\beta}\bigg[\frac{\big(R(i) - P(i)\bar{A}\big)\big(wz - P(i)\bar{A}\big)^{-1}}{\beta}\bigg]^{\beta}$ is the distortion factor, and wages are city specific -- $w(i) = \iota(i)$, and $Z^{C}(i)$ is the set of constrained households in $i$. 
+	
+	\paragraph*{}
+	 How does this problem differ from the unconstrained social planner's? Minimum lot sizes are inherently distortionary, so too many housing services are created relative to what a social planner could achieve with place-based spatial transfers. However, this distortion may be efficient if it increases spatial efficiency in line with the above.
+	 
+	 \paragraph*{}
+	 Note: SPP is not differentiable in $R(i)$; so FOC's should be interpreted with caution -- they are taken at points where function is locally differentiable (i.e. not at the point where regulation is just binding for some type $z$). The FOC's are: 
+	 
+	 \begin{enumerate}
+	 	\item FOC w.r.t $R(i)$:
+	 	
+	 	\begin{equation*}
+	 		-\bigg[\sum_{z \in Z^{C}(i)} \Lambda^{FM}(i, z) \frac{\partial V(i, z)}{\partial R(i)} + \Lambda^{A}(i)L(i, z)\bigg] = 0
+	 	\end{equation*}
+	 	
+	 	\item FOC w.r.t $L(i, z)$:
+	 	 \begin{equation*}
+	 	\sum_{z' \in Z}-\Lambda^{FM}(i, z')\Omega(z')\frac{\partial \log \text{Inc}(i)}{\partial L(i, z)} +  	\Lambda^{FM}(i, z)\frac{1}{\theta}\frac{1}{L(i, z)}	- \Lambda^{A}(i) E(i, z)  = 0
+	 	\end{equation*}
+	 	 where $E(i, z)$ is the housing expenditure by an $(i, z)$ household ($ = R(i)$  if $z \in Z^{C}(i)$ or $\beta wz + (1-\beta)P(i)\bar{A}$ if $z \in Z \notin Z^{C}(i)$).
+	 	 
+	 	 
+	 	\item FOC w.r.t $P(i)$
+	 	
+	 	\begin{equation*}
+	 		\sum_{z \in Z} -\Lambda^{FM}(i, z) \frac{\partial V(i, z)}{\partial P(i)}  -\Lambda^{A}(i)\sum_{z \in Z \notin Z^{C}(i)}(1-\beta)\bar{A}L(i, z) + \Lambda^{A}(i)(1 + \epsilon(i))\lambda(i)P(i)^{\epsilon(i)}T(i) = 0
+	 	\end{equation*}
+	 
+	 \end{enumerate}
+	Can we solve this and get an efficient spatial distribution? Or should we just show consumption inefficiency? No need to show all of this, no additional insights. 
+	
 \end{document}

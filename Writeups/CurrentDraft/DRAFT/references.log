@@ -1,0 +1,1271 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdftex 2024.8.31)  31 AUG 2024 16:19
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**Z:/Dropbox/SchoolFolder/Projects/Zoning/Writeups/CurrentDraft/DRAFT/reference
+s.bib
+
+(Z:/Dropbox/SchoolFolder/Projects/Zoning/Writeups/CurrentDraft/DRAFT/references
+.bib
+! Argument of \\ has an extra }.
+<inserted text> 
+                \par 
+<to be read again> 
+                   }
+l.15 }
+      
+? f
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, E to edit your file,
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? return
+OK, entering \nonstopmode...
+Runaway argument?
+issn = {0034-6535}, doi = {10.1162/REST_a_00328}, url = {https://doi.\ETC.
+! Paragraph ended before \\ was complete.
+<to be read again> 
+                   \par 
+<to be read again> 
+                   }
+l.15 }
+      
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.29     doi = {10.1162/rest_
+                             a_01055},
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Double subscript.
+l.29     doi = {10.1162/rest_a_
+                               01055},
+I treat `x_1_2' essentially like `x_1{}_2'.
+
+! Extra }, or forgotten $.
+l.29     doi = {10.1162/rest_a_01055}
+                                     ,
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Extra }, or forgotten $.
+l.32 }
+      
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.33 
+     
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (33.74622pt too wide) in paragraph at lines 36--50
+\tenrm ity, doi = https://doi.org/10.3982/ECTA10876, url = https://onlinelibrar
+y.wiley.com/doi/abs/10.3982/ECTA10876,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm i
+.\tenrm t
+.\kern-0.27779
+.\tenrm y
+.\kern-0.83334
+.etc.
+
+
+Overfull \hbox (86.35516pt too wide) in paragraph at lines 60--71
+\tenrm 2013, Month = 11, Pages = 167-99, DOI = 10.1257/pol.5.4.167, URL = https
+://www.aeaweb.org/articles?id=10.1257/pol.5.4.167 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 2
+.\tenrm 0
+.\tenrm 1
+.\tenrm 3
+.\tenrm ,
+.etc.
+
+
+Overfull \hbox (37.99506pt too wide) in paragraph at lines 73--86
+\tenrm ber = "26142", year = "2019", month = "08", doi = 10.3386/w26142, URL = 
+"http://www.nber.org/papers/w26142",|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm b
+.\kern0.27779
+.\tenrm e
+.\tenrm r
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+[1{C:/Users/James/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ß in font cmr10!
+
+Overfull \hbox (154.35756pt too wide) in paragraph at lines 113--127
+\tenrm 0014-2921, doi = https://doi.org/10.1016/S0014-2921(98)00019-1, url = ht
+tps://www.sciencedirect.com/science/article/pii/S0014292198000191,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 0
+.\tenrm 0
+.\tenrm 1
+.\tenrm 4
+.\tenrm -
+.etc.
+
+
+Overfull \hbox (52.46844pt too wide) in paragraph at lines 128--141
+\tenrm https://doi.org/10.1016/j.jue.2006.12.004, url = https://www.sciencedire
+ct.com/science/article/pii/S0094119007000046,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Overfull \hbox (195.69092pt too wide) in paragraph at lines 142--156
+\tenrm issn = 0166-0462, doi = https://doi.org/10.1016/j.regsciurbeco.2004.02.0
+04, url = https://www.sciencedirect.com/science/article/pii/S0166046204000213,|
+
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm i
+.\tenrm s
+.\tenrm s
+.\tenrm n
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+
+Overfull \hbox (148.35522pt too wide) in paragraph at lines 157--168
+\tenrm Year = 2019, Month = April, Pages = 1-39, DOI = 10.1257/mac.20170388, UR
+L = https://www.aeaweb.org/articles?id=10.1257/mac.20170388 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm Y
+.\kern-0.83334
+.\tenrm e
+.\tenrm a
+.\tenrm r
+.etc.
+
+[2]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+
+Overfull \hbox (78.52403pt too wide) in paragraph at lines 230--243
+\tenrm https://doi.org/10.1016/j.isprsjprs.2018.09.006, url = https://www.scien
+cedirect.com/science/article/pii/S092427161830251X,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+[3]
+Overfull \hbox (68.71864pt too wide) in paragraph at lines 266--281
+\tenrm https://doi.org/10.1093/qje/qjaa001, eprint = https://academic.oup.com/q
+je/article-pdf/135/2/959/32994883/qjaa001.pdf,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 266--281
+
+
+\hbox(0.0+0.0)x469.75499
+.\glue(\rightskip) 0.0
+
+
+Overfull \hbox (108.54965pt too wide) in paragraph at lines 286--297
+\tenrm Month = Febru-ary, Pages = 402-39, DOI = 10.1257/pol.20190550, URL = htt
+ps://www.aeaweb.org/articles?id=10.1257/pol.20190550 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm M
+.\tenrm o
+.\tenrm n
+.\kern-0.27779
+.\tenrm t
+.etc.
+
+[4]
+Overfull \hbox (58.88509pt too wide) in paragraph at lines 390--404
+\tenrm = 1341-1403, key-words = Land reg-u-la-tion, zon-ing, ur-ban eco-nomics,
+ reg-u-la-tion, doi = https://doi.org/10.3982/ECTA9823,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm =
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm 1
+.\tenrm 3
+.\tenrm 4
+.etc.
+
+
+Overfull \hbox (127.46866pt too wide) in paragraph at lines 390--404
+\tenrm url = https://onlinelibrary.wiley.com/doi/abs/10.3982/ECTA9823, eprint =
+ https://onlinelibrary.wiley.com/doi/pdf/10.3982/ECTA9823,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm u
+.\tenrm r
+.\tenrm l
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm =
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+
+Underfull \vbox (badness 1215) has occurred while \output is active
+\vbox(643.20255+2.5)x469.75499, glue set 2.30064
+.\glue(\topskip) 3.05556
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.12851
+..\tenrm o
+..\tenrm n
+..\glue 3.33333 plus 1.66666 minus 1.11111
+..\tenrm t
+..\tenrm h
+..etc.
+.\glue(\baselineskip) 3.11111
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.147
+..\tenrm t
+..\tenrm h
+..\tenrm e
+..\glue 3.33333 plus 1.66666 minus 1.11111
+..\tenrm e
+..etc.
+.\glue(\baselineskip) 3.11111
+.etc.
+
+ [5]
+Missing character: There is no √ in font cmr10!
+Missing character: There is no © in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no © in font cmr10!
+
+Overfull \hbox (62.46846pt too wide) in paragraph at lines 422--435
+\tenrm = https://doi.org/10.1016/j.jue.2012.10.002, url = https://www.sciencedi
+rect.com/science/article/pii/S0094119012000666,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm =
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.etc.
+
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ç in font cmr10!
+Missing character: There is no ¨ in font cmr10!
+Missing character: There is no ≈ in font cmr10!
+Missing character: There is no ì in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ç in font cmr10!
+Missing character: There is no ¨ in font cmr10!
+
+Overfull \hbox (34.74623pt too wide) in paragraph at lines 447--460
+\tenrm eprint = https://academic.oup.com/restud/advance-article-pdf/doi/10.1093
+/restud/rdac001/42358642/rdac001.pdf,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm e
+.\tenrm p
+.\tenrm r
+.\tenrm i
+.\tenrm n
+.etc.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 447--460
+
+
+\hbox(0.0+0.0)x469.75499
+.\glue(\rightskip) 0.0
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+
+Overfull \hbox (80.24628pt too wide) in paragraph at lines 461--474
+\tenrm doi = https://doi.org/10.1016/j.jue.2021.103405, url = https://www.scien
+cedirect.com/science/article/pii/S0094119021000875,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm d
+.\tenrm o
+.\tenrm i
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm =
+.etc.
+
+Missing character: There is no √ in font cmr10!
+Missing character: There is no © in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ß in font cmr10!
+[6]
+Overfull \hbox (22.0794pt too wide) in paragraph at lines 503--516
+\tenrm tion=Federal Re-serve Bank of Philadel-phia, type=Working Pa-pers, url=h
+ttps://ideas.repec.org/p/fip/fedpwp/97-|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm t
+.\tenrm i
+.\tenrm o
+.\tenrm n
+.\tenrm =
+.etc.
+
+
+Overfull \hbox (69.13513pt too wide) in paragraph at lines 517--530
+\tenrm https://doi.org/10.1016/0094-1190(81)90001-2, url = https://www.scienced
+irect.com/science/article/pii/0094119081900012,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+
+Overfull \hbox (100.46855pt too wide) in paragraph at lines 531--543
+\tenrm of Ur-ban Eco-nomics, vol-ume = 117, pages = 103228, year = 2020, issn =
+ 0094-1190, doi = https://doi.org/10.1016/j.jue.2019.103228,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm o
+.\tenrm f
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm U
+.\tenrm r
+.etc.
+
+
+Underfull \vbox (badness 2884) has occurred while \output is active
+\vbox(643.20255+1.94444)x469.75499, glue set 3.06752
+.\glue(\topskip) 2.5
+.\hbox(7.5+1.94444)x469.75499, glue set 0.21262
+..\hbox(0.0+0.0)x20.0
+..\tenrm @
+..\tenrm a
+..\tenrm r
+..\tenrm t
+..etc.
+.\penalty 150
+.\glue(\baselineskip) 3.11111
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.93251
+..\tenrm j
+..\tenrm o
+..\tenrm u
+..\tenrm r
+..\discretionary
+...\tenrm -
+..etc.
+.etc.
+
+ [7]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ú in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ù in font cmr10!
+
+Overfull \hbox (102.5241pt too wide) in paragraph at lines 544--557
+\tenrm Pub-lic Eco-nomics, vol-ume = 100, pages = 45-60, year = 2013, issn = 00
+47-2727, doi = https://doi.org/10.1016/j.jpubeco.2013.02.001,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm P
+.\tenrm u
+.\tenrm b
+.\discretionary
+..\tenrm -
+.\tenrm l
+.etc.
+
+
+Overfull \hbox (57.19067pt too wide) in paragraph at lines 558--571
+\tenrm https://doi.org/10.1016/j.jue.2023.103605, url = https://www.sciencedire
+ct.com/science/article/pii/S009411902300075X,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+[8]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+
+Overfull \hbox (52.46844pt too wide) in paragraph at lines 710--723
+\tenrm https://doi.org/10.1016/j.jue.2017.07.002, url = https://www.sciencedire
+ct.com/science/article/pii/S0094119017300591,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+[9]
+Overfull \hbox (136.88527pt too wide) in paragraph at lines 731--744
+\tenrm month=Apr, in-sti-tu-tion=Universidad EAFIT, type=Documentos de Tra-bajo
+ CIEF, url=https://ideas.repec.org/p/col/000122/019223.html,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm m
+.\tenrm o
+.\tenrm n
+.\kern-0.27779
+.\tenrm t
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+
+Overfull \hbox (54.69067pt too wide) in paragraph at lines 745--757
+\tenrm https://doi.org/10.1016/j.jue.2020.103239, url = https://www.sciencedire
+ct.com/science/article/pii/S0094119020300103,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.769     doi = {10.1162/REST_
+                              a_00650},
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Double subscript.
+l.769     doi = {10.1162/REST_a_
+                                00650},
+I treat `x_1_2' essentially like `x_1{}_2'.
+
+! Extra }, or forgotten $.
+l.769     doi = {10.1162/REST_a_00650}
+                                      ,
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Extra }, or forgotten $.
+l.772 }
+       
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.773 
+      
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+[10]
+Overfull \hbox (15.55031pt too wide) in paragraph at lines 817--824
+[]\tenrm @articlesuamenities, ti-tle=Measuring the Value of Ur-ban Ameni-ties: 
+A Time-Use Ap-proach, au-thor=Yichen|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm a
+.\tenrm r
+.\tenrm t
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+
+Overfull \hbox (85.60754pt too wide) in paragraph at lines 856--871
+\tenrm https://doi.org/10.1093/restud/rdx018, eprint = https://academic.oup.com
+/restud/article-pdf/85/1/663/23033594/rdx018.pdf,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 856--871
+
+
+\hbox(0.0+0.0)x469.75499
+.\glue(\rightskip) 0.0
+
+[11]
+! Argument of \\ has an extra }.
+<inserted text> 
+                \par 
+<to be read again> 
+                   }
+l.900 }
+       
+I've run across a `}' that doesn't seem to match anything.
+For example, `\def\a#1{...}' and `\a}' would produce
+this error. If you simply proceed now, the `\par' that
+I've just inserted will cause me to report a runaway
+argument that might be the root of the problem. But if
+your `}' was spurious, just type `2' and it will go away.
+
+Runaway argument?
+issn = {0034-6535}, doi = {10.1162/rest_a_01100}, url = {https://doi.\ETC.
+! Paragraph ended before \\ was complete.
+<to be read again> 
+                   \par 
+<to be read again> 
+                   }
+l.900 }
+       
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+
+Overfull \hbox (253.99658pt too wide) in paragraph at lines 936--950
+\tenrm year = 2011, issn = 0166-0462, doi = https://doi.org/10.1016/j.regsciurb
+eco.2011.06.002, url = https://www.sciencedirect.com/science/article/pii/S01660
+4621100072X,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm y
+.\kern-0.27779
+.\tenrm e
+.\tenrm a
+.\tenrm r
+.etc.
+
+
+Overfull \hbox (105.46857pt too wide) in paragraph at lines 951--965
+\tenrm 1190, doi = https://doi.org/10.1016/j.jue.2019.103199, url = https://www
+.sciencedirect.com/science/article/pii/S0094119019300762,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 1
+.\tenrm 1
+.\tenrm 9
+.\tenrm 0
+.\tenrm ,
+.etc.
+
+[12]
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ç in font cmr10!
+Missing character: There is no ¨ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ñ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ç in font cmr10!
+Missing character: There is no ¨ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ñ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ç in font cmr10!
+Missing character: There is no ¨ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ñ in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+
+Overfull \hbox (1.9682pt too wide) in paragraph at lines 995--1014
+[]\tenrm @InCollectionAgglomerationemp, au-thor=Combes, Pierre-Philippe and Go-
+b-il-lon, Lau-rent, ed-i-tor=Gilles|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm I
+.\tenrm n
+.\tenrm C
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+
+Overfull \hbox (54.69067pt too wide) in paragraph at lines 1027--1038
+\tenrm https://doi.org/10.1016/j.jue.2021.103393, url = https://www.sciencedire
+ct.com/science/article/pii/S0094119021000759,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Underfull \vbox (badness 1215) has occurred while \output is active
+\vbox(643.20255+2.5)x469.75499, glue set 2.30064
+.\glue(\topskip) 3.05556
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.38783
+..\hbox(0.0+0.0)x20.0
+..\tenrm @
+..\tenrm a
+..\tenrm r
+..\tenrm t
+..etc.
+.\penalty 150
+.\glue(\baselineskip) 3.11111
+.\hbox(6.94444+1.94444)x469.75499, glue set - 0.98927
+..\tenrm J
+..\tenrm o
+..\tenrm u
+..\tenrm r
+..\discretionary
+...\tenrm -
+..etc.
+.etc.
+
+ [13]
+Overfull \hbox (80.24628pt too wide) in paragraph at lines 1052--1065
+\tenrm https://doi.org/10.1016/S1574-0080(87)80006-8, url = https://www.science
+direct.com/science/article/pii/S1574008087800068,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no © in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no © in font cmr10!
+
+Overfull \hbox (62.46846pt too wide) in paragraph at lines 1102--1115
+\tenrm = https://doi.org/10.1016/j.jue.2012.10.002, url = https://www.sciencedi
+rect.com/science/article/pii/S0094119012000666,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm =
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.etc.
+
+[14]
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \delimiter 
+\backslash ->\delimiter 
+                        "26E30F 
+l.1162 ...h a mixing parameter {\$}{\$}{\backslash
+                                                  }alpha {\backslash}in [0,1...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Extra }, or forgotten $.
+l.1162 ... a mixing parameter {\$}{\$}{\backslash}
+                                                  alpha {\backslash}in [0,1]...
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Extra }, or forgotten $.
+l.1162 ...l dataset using the R package ClustGeo.}
+                                                  ,
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Extra }, or forgotten $.
+l.1166 }
+        
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.1167 
+       
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (54.3588pt too wide) in paragraph at lines 1149--1167
+\tenrm ing pa-ram-e-ter $$$\tensy n\teni alpha\tensy n\teni in\tenrm [0\teni ; 
+\tenrm 1]$$\teni :Thedissimilaritiescanbenon \tensy ^^@ \teni Euclideanandthewe
+ightsoftheobservationscanbenon \tensy ^^@|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm i
+.\tenrm n
+.\tenrm g
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.\tenrm p
+.etc.
+
+
+Overfull \hbox (2071.09071pt too wide) in paragraph at lines 1149--1167
+\teni uniform:Thefirstmatrixgivesthedissimilaritiesinthe\tenrm \\teni featuresp
+ace[]andthesecondmatrixgivesthedissimilaritiesinthe\tenrm \\teni constraintspac
+e[]:Thecriterionminimizedateachstageisaconvexcombinationofthehomogeneitycriteri
+oncalculatedwith\tenrm $$\teni D[]\tenrm 0$$\teni andthehomogeneitycriterioncal
+culatedwith\tenrm $$\teni D[]\tenrm 1$$\teni :Theideaisthentodetermineavalueof\
+tenrm $$\tensy n\teni alpha\tenrm $$\teni whichincreasesthespatialcontiguitywit
+houtdeterioratingtoomuchthequalityofthesolutionbasedonthevariablesofinteresti:e
+:thoseofthefeaturespace:ThisprocedureisillustratedonarealdatasetusingtheRpackag
+eClustGeo:; issn \tenrm =|
+
+\hbox(7.51782+2.5)x469.75499
+.\teni u
+.\teni n
+.\teni i
+.\teni f
+.\kern1.0764
+.etc.
+
+
+Overfull \hbox (10.55417pt too wide) in paragraph at lines 1149--1167
+[]\teni ; doi \tenrm = []\teni ; url \tenrm = []$ |
+
+\hbox(7.5+2.5)x469.75499
+.\hbox(6.44444+0.83333)x52.22226
+..\tenrm 1
+..\tenrm 6
+..\tenrm 1
+..\tenrm 3
+..\glue(\medmuskip) 2.22217 plus 1.11108 minus 2.22217
+..etc.
+.\teni ;
+.\glue(\thinmuskip) 1.66663
+.\teni d
+.\teni o
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ¢ in font cmr10!
+[15]
+Overfull \hbox (126.02182pt too wide) in paragraph at lines 1222--1233
+\tenrm Year = 2018, Month = Febru-ary, Pages = 3-30, DOI = 10.1257/jep.32.1.3, 
+URL = https://www.aeaweb.org/articles?id=10.1257/jep.32.1.3 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm Y
+.\kern-0.83334
+.\tenrm e
+.\tenrm a
+.\tenrm r
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+
+Overfull \hbox (69.13513pt too wide) in paragraph at lines 1234--1247
+\tenrm https://doi.org/10.1016/0094-1190(75)90029-7, url = https://www.scienced
+irect.com/science/article/pii/0094119075900297,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Overfull \hbox (77.88527pt too wide) in paragraph at lines 1259--1274
+\tenrm https://doi.org/10.1093/restud/rdr022, eprint = https://academic.oup.com
+/restud/article-pdf/79/1/88/18405547/rdr022.pdf,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1259--1274
+
+
+\hbox(0.0+0.0)x469.75499
+.\glue(\rightskip) 0.0
+
+
+Overfull \hbox (75.91074pt too wide) in paragraph at lines 1275--1286
+\tenrm Pages = 177-200, DOI = 10.1257/0895330042632681, URL = https://www.aeawe
+b.org/articles?id=10.1257/0895330042632681 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm P
+.\kern-0.27779
+.\tenrm a
+.\tenrm g
+.\tenrm e
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+! Argument of \\ has an extra }.
+<inserted text> 
+                \par 
+<to be read again> 
+                   }
+l.1302 }
+        
+I've run across a `}' that doesn't seem to match anything.
+For example, `\def\a#1{...}' and `\a}' would produce
+this error. If you simply proceed now, the `\par' that
+I've just inserted will cause me to report a runaway
+argument that might be the root of the problem. But if
+your `}' was spurious, just type `2' and it will go away.
+
+Runaway argument?
+issn = {0033-5533}, doi = {10.1093/qje/qjy007}, url = {https://doi.or\ETC.
+! Paragraph ended before \\ was complete.
+<to be read again> 
+                   \par 
+<to be read again> 
+                   }
+l.1302 }
+        
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   _
+l.1304 @incollection{Combes_
+                            review,
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+! Extra }, or forgotten $.
+l.1319 }
+        
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+! Missing $ inserted.
+<inserted text> 
+                $
+<to be read again> 
+                   \par 
+l.1320 
+       
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ô in font cmr10!
+
+Overfull \hbox (103.41016pt too wide) in paragraph at lines 1304--1320
+[]\teni ; series \tenrm = []\teni ; publisher \tenrm =|
+
+\hbox(6.94444+1.94444)x469.75499
+.\hbox(6.94444+1.94444)x281.73369
+..\teni G
+..\teni i
+..\teni l
+..\kern0.19678
+..\teni l
+..etc.
+.\teni ;
+.\glue(\thinmuskip) 1.66663
+.\teni s
+.\teni e
+.etc.
+
+
+Overfull \hbox (46.33208pt too wide) in paragraph at lines 1304--1320
+[]\teni ; volume \tenrm = 5\teni ; pages \tenrm = []\teni ; year \tenrm = []\te
+ni ; booktitle \tenrm = []\teni ; issn \tenrm =|
+
+\hbox(6.94444+1.94444)x469.75499
+.\hbox(6.94444+0.0)x38.57942
+..\teni E
+..\kern0.57637
+..\teni l
+..\kern0.19678
+..\teni s
+..etc.
+.\teni ;
+.\glue(\thinmuskip) 1.66663
+.\teni v
+.\kern0.35878
+.etc.
+
+
+Overfull \hbox (313.43849pt too wide) in paragraph at lines 1304--1320
+[]\teni ; doi \tenrm = []\teni ; url \tenrm = []\teni ; author \tenrm =|
+
+\hbox(7.5+2.5)x469.75499
+.\hbox(6.44444+0.83333)x52.22226
+..\tenrm 1
+..\tenrm 5
+..\tenrm 7
+..\tenrm 4
+..\glue(\medmuskip) 2.22217 plus 1.11108 minus 2.22217
+..etc.
+.\teni ;
+.\glue(\thinmuskip) 1.66663
+.\teni d
+.\teni o
+.etc.
+
+
+Overfull \hbox (141.80946pt too wide) in paragraph at lines 1304--1320
+[]\teni ; keywords \tenrm = []\teni ; abstract \tenrm =|
+
+\hbox(6.94444+1.94444)x469.75499
+.\hbox(6.94444+1.94444)x206.87852
+..\teni P
+..\kern1.3889
+..\teni i
+..\teni e
+..\teni r
+..etc.
+.\teni ;
+.\glue(\thinmuskip) 1.66663
+.\teni k
+.\kern0.3148
+.etc.
+
+
+Overfull \hbox (3760.1252pt too wide) in paragraph at lines 1304--1320
+[]$ |
+
+\hbox(6.94444+1.94444)x469.75499
+.\hbox(6.94444+1.94444)x4229.88019
+..\teni W
+..\kern1.3889
+..\teni e
+..\teni p
+..\teni r
+..etc.
+.\mathoff
+.\penalty 10000
+.\glue(\parfillskip) 0.0 plus 1.0fil
+.\glue(\rightskip) 0.0
+.etc.
+
+
+Overfull \hbox (2.5217pt too wide) in paragraph at lines 1321--1350
+[]\tenrm @bookhomevoterhypothesis, ISBN = 9780674006096, URL = http://www.jstor
+.org/stable/j.ctv1p6hp64,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm b
+.\kern0.27779
+.\tenrm o
+.etc.
+
+[16]
+Overfull \hbox (8.07716pt too wide) in paragraph at lines 1351--1362
+\tenrm May, Pages = 3-28, DOI = 10.1257/jep.30.2.3, URL = https://www.aeaweb.or
+g/articles?id=10.1257/jep.30.2.3 |
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm M
+.\tenrm a
+.\kern-0.27779
+.\tenrm y
+.\tenrm ,
+.etc.
+
+! Undefined control sequence.
+l.1373 ... common macroeconomic models{\textemdash
+                                                  }including models with pre...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.1373 ...recautionary savings motives{\textemdash
+                                                  }consumption is a linear f...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (248.27441pt too wide) in paragraph at lines 1385--1398
+\tenrm 103427, year = 2022, issn = 0094-1190, doi = https://doi.org/10.1016/j.j
+ue.2022.103427, url = https://www.sciencedirect.com/science/article/pii/S009411
+9022000043,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm 1
+.\tenrm 0
+.\tenrm 3
+.\tenrm 4
+.\tenrm 2
+.etc.
+
+[17]
+Overfull \hbox (4.7459pt too wide) in paragraph at lines 1430--1443
+[]\tenrm @techreportAmalgroetalChicagoDemos, ti-tle = "Ur-ban Re-newal and In-e
+qual-ity: Ev-i-dence from Chicago's|
+
+\hbox(6.94444+1.94444)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm t
+.\tenrm e
+.\tenrm c
+.etc.
+
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no î in font cmr10!
+
+Underfull \vbox (badness 2884) has occurred while \output is active
+\vbox(643.20255+1.94444)x469.75499, glue set 3.06752
+.\glue(\topskip) 3.05556
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.26208
+..\tenrm o
+..\tenrm r
+..\glue 3.33333 plus 1.66666 minus 1.11111
+..\tenrm a
+..\tenrm s
+..etc.
+.\glue(\baselineskip) 3.11111
+.\hbox(6.94444+1.94444)x469.75499, glue set 0.03667
+..\tenrm t
+..\tenrm h
+..\tenrm a
+..\tenrm t
+..\glue 3.33333 plus 1.66666 minus 1.11111
+..etc.
+.\glue(\baselineskip) 3.11111
+.etc.
+
+ [18]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ê in font cmr10!
+Missing character: There is no √ in font cmr10!
+Missing character: There is no ß in font cmr10!
+
+Overfull \hbox (70.74393pt too wide) in paragraph at lines 1475--1489
+[]\tenrm @articleHendersonThisseDevelopers, ISSN = 00223808, 1537534X, URL = ht
+tp://www.jstor.org/stable/10.1086/321017,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm @
+.\tenrm a
+.\tenrm r
+.\tenrm t
+.etc.
+
+
+Overfull \hbox (73.35733pt too wide) in paragraph at lines 1490--1505
+\tenrm https://doi.org/10.1016/0166-0462(95)02095-C, url = https://www.scienced
+irect.com/science/article/pii/016604629502095C,|
+
+\hbox(7.5+2.5)x469.75499, glue set - 1.0
+.\tenrm h
+.\kern-0.27779
+.\tenrm t
+.\tenrm t
+.\tenrm p
+.etc.
+
+)
+! Emergency stop.
+<*> .../Writeups/CurrentDraft/DRAFT/references.bib
+                                                  
+*** (job aborted, no legal \end found)
+
+!  ==> Fatal error occurred, no output PDF file produced!

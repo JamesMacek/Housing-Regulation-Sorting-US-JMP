@@ -16,7 +16,7 @@ library(vtable) #for easy conditional tables
 source("CodeV2/Counterfactual/Parameters/GlobalParameters.R")
 
 #FUNCTIONS
-source("CodeV2/Counterfactual/Functions/Solve_Equilibrium_Functions_FullDereg_current.R")
+#source("CodeV2/Counterfactual/Functions/Solve_Equilibrium_Functions_FullDereg_current.R")
 source("CodeV2/Counterfactual/Functions/Analysis_Functions.R")
 
 
@@ -44,8 +44,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
                                                                "_EndoProd_", FALSE,
                                                                "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
                                                                "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 #Importing all files from Counterfactual_Output (Exogenous amenities)
 load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
@@ -53,8 +53,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
             "_EndoProd_", FALSE,
             "_bySkill_", BASELINE_SPECIFICATION$bySkill_to_pass,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
-Ct_NoAmenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_NoAmenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 
 
@@ -66,20 +66,22 @@ Init_eq <- Master
 rm(Master)
 
 #Importing quantiles that define superstar cities
-load(file = "DataV2/US_Data/Output/CBSA_quantiles_dens.Rdata")
-load(file = "DataV2/US_Data/Output/CBSA_quantiles.Rdata")
+for (qtile in c("", "_dens", "_pop", "_wage")) {
+  load(file = paste0("DataV2/US_Data/Output/CBSA_quantiles", qtile, ".Rdata"))
+}
+
 
 ##_________________________________________________________________________________
-#Collecting this all in a data frame and outputting in Latex table for saving later
-#__________________________________________________________________________________
-Table_toOutput <- data.frame(matrix(nrow = 0, ncol = 5))
-colnames(Table_toOutput) <- c("End. Amenities", "End. Productivity", "Education", 
-                              "Prod. Growth", "Prod. Growth, no income sorting")
-rows_to_output <- list() #list of rows to put into table for appending
+# Collecting this all in a data frame and outputting in Latex table for saving later
+##__________________________________________________________________________________
+  Table_toOutput <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(Table_toOutput) <- c("End. Amenities", "End. Productivity", "Education", 
+                                "Prod. Growth", "No Income Sorting")
+  rows_to_output <- list() #list of rows to put into table for appending
 
 
-#Start logs
-sink("DataV2/Counterfactuals/logs/AnalyzeLabourProductivity.txt")
+  #Start logs
+  sink("DataV2/Counterfactuals/logs/AnalyzeLabourProductivity.txt")
 
 #_______________________________________________________________________________
 #PART 1: 
@@ -114,8 +116,7 @@ AcrossCityAnalysis["PooledWage"] <- Init_eq$PooledWage #We take pooled wage as i
 AcrossCityAnalysis["Init_City_Population"] <- getCityTotalPop(Init_eq)
 
 AcrossCityAnalysis["SuperStar"] <- rep(0, nrow(AcrossCityAnalysis))
-AcrossCityAnalysis$SuperStar[AcrossCityAnalysis$CBSA_med_house_value > as.numeric(quantile_CBSA_houseval["75.0%"]) &
-                               AcrossCityAnalysis$City_housing_density > as.numeric(quantile_CBSA_dens["75.0%"])] <- 1 #superstar dummy
+AcrossCityAnalysis$SuperStar[AcrossCityAnalysis$PooledWage > as.numeric(quantile_CBSA_wage["75.0%"])] <- 1 #superstar dummy
 
 
 AcrossCityAnalysis <- collap(AcrossCityAnalysis, pDelta_AvgType + pDelta_Pop + PooledWage + IncomeStringency_cl + 
@@ -209,15 +210,15 @@ rows_to_output[[2]] <- c(rows_to_output[[2]], paste0(round(LabProdGrowth_noincom
 #____________________________________________________________________________________________________________________
 #ROBUSTNESS: CHECK OTHER DATASET TYPES
 #____________________________________________________________________________________________________________________
-#Endogenous productivity at baseeline specification, no endogenous productivity
+#Endogenous productivity at baseeline specification, endogenous productivity
 load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
             "_EndoAmen_", TRUE, 
             "_EndoProd_", TRUE,
             "_bySkill_", FALSE,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
 
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 load(paste0("DataV2/Counterfactuals/Init_eq_", 
             FALSE, 
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
@@ -252,8 +253,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
             "_bySkill_", TRUE,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
 
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 load(paste0("DataV2/Counterfactuals/Init_eq_", 
             TRUE, 
@@ -291,8 +292,8 @@ load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "E
             "_bySkill_", TRUE,
             "_pref_", BASELINE_SPECIFICATION$pref, ".RData"))
 
-Ct_Amenities <- Equilibrium_objects
-rm(Equilibrium_objects)
+Ct_Amenities <- Equilibrium_objects_output
+rm(Equilibrium_objects_output)
 
 skillVector <-  c("College", "NoCollege")
 skillName <- c("College_", "NoCollege_") 
@@ -341,5 +342,5 @@ vtable::dftoLaTeX(Table_toOutput,
 #________________
 
 #End logs
-sink()
+sink(NULL)
 rm(list = ls())

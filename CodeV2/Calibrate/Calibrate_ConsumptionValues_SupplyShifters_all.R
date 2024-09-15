@@ -80,7 +80,8 @@ for (sample in c("current", "historical")) { #loop over cross sections
   #LOCAL ABILITY DISTRIBUTIONS.
   if (sample == "current") {
     LocalAbilityDist <- read_dta("DataV2/US_Data/Output/LocalAbilityDistributions.dta") %>% select(State, County, Tract, BlockGroup, starts_with("Population"),
-                                                                                                   total_housing_units_cen, regulated_housingUnit_share)
+                                                                                                   total_housing_units_cen, regulated_housingUnit_share,
+                                                                                                   OwnerOccupier_share)
     
   }
   if (sample == "historical") {
@@ -280,20 +281,31 @@ for (sample in c("current", "historical")) { #loop over cross sections
       price_reg <- rep(NA, nrow(Master))
       lambda <- rep(NA, nrow(Master))
       consumptionValIndex <- list()
-
+      PopulationAlloc <- list()
+      hSpendShares <- list()
+      
       houseExp_regulated <- rep(NA, nrow(Master))
       houseExp_unregulated <- rep(NA, nrow(Master))
     
-    
+      
+      #Initializing vectors for storage
       for (skill in skillVector) {
         for (incomeType in 1:7) {
           consumptionValIndex[[skill]][[incomeType]] <- rep(NA, length(tmp))
-  
+          
+          PopulationAlloc[[skill]][[incomeType]] <- list(rep(NA, length(tmp)),
+                                                         rep(NA, length(tmp)))
+          hSpendShares[[skill]][[incomeType]] <- list(rep(NA, length(tmp)),
+                                                      rep(NA, length(tmp)))
+    
         }
       }
-
-      #Storing list objects in vector for before storing in data frame (this is a lot faster)
-      for (row in 1:length(tmp)) {
+      
+      #Reg code vector (faster)
+      Reg_code <- Master$Regulation_code
+      
+      #Storing list objects in vector for before storing in data frame (this is a lot faster than putting it directly in)
+      for (row in 1:length(tmp)) { #Loop over all block groups
         if (is.numeric(tmp[[row]][[1]][1])) {
     
           Excess_demand_index[row] <- tmp[[row]]$ExcessDemand
@@ -304,8 +316,23 @@ for (sample in c("current", "historical")) { #loop over cross sections
         
           for (skill in skillVector) {  
             for (incomeType in 1:7) {
+            
               consumptionValIndex[[skill]][[incomeType]][row] <- tmp[[row]]$consumption_Index[[skill]][incomeType]
-      
+              
+              if (Reg_code[row] == 1) { #If partially regulated, disaggregate by zone
+                  for (zone in c(1, 2)) {
+                    PopulationAlloc[[skill]][[incomeType]][[zone]][row] <- tmp[[row]][["Populations"]][[skill]][incomeType, zone]
+                    hSpendShares[[skill]][[incomeType]][[zone]][row] <- tmp[[row]][["housingExpenditureShare"]][[skill]][incomeType, zone]
+                  }
+              }else{
+                  for (zone in c(1, 2)) {
+                    hSpendShares[[skill]][[incomeType]][[zone]][row] <- tmp[[row]][["housingExpenditureShare"]][[skill]][incomeType] #spend shares same across zones
+                  }
+              }
+              
+              
+              
+              
             }
           }
     
@@ -330,15 +357,20 @@ for (sample in c("current", "historical")) { #loop over cross sections
     #checking maximum deviation from equilibrium
     print(paste0("The max excess demand (reg share) is ", max(abs(Master_out$ExcessDemand), na.rm = TRUE))) #pretty close.
  
-    #Putting consumption values in data frame
+    #Putting consumption values in data frame, + zonal population and spending share allocations
     for (skill in skillVector) {
       for (incomeType in 1:7) {
          Master_out[paste0("consumption_Val_", skillName[which(skill == skillVector)], incomeType)] <- consumptionValIndex[[skill]][[incomeType]]
+         
+         for (zone in c(1, 2)) {
+           Master_out[paste0("hSpendShare_", skillName[which(skill == skillVector)], incomeType, "_z", zone)] <- hSpendShares[[skill]][[incomeType]][[zone]]
+           Master_out[paste0("Population_type_", skillName[which(skill == skillVector)], incomeType, "_z", zone)] <- PopulationAlloc[[skill]][[incomeType]][[zone]]
+           
+         }
   
        }
-     }
-
-
+    }
+  
     #Calculating lambda
      Master_out["lambda"] <- rep(NA, nrow(Master_out))
   

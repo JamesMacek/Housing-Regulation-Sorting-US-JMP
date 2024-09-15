@@ -293,7 +293,7 @@
       return(list(price = Master_data$hedonicPrice[1],
                   consumption_Index = consIndex,
                   housing_demand_expenditure = housing_demand_exp,
-                  Populations = NA, #Populations not required
+                  Populations = NA, #Populations not required, no zone differences
                   ExcessDemand = 0,
                   RegulationCode = Master_data$Regulation_code,
                   housingExpenditureShare = spendShares,

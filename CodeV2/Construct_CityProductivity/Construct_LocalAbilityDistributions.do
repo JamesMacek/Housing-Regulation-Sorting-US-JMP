@@ -214,10 +214,12 @@ gen noCapIncome_share = amsoe003/amsoe001
 *(Social Security share)
 gen noSocialSecurity_share = amsqe003/amsqe001
 
+*Shares of renting households 
+gen OwnerOccupier_share = amufe002/amufe001
 
 
 *Selecting variables we need + saving
-keep State County Tract BlockGroup CBSA *_Ability_bin_* implied_*_share Population_type* total_housing_units_cen regulated_housingUnit_share no*_share 
+keep State County Tract BlockGroup CBSA *_Ability_bin_* implied_*_share Population_type* total_housing_units_cen regulated_housingUnit_share no*_share OwnerOccupier_share
 
 save "DataV2/US_Data/Output/LocalAbilityDistributions.dta", replace
 

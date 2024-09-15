@@ -635,7 +635,7 @@ while (error_Mobility > eq_error_tol_Mobility | error_Spendshare > eq_error_tol_
   
 }#END WHILE LOOP
 
-#Saving file
+#Saving files based on model specification...
 if (EquilibriumType["NoFundamentals"] == FALSE) {
   save(Equilibrium_objects, file =paste0("DataV2/Counterfactuals/Counterfactual_Output/PartialDeregulation/",
                                             FileOutputName, "_", CurrentVersion, 
