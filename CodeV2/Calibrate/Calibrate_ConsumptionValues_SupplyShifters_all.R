@@ -204,6 +204,71 @@ for (sample in c("current", "historical")) { #loop over cross sections
   print(paste0("The mean income stringency (conditional on positive regulation) for sample ", sample, " is ",
                mean(Master[Master$UnitDensityRestriction_cl > 0,]$IncomeStringency_model_rents))) #Conditional on a unit density restriction
   
+ ######################################### FOR TESTING ##################################################################################
+ #_______ SETTING POPULATIONS COMPLETELY PRICED OUT OF NEIGHBORHOODS TO ZERO. 
+ # For Robustness: eliminates concerning assumptions about wealth and the dollar value of deregulation for these highly constrained types.
+  
+  #Make lowest income types not exist (impute to second highest will fix this in the model by changing price definitions)
+  Master$ability_grp1 <- Master$ability_grp2
+  
+  test_pre <- rep(0, nrow(Master))
+  for (incomeType in 1:7) {
+    
+    test_pre <- test_pre + Master[[paste0("Population_type_", incomeType)]]
+    
+    
+  }
+
+  if (sample == "current") { #Do this only for current sample, for now...
+    for (incomeType in 1:7) {
+      
+      Master[[paste0("MLS_exceeds_income_", incomeType)]] <- ifelse(Master$IncomeStringency_model_rents >= Master[[paste0("ability_grp", incomeType)]]*Master$PooledWage,
+                                                                    1, 0) 
+      # Approx 1/6 of neighborhoods have the lowest income types priced out compl. of regulated zone. Only 4500 for second highest income levels
+      # Suggests these types are considerably wealthier than what current observed income predicts, (transient income shocks, voluntary labour non-participation)
+      # or they have access to low cost housing.
+      # Either way...
+      #Setting these to zero and re-scaling populations so total housing units in neighborhood is preserved; will only matter significantly for lowest income types
+      #Will inflate average income of a household away from data; but that's fine.
+      
+      #Pushing populations over to next-highest income level if priced out locally.
+      if (incomeType < 7) { #This procedure is never done for highest income types due to censoring
+        Master[[paste0("Population_type_", incomeType + 1)]][Master[[paste0("MLS_exceeds_income_", incomeType)]] == 1] <- Master[[paste0("Population_type_", incomeType)]][Master[[paste0("MLS_exceeds_income_", incomeType)]] == 1] +
+                                                                                                                          Master[[paste0("Population_type_", incomeType + 1)]][Master[[paste0("MLS_exceeds_income_", incomeType)]] == 1]
+        Master[[paste0("Population_type_", incomeType)]][Master[[paste0("MLS_exceeds_income_", incomeType)]] == 1] <- 0 #setting this to zero
+      }
+      
+      
+      #For bySkill == TRUE, doing the same thing
+      for (skill in c("College", "NoCollege")) {
+        Master[[paste0("MLS_exceeds_income_", incomeType, "_", skill)]] <- ifelse(Master$IncomeStringency_model_rents >= Master[[paste0("ability_grp", incomeType)]]*Master[[paste0(skill, "Wage")]],
+                                                                                  1, 0) 
+        if (incomeType < 7) {
+          Master[[paste0("Population_type_", skill, "_", incomeType + 1)]][Master[[paste0("MLS_exceeds_income_", incomeType, "_", skill)]] == 1] <- Master[[paste0("Population_type_", skill, "_", incomeType)]][Master[[paste0("MLS_exceeds_income_", incomeType, "_", skill)]] == 1] +
+                                                                                                                                                    Master[[paste0("Population_type_", skill, "_", incomeType + 1)]][Master[[paste0("MLS_exceeds_income_", incomeType, "_", skill)]] == 1]
+          Master[[paste0("Population_type_", skill, "_", incomeType)]][Master[[paste0("MLS_exceeds_income_", incomeType, "_", skill)]] == 1] <- 0 #setting this to zero
+        }
+        
+      }
+    
+    }
+  }
+  
+  #Testing if populations are preserved...
+  test <- rep(0, nrow(Master))
+  for (incomeType in 1:7) {
+    
+    test <- test + Master[[paste0("Population_type_", incomeType)]]
+    
+    
+  }
+  print(max(abs(test - test_pre)))
+  
+  
+  
+  #############################################################################################################
+  ############################ START CALIBRATION HERE #########################################################
+  #############################################################################################################
   
   #Importing function to solve for block group level prices, housing expenditure shares, etc.
   #Loop over all possible model calibrations we want to see...
@@ -429,6 +494,6 @@ for (sample in c("current", "historical")) { #loop over cross sections
 } #end loop over samples
 
 
-sink()
+sink(NULL)
 
 

@@ -47,8 +47,7 @@ if (EquilibriumType$StoneGeary == FALSE | EquilibriumType$bySkill == TRUE) {
 
   #Import initial equilibrium to create vector of unit density restrictions
   uDR_df <- read_dta(paste0("DataV2/Counterfactuals/Master_post_calibration_bySkill", EquilibriumType$bySkill, "_pref_", "SG", "_amenities.dta")) %>%
-            select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents, regulated_housingUnit_share, PooledWage,
-                   land_regulated, land_unregulated)
+            select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, IncomeStringency_model_rents, regulated_housingUnit_share)
 
   #Importing income data of neighborhoods absent regulation 
   load(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/", "Eq_Objects_FULL", 
@@ -85,30 +84,18 @@ if (EquilibriumType$StoneGeary == FALSE | EquilibriumType$bySkill == TRUE) {
   print(summary(lm(log(IncomeStringency_model_rents*regulated_housingUnit_share) ~ log(exogenousAmenity_score),
                    data = uDR_df[uDR_df$IncomeStringency_model_rents*uDR_df$regulated_housingUnit_share > 0,]))) #only 7% R^2, pretty large, all things considered--but noisy.
 
-  #Now, permute regulation across space so that it retains same spatial distribution
+  #Now, permute regulation across space so that it retains same spatial distribution, but is now ordered based on this "exogenous amenity score".
   
   #Sort uDR_df based on income absent regulation
-  uDR_df_sorted <- uDR_df %>% arrange(exogenousAmenity_score) #can also do income_vector, slightly different results 
+  uDR_df_sorted <- uDR_df %>% arrange(exogenousAmenity_score)
   
-  #Create regulation levels deflated by city productivity
-  uDR_df<- uDR_df %>% mutate(Deflated_regulation = IncomeStringency_model_rents/PooledWage)
-  
-  #Now, sort by city-productivity deflated regulation:
-  uDR_df_sorted["IncomeStringency_counterfactual"] <- as.vector( select(arrange(uDR_df, Deflated_regulation), IncomeStringency_model_rents) )
-  
-  #Next, permuting share of land for regulated structures
-  uDR_df[["total_land"]] <- uDR_df$land_regulated + uDR_df$land_unregulated
-  uDR_df[["land_share_reg"]] <- uDR_df$land_regulated/uDR_df$total_land
-
-  uDR_df_sorted["RegShare_counterfactual"] <- as.vector( select(arrange(uDR_df, land_share_reg), land_share_reg) )
-  uDR_df_sorted["land_regulated_counterfactual"] <- (uDR_df_sorted$land_regulated + uDR_df_sorted$land_unregulated)*uDR_df_sorted$RegShare_counterfactual
-  uDR_df_sorted["land_unregulated_counterfactual"] <- (uDR_df_sorted$land_regulated + uDR_df_sorted$land_unregulated)*(1 - uDR_df_sorted$RegShare_counterfactual)
+  #Now, put in IncomeStringency_sorted
+  uDR_df_sorted["IncomeStringency_counterfactual"] <- as.vector( arrange(select(uDR_df, IncomeStringency_model_rents), IncomeStringency_model_rents) )
   
   #Merging back to uDR_df to retain original order to pass to equilibrium solver
-  uDR_df <- left_join(uDR_df, select(uDR_df_sorted, State, County, Tract, BlockGroup, IncomeStringency_counterfactual, land_regulated_counterfactual,
-                                     land_unregulated_counterfactual),
+  uDR_df <- left_join(uDR_df, select(uDR_df_sorted, State, County, Tract, BlockGroup, IncomeStringency_counterfactual),
                       by = c("State", "County", "Tract", "BlockGroup"))
-  
+
   #Saving permuted regulation levels
   write_dta(uDR_df, "DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/Permuted_regulation.dta")
   rm(uDR_df_sorted)
@@ -122,13 +109,8 @@ if (EquilibriumType$StoneGeary == FALSE | EquilibriumType$bySkill == TRUE) {
   #TEMPORARY TEST
   F2 <- "TargetFundAmenity"
   
-  #Creating counterfactual parameter vector to pass to file, as well as new shares in regulated structures
+  #Creating counterfactual parameter vector to pass to file
   IncomeStringency_ctfl <- uDR_df$IncomeStringency_counterfactual
-  
-  land_regulated_ctfl <- uDR_df$land_regulated_counterfactual 
-  land_unregulated_ctfl <- uDR_df$land_unregulated_counterfactual
-  
-  
   
   solveEquilibrium() #Call equilibrium solution
     
@@ -137,19 +119,17 @@ if (EquilibriumType$StoneGeary == FALSE | EquilibriumType$bySkill == TRUE) {
   
 #########################################################################################################################
 ### Search over space of policies as follows...
-###   Set MLS to zero in different deciles untill 
 #########################################################################################################################
-
+  
+  
+  
   F1_grid = seq(0.1, 0.6, by = 0.1) 
-    
-  F2_grid = c(1.5, 2, 2.5)  
+  #Anything above this parameter space isn't optimal, too distortionary based on trials from running F1 == 1.  
+  F2_grid = c(1, 1.25, 1.5, 1.75, 2, 2.5)  
   #No need to calculate F1 == 0 for all values of F2, as this is just complete deregulation
   
   totalGrid <- expand.grid(F1_grid, F2_grid) %>% setNames(c("F1", "F2"))
   totalGrid <- rbind(totalGrid, c(0, 1)) #add complete deregulation on at the end
-  
-  #for testing only complete deregulation
-  #totalGrid <- data.frame(t(c(0, 1))) %>% setNames(c("F1", "F2")) 
   
   #Saving grid 
   saveRDS(totalGrid, file = "DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/grid_search.RData")

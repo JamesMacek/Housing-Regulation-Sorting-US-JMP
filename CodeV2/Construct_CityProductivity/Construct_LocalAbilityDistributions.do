@@ -110,11 +110,11 @@ forval i = 1/7 {
 	
 }
 
-*TESTING________________________________________________________________________________
-*Generating smoothed population distributions to deal with granularity issues
-*(No need to do this for the historical dataset, 
+*_______________________________________________________________________________
+* Generating smoothed population distributions to deal with granularity issues
+* (No need to do this for the historical dataset, 
 *		since we sum up with low-medium-high groups for Omega estimation anyways, inconsequential).
-*________________________________________________________________________________
+*_______________________________________________________________________________
 
 ** low (l) = types 1, 2 ; medium (m) = types 3, 4 ; high (h) = types 5, 6, 7
 *This aggregation limits the presence of zeros in each neighborhood!
@@ -197,7 +197,10 @@ forval i = 1/7 {
 	}
 
 }
-*Note: total population by group is preserved. 
+*Note: total population by group is preserved, but not by neighborhood.
+
+
+
 
 *_______________________________________________________________________________
 
@@ -226,7 +229,7 @@ save "DataV2/US_Data/Output/LocalAbilityDistributions.dta", replace
 
 
 *_____________________DOING THE SAME FOR THE HISTORICAL SAMPLE_____________________
-*Reading NHGIS 2020 census 
+*Reading NHGIS 2010 census 
 import delimited using "DataV2/US_Data/NHGIS/nhgis_2010_blck_grp.csv", clear
 
 rename ifc001 total_housing_units_cen

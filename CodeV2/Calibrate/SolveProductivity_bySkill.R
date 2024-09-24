@@ -12,7 +12,8 @@ library(collapse)
 ###_________PARAMETERS_________########
 source("CodeV2/Calibrate/Parameters/GlobalParameters.R")
 
-Master <- read_dta("DataV2/Counterfactuals/Master_post_calibration_bySkillTRUE_pref_SG.dta")
+Master <- read_dta("DataV2/Counterfactuals/Master_post_calibration_bySkillTRUE_pref_SG.dta") 
+         #city populations targeted by data, so calibration procedure does not depend on assumptions
 
 #Calculating a few things we need: total labour supply by skill, total output, and wages by skill
 

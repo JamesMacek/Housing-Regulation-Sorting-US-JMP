@@ -70,18 +70,40 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
 # Search for all files in solution for counterfactuals
 #____________________________________________________________________________________________________________
 
+#load grid search file to analyze 
+totalGrid <- readRDS("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/grid_search.RData") 
+
+for (model in 0:nrow(totalGrid) ) { #loop over all models   
     
+    if (model == 0) { #if baseline model
+      F1 <- 1
+      F2 <- 0
+      model_path <- "DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1_1_F2_TargetFundAmenity.RData"
+      
+    }else{
+      
+      F1 <- totalGrid[model, ]$F1
+      F2 <- totalGrid[model, ]$F2 #extract parameter from grid
+      
+      model_path <- paste0("DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1_", F1 ,"_F2_", F2, ".RData")
+      
+    }
+
     #Importing equilibrium objects
-    load(paste0("DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1__F2_TargetFundAmenity.RData"))
+    load(model_path)
     Ct_Amenities <- Equilibrium_objects_output
     rm(Equilibrium_objects_output)
     
     #Extracting scaling factor
     
     #Extracting counterfactual regulation vector
-    Ct_Amenities["IncomeStringency_model_rents"] <- uDR_df$IncomeStringency_counterfactual
+    Ct_Amenities["IncomeStringency_model_rents"] <- 
+      F1*(uDR_df$IncomeStringency_counterfactual^(1 - F2))/(mean(uDR_df$IncomeStringency_counterfactual)^(F2)) 
     
-    
+    #Extract new land compositions
+    land_regulated_ctfl <- uDR_df$land_regulated_counterfactual
+    land_unregulated_ctfl <- uDR_df$land_unregulated_counterfactual
+
     #START WELFARE CALCULATIONS HERE INCORPORATING CAPITAL GAINS
     
     #  #Calculate land values 
@@ -94,32 +116,49 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
     
     Ct_Amenities["price_regulated"] <- Ct_Amenities$housingPrice_z1
     Ct_Amenities["price_unregulated"] <- Ct_Amenities$housingPrice_z2
-    Ct_Amenities["regulated_housingUnit_share"] <- Init_eq$regulated_housingUnit_share #shares at initial equilibrium
+    
+    if (exists("land_regulated_ctfl")) {
+      
+      Ct_Amenities["regulated_housingUnit_share"] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl) #shares at initial equilibrium == land share if passing new regulated land composition
+      Init_eq["regulated_housingUnit_share"] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl) #Change this comparison, drop
+      Ct_Amenities["land_regulated"] <- land_regulated_ctfl
+      Ct_Amenities["land_unregulated"] <- land_unregulated_ctfl
+      
+    } else {
+      
+      #Not changing land compositions
+      Ct_Amenities["regulated_housingUnit_share"] <- Init_eq$regulated_housingUnit_share #shares at initial equilibrium
+      Ct_Amenities["land_regulated"] <- land_regulated_ctfl
+      Ct_Amenities["land_unregulated"] <- land_unregulated_ctfl
+      
+    } 
     
     
     #Calculating new land values by 
     Init_eq["LandValCtEq_regulated"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_Amenities$housingPrice_z1^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
     Init_eq["LandValCtEq_unregulated"] <- (1/(1 + Ct_Amenities$HS_Elasticity_imputed))*(Ct_Amenities$housingPrice_z2^(Ct_Amenities$HS_Elasticity_imputed + 1))*Ct_Amenities$lambda
     #Share of land in production-- does not change W.R.T regulation
+    
     #Calculating original land values
     Init_eq["LandValInitEq_regulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_regulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
     Init_eq["LandValInitEq_unregulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
     
-    #total land value in initial neighborhood
+    #total land value in initial and counterfactual
+    Init_eq["Total_land values_counterfactual"] <- Ct_Amenities$land_regulated*Init_eq["LandValCtEq_regulated"] + Ct_Amenities$land_unregulated*Init_eq["LandValCtEq_unregulated"]
     Init_eq["Total_land_values_initial"] <-  Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated #land type weighted land values per acre.
+    
+    
+    #total land value for counterfactual neighborhood
+    
     #Total expenditure on housing services in the neighborhood
     
     #Calculating growth at neighborhood level (log differences in land-value-weighted growth)
-    Init_eq["LandValGrowth"] <- log( ((Init_eq$land_regulated*Init_eq$LandValInitEq_regulated)/(Init_eq$Total_land_values_initial))* #weights
-                                       (Init_eq$LandValCtEq_regulated/Init_eq$LandValInitEq_regulated) + 
-                                       
-                                       ((Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated)/(Init_eq$Total_land_values_initial))* #weights
-                                       (Init_eq$LandValCtEq_unregulated/Init_eq$LandValInitEq_unregulated)  )
+    Init_eq["LandValGrowth"] <- log( Init_eq["Total_land values_counterfactual"]/Init_eq["Total_land_values_initial"] )
     
     #Note: lambda drops out from calculation. 
     
     #Storing average growth rate in land values
-    growthRate_landval <- weighted.mean(exp(Init_eq$LandValGrowth), w = Init_eq$Total_land_values_initial) - 1
+    growthRate_landval <- weighted.mean(exp(Init_eq$LandValGrowth), w = Init_eq$Total_land_values_initial) - 1 #Weight by value shares
     
     print(paste0("The national growth rate in land values is ", growthRate_landval*100, " percent.")) #large losses to landowners.
     
@@ -255,7 +294,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
     
     #Welfare...
     Welfare <- sum( sum(diag( (total_population%*%(t(Eq_var[["pooled"]]))) ))/sum(total_population) )
-    print(paste0("Social welfare for model is ", round(Welfare, 7), "%.")) #3.2% welfare gains from this!
+    print(paste0("Social welfare for model ", F1, ", ", F2, " is ", round(Welfare, 7), "%.")) 
     
     #Create breakdown figures for welfare effects, also perform Shapely decomposition for renters
     Welfare_barchart <- list()
@@ -312,7 +351,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
               legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/PooledWelfare_Eq_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                    BASELINE_SPECIFICATION$pref, "_TargetFundAmenity", ".png"), width = 25, height = 15, units = "cm") 
+                    BASELINE_SPECIFICATION$pref, "_TargetFundAmenity_", F1, "_", F2, ".png"), width = 25, height = 15, units = "cm") 
       
       
       #Again, doing the same in dollar terms
@@ -324,8 +363,10 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
       BarplotDF["Value_no_percent"] <- BarplotDF$ability*BarplotDF$Value/100
       
       #Calculate social welfare
-      BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners and renters pooled"] <- 
-        sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners and renters pooled" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+      Welfare <-    sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners and renters pooled" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+      BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners and renters pooled"] <- Welfare
+      print(paste0("Social welfare for model ", F1, ", ", F2, "  under $ equivalent variation is ", round(Welfare, 7), "%.")) 
+      
       
       BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners only"] <- 
         sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners only" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
@@ -341,7 +382,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
               legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/PooledWelfare_Eqnopercent_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                    BASELINE_SPECIFICATION$pref, "_TargetFundAmenity", ".png"), width = 25, height = 15, units = "cm") 
+                    BASELINE_SPECIFICATION$pref, "_TargetFundAmenity_", F1, "_", F2,  ".png"), width = 25, height = 15, units = "cm") 
       
     } #Dont create graph for no bySkill
     
@@ -470,7 +511,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
               legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/WelfareDecomp_Eq_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                    BASELINE_SPECIFICATION$pref,"_TargetFundAmenity", ".png"), width = 25, height = 15, units = "cm") 
+                    BASELINE_SPECIFICATION$pref,"_TargetFundAmenity_", F1, "_", F2,  ".png"), width = 25, height = 15, units = "cm") 
       
       #Do the same for no % terms (different welfare function)
       ability_grp_vec <- as.numeric(as.matrix(select(ungroup(Ct_Amenities), starts_with("ability_grp"))[1, ]))
@@ -496,7 +537,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
               legend.position = "bottom", plot.title = element_text(hjust = 0.5)) 
       ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/WelfareDecomp_Eqnopercent_var_bySkill_", 
                     BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
-                    BASELINE_SPECIFICATION$pref,"_TargetFundAmenity", ".png"), width = 25, height = 15, units = "cm") 
+                    BASELINE_SPECIFICATION$pref,"_TargetFundAmenity_", F1, "_", F2,  ".png"), width = 25, height = 15, units = "cm") 
       
   
       
@@ -537,7 +578,8 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
     print(Income_exposure) 
     
     
-    
+    #Manually input socially optimal to calculate density gradients as well
+    #if (model == 0) {
     ########################################################################################################
     #    For F1 == 1, calculate income density gradients; + other facts to put into the bottom of the paper.
     #    Relating within + across city income distribution to this purely-permuted regulatory change. 
@@ -633,7 +675,7 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
           
           #Plotting poster plot
           Income.plot.new_forPres + Income.plot.initial_forPres + plot_layout(guides = "collect") & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
-          ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/IncomeDensityGradCtfl_alternate_TargetedRegulation_",
+          ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/IncomeDensityGradCtfl_alternate_TargetedRegulation_", F1, "_", F2,
                         BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
                         BASELINE_SPECIFICATION$pref, ".png"),
                  width = 24, height = 15, units = "cm") #Looks essentially the same! Wow!
@@ -649,19 +691,20 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
           print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = top_init) ))
           print( summary(lm(demeaned_log_Income ~ rank_density_CBSA + rank_inv_D2CBD, data = bot_init) )) 
           
-      
+    #}
   
   
     
     
+    #Doing the same for other policy changes, after rescaling around this
     
   
-  
+} #End loop over models
   
   sink(NULL)
   
   
-  
+  rm(list = ls())
 
 
 

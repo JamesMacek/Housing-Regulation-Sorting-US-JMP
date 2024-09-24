@@ -145,21 +145,43 @@ rm(EquilibriumType_vec)
   
   #Land mass 
   if (EquilibriumType$Partial_Dereg == TRUE) {
-    Equilibrium_objects[["Land"]][[1]] <- Master$land_regulated #If partial dereg, split land into different zones
-    Equilibrium_objects[["Land"]][[2]] <- Master$land_unregulated
+    
+    if (exists("land_unregulated_ctfl")) { #If supplying new land share in equilibrium... (check if this object is in memory)
+      
+      Equilibrium_objects[["Land"]][[1]] <- land_regulated_ctfl
+      Equilibrium_objects[["Land"]][[2]] <- land_unregulated_ctfl
+      
+      #If changing land composition, need to adjust populations at initial level. 
+      
+    }else{
+      Equilibrium_objects[["Land"]][[1]] <- Master$land_regulated #If partial dereg, split land into different zones
+      Equilibrium_objects[["Land"]][[2]] <- Master$land_unregulated
+    }
+  
+    
   }else{
     Equilibrium_objects[["Land"]][["Merged"]] <- Master$final_land_for_res #If full dereg, aggregate across zones
   }
   
-  #Regulated housingUnit shares at initial equilibrium, only required if Partial_Dereg.
+  #Regulated housingUnit shares at initial equilibrium, only required if Partial_Dereg. Used to calibrate demand by zone within neighborhoods
   if (EquilibriumType$Partial_Dereg == TRUE) { 
     
-    Equilibrium_objects[["init_unit_share"]][[1]] <- Master$regulated_housingUnit_share
-    Equilibrium_objects[["init_unit_share"]][[1]][Master$Regulation_code == 0] <- 0
-    
-    
-    Equilibrium_objects[["init_unit_share"]][[2]] <- 1 - Master$regulated_housingUnit_share
-    Equilibrium_objects[["init_unit_share"]][[2]][Master$Regulation_code == 0] <- 1 #If neighborhood has no regulation, set unit shares to be 1 in unregulated zone. 
+    if (exists("land_unregulated_ctfl")) { #if providing new land shares, set different init_unit_share 
+      
+      Equilibrium_objects[["init_unit_share"]][[1]] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl)
+      
+      Equilibrium_objects[["init_unit_share"]][[2]] <- land_unregulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl)
+
+       
+    }else{
+      #Set to baseline unit shares
+      Equilibrium_objects[["init_unit_share"]][[1]] <- Master$regulated_housingUnit_share
+      Equilibrium_objects[["init_unit_share"]][[1]][Master$Regulation_code == 0] <- 0
+      
+      
+      Equilibrium_objects[["init_unit_share"]][[2]] <- 1 - Master$regulated_housingUnit_share
+      Equilibrium_objects[["init_unit_share"]][[2]][Master$Regulation_code == 0] <- 1 #If neighborhood has no regulation, skip this calculation
+    }
     
   }
   
@@ -280,7 +302,7 @@ rm(EquilibriumType_vec)
   #____ Adjustment speeds that work (trial and error) __________________________
   
     #baseline...
-    adjustment_speed_Mobility <- 0.35
+    adjustment_speed_Mobility <- 0.25
     adjustment_speed_SpendShares <- 0.05
     
     #Else, slower models...
