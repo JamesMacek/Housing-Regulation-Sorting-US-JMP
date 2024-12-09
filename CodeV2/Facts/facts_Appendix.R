@@ -77,14 +77,16 @@ US_BLOCK_forCollap <- data.frame(US_BLOCK_forCollap)
 ggplot() +    
   geom_point(data = US_BLOCK_forCollap, aes(y = IncomeStringency_cl, x = PooledWage, color = PooledWage, size = City_housing_pop/1000000),alpha = 0.5) +
   #geom_smooth(method = "lm", y = IncomeStringency_cl, x = PooledWage, data = US_BLOCK_forCollap) +
-  geom_text(data = US_BLOCK_forCollap[US_BLOCK_forCollap$SuperStar == "Yes",], check_overlap = T, size = 3, nudge_y = 0.05,
+  geom_text(data = US_BLOCK_forCollap[US_BLOCK_forCollap$PooledWage > 1.15,], check_overlap = T, size = 4.5, nudge_y = 0.05,
             aes(x = PooledWage, y = IncomeStringency_cl, label = CBSA_NAME)) + 
   scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
   xlab("Productivity (residualized city wages)") + 
   ylab("Stringency of Regulation (2020 Millions USD)") +
   coord_cartesian(clip = "off") + 
-  labs(size = "Households (millions)")#Setting ranges
-ggsave(paste0("DataV2/US_Data/Output/ProductivityStringency.png"), width = 30, height = 18, units = "cm") 
+  labs(size = "Households (millions)")  + theme_gray(base_size = 15) + theme(legend.position = "bottom", 
+                                                                              plot.title = element_text(hjust = 0.5)) #Setting ranges
+
+ggsave(paste0("DataV2/US_Data/Output/ProductivityStringency.png"), width = 30, height = 20, units = "cm") 
 
 
 

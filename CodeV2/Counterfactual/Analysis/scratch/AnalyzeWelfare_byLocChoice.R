@@ -125,4 +125,20 @@ print(paste0("The national growth rate in land values is ", growthRate_landval*1
 print(paste0("The national growth rate in land values is exogenous amenities at baseline is ", growthRate_landval_NoAm*100, " percent."))
 
 
-
+#Populations split if all effectively one zone
+for (skill_to_pass in skillVector) {
+  name_of_skill <- skillName[which(skill_to_pass == skillVector)]
+  for (i in 1:7) {
+    
+  
+    #Imputing Init_eq zonal population in locations where there are not multiple zones (these are NA in original data; does not matter)
+    for (zone in c(1,2)) {
+      
+      Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]][is.na(Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]])] <-  
+        (1/2)*Init_eq[[paste0("Population_type_", name_of_skill, i)]][ is.na(Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]]) ] 
+      
+      
+    }
+    
+  }
+}

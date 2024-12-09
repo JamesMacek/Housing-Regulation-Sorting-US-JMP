@@ -5,6 +5,8 @@ source("CodeV2/Calibrate/Parameters/GlobalParameters.R")
 #Adding more parameters
 Omega <- c(0.135, 0.135, 0.285, 0.285, 0.285, 0.3, 0.3) #Preferred specification from Full_IV_clusterBartlett.do 
 
+#Alternative specifications based on different binning strategy (differences in coeff. are much more apparent)
+#Omega <- c(0.135, 0.135, 0.25, 0.25, 0.25, 0.38, 0.38) #almost identical predictions!
 
 #Standard agglomeration elasticity
 Agglomeration_elast <- 0.05 #elasticity of city wages to population
@@ -14,7 +16,7 @@ Agglomeration_elast <- 0.05 #elasticity of city wages to population
 bySkill_agg_matrix <- cbind(c(0.003, 0.044), c(0.02, 0.053)) #pairwise agglomeration elasticities
 
 #Zone-level migration elasticites for effective computation of solution...
-wN_elast_ctfl <- 8.5 #set equal to within-city elasticity (for now)
+wN_elast_ctfl <- wN_elast  #set equal to calibration version of this
 
 #_______________________________________________________________________________________________
 #For crude welfare measurement assuming households are renters who also own a national portfolio

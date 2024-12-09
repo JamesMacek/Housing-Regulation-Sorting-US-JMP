@@ -123,13 +123,15 @@ if (EquilibriumType$StoneGeary == FALSE | EquilibriumType$bySkill == TRUE) {
   
   
   
-  F1_grid = seq(0.1, 0.6, by = 0.1) 
-  #Anything above this parameter space isn't optimal, too distortionary based on trials from running F1 == 1.  
-  F2_grid = c(1, 1.25, 1.5, 1.75, 2, 2.5)  
+  F1_grid = seq(0.5, 1.5, by = 0.5) 
+  F2_grid = c(1.5, 2, 2.5)   #increase dispersion of regulation
   #No need to calculate F1 == 0 for all values of F2, as this is just complete deregulation
   
   totalGrid <- expand.grid(F1_grid, F2_grid) %>% setNames(c("F1", "F2"))
   totalGrid <- rbind(totalGrid, c(0, 1)) #add complete deregulation on at the end
+  
+  #for testing only complete deregulation
+  totalGrid <- data.frame(t(c(0, 1))) %>% setNames(c("F1", "F2")) 
   
   #Saving grid 
   saveRDS(totalGrid, file = "DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/grid_search.RData")

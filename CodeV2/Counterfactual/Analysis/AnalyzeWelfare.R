@@ -557,7 +557,7 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
   
   # Assume: Total household spending portfolio rebated to homeowners only. 
   # What fraction is rebated depends on both 1) Total spending on housing and 2) fraction of owner-occupiers in that class.
-  # We do not account for GE effects caused by re-sorting of owner occupiers vs renters, etc.
+  # We do not account for GE effects caused by re-sorting of owner occupiers vs renters, etc because they do not show up in initial calibration.
   
   
   #1. Create total spending measures and location based spending. 
@@ -580,7 +580,7 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
                                                                             sum(Init_eq[[paste0(skill_to_pass, "Wage")]]*
                                                                                 Init_eq[[paste0("ability_grp", i)]]*
                                                                                 Init_eq[[paste0("hSpendShare_", name_of_skill, i, "_z", zone)]]*
-                                                                                (1/(1 + Init_eq$HS_Elasticity_imputed))*
+                                                                                #(1/(1 + Init_eq$HS_Elasticity_imputed))* # GREY OUT FOR FULL CAPITAL LOSSES UNDER COUNTERFACTUAL
                                                                                 Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]]) #Population by zone
                                                                                                           
                                           #Note: Multiplied by fraction (1/(1 + \epsilon)) of spending on housing services paid to landowners.
@@ -617,12 +617,12 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
     name_of_skill <- skillName[which(skill_to_pass == skillVector)]
     for (i in 1:7) {
       
-     #Initial equilibrium housing wealth, in levels 
-      Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]]*(total_spending_homeowners + total_spending_renters))/ #Total land payments paid to homeowners
-                                                                              (ownerOccupier_rate[i]*Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])                           #Divide by total population of homeowners for that type
+     #Initial equilibrium housing wealth, in levels (assume initial 0 land wealth)
+      Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- 0      
     
       #Calculating capital loss--multiplying housing wealth by capital loss rate nationally
-      Ct_Amenities[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (1 + growthRate_landval)*Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]]  #capital losses in Ct_Amenities
+      Ct_Amenities[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- growthRate_landval*(Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]]*(total_spending_homeowners + total_spending_renters))/ #Total land payments paid to homeowners
+                                                                                                      (ownerOccupier_rate[i]*Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])  #capital losses in Ct_Amenities
                   #This will be used to calculate the equivalent variation         #National capital loss rate calculated above. 
     }
   }
@@ -708,7 +708,7 @@ ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/FullDeregulation/Str
       Welfare_barchart[[skill_to_pass]][index + 3] <- (Eq_var_homeowner%*%t(total_population))/(sum(total_population)) #homeowner and pooled aggregate welfare
       
     }
-    print(paste0("Pooled welfare under complete deregulation is ", Welfare_barchart[[1]][index + 2]))
+    print(paste0("Pooled welfare under complete deregulation is ", Welfare_barchart[[1]][index + 2], "%"))
     
     #BAR CHART FOR OUTPUT
     BarplotDF <- data.frame() #initializing data frame

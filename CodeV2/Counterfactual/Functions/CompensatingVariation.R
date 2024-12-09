@@ -1,4 +1,5 @@
-#COMPENSATING VARIATION
+#COMPENSATING VARIATION.
+#Only works for complete deregulation
 
 GetWelfareCompVar <- function(Master_data, skill, incomeType, EqVar, demandParameters,
                               initCalc) { #Calculates welfare at new deregulated equilibrium as function of EqVar (to solve). initCalc tells the function which dataset was passed. See below.

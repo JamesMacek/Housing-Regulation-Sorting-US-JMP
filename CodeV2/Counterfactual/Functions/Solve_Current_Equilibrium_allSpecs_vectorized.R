@@ -170,6 +170,7 @@ rm(EquilibriumType_vec)
       
       Equilibrium_objects[["init_unit_share"]][[1]] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl)
       
+      
       Equilibrium_objects[["init_unit_share"]][[2]] <- land_unregulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl)
 
        

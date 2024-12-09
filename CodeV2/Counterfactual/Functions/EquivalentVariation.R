@@ -35,7 +35,7 @@ GetWelfareEqVar <- function(Master_data, skill, incomeType, demandParameters, Eq
     housing_stringency[[1]] <- Master_data$IncomeStringency_model_rents
     housing_stringency[[2]] <- rep(0, nrow(Master_data))
     
-    #Initial regulated housing unit shares
+    #Initial regulated housing unit shares (change how zones are weighted as in baseline calibration)
     regulated_unit_shares <- matrix(NA, nrow(Master_data), 2)
     regulated_unit_shares[, 1] <- Master_data$regulated_housingUnit_share
     regulated_unit_shares[, 2] <- 1 - Master_data$regulated_housingUnit_share

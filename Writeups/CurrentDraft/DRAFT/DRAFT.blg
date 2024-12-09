@@ -13,22 +13,22 @@ You're missing a field part---line 1013 of file references.bib
  :   month=
  :         ,
 I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 1661 of file references.bib
+I was expecting a `,' or a `}'---line 1695 of file references.bib
  : 
  : doi = {http://dx.doi.org/10.2139/ssrn.3454631}
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 2095 of file references.bib
+I was expecting a `,' or a `}'---line 2129 of file references.bib
  : 
  : @article{whyurbineq,
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
-Repeated entry---line 2221 of file references.bib
+Repeated entry---line 2255 of file references.bib
  : @article{HILBER2013
  :                    ,
 I'm skipping whatever remains of this entry
 Warning--entry type for "straub2019" isn't style-file defined
---line 2743 of file references.bib
+--line 2777 of file references.bib
 Warning--no number and no volume in AlmagroDI
 Warning--page numbers missing in AlmagroDI
 Warning--no number and no volume in BSH
@@ -49,48 +49,52 @@ Warning--no number and no volume in kulka
 Warning--page numbers missing in kulka
 Warning--no number and no volume in KSC
 Warning--page numbers missing in KSC
+Warning--no number and no volume in Martellini
+Warning--page numbers missing in Martellini
+Warning--no number and no volume in Mei
+Warning--page numbers missing in Mei
 Warning--page numbers missing in MolloyRSUE
 Warning--no number and no volume in Song
 Warning--page numbers missing in Song
-You've used 73 entries,
+You've used 75 entries,
             2861 wiz_defined-function locations,
-            1035 strings with 15538 characters,
-and the built_in function-call counts, 49359 in all, are:
-= -- 4170
-> -- 3547
+            1043 strings with 15728 characters,
+and the built_in function-call counts, 50347 in all, are:
+= -- 4252
+> -- 3599
 < -- 10
-+ -- 1066
-- -- 1240
-* -- 4489
-:= -- 9017
-add.period$ -- 221
-call.type$ -- 73
-change.case$ -- 515
-chr.to.int$ -- 73
-cite$ -- 96
-duplicate$ -- 1297
-empty$ -- 2976
-format.name$ -- 1452
-if$ -- 9148
++ -- 1078
+- -- 1260
+* -- 4561
+:= -- 9211
+add.period$ -- 227
+call.type$ -- 75
+change.case$ -- 527
+chr.to.int$ -- 75
+cite$ -- 102
+duplicate$ -- 1329
+empty$ -- 3044
+format.name$ -- 1472
+if$ -- 9320
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 65
-newline$ -- 368
-num.names$ -- 734
-pop$ -- 314
+missing$ -- 67
+newline$ -- 378
+num.names$ -- 754
+pop$ -- 320
 preamble$ -- 1
-purify$ -- 954
+purify$ -- 978
 quote$ -- 0
-skip$ -- 1427
+skip$ -- 1461
 stack$ -- 0
-substring$ -- 2529
-swap$ -- 429
+substring$ -- 2569
+swap$ -- 439
 text.length$ -- 10
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 1450
-warning$ -- 23
-while$ -- 701
+type$ -- 1490
+warning$ -- 27
+while$ -- 721
 width$ -- 0
-write$ -- 963
+write$ -- 989
 (There were 5 error messages)

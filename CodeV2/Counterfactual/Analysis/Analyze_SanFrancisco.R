@@ -334,7 +334,7 @@ print(paste0("The difference in labour productivity after deregulating San Franc
   
   
   
-  #Creating bins
+  #Creating bins to make the plot look pretty
   SF_df <- SF_df %>% group_by(Avg_income_quartiles) %>% mutate(Avg_income_quartiles_center = round(mean(Avg_income/1000), 2)) %>%
                      group_by(IncomeStringency_cl_quartiles) %>% mutate(IncomeStringency_cl_quartiles_center = round(mean(IncomeStringency_cl/1000000), 2)) %>%
                      group_by(Income_change_quartiles) %>% mutate(Income_change_quartiles_center = round(mean(100*((Avg_income_ctfl/Avg_income) - 1)), 2)) %>%

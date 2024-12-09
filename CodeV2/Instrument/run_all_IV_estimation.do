@@ -204,4 +204,4 @@ include "CodeV2/Instrument/Functions/Full_IV_clusterBartlett.do"
 include "CodeV2/Instrument/Functions/FirstStage_clusterBartlett.do"
 
 *4) Placebo tests (Requires locals from Full_IV_clusterMSA.do)
-*include "CodeV2/Instrument/Functions/Placebo.do"
+include "CodeV2/Instrument/Functions/Placebo.do"

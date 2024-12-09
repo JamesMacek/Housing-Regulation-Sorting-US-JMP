@@ -23,6 +23,7 @@ getConsValuesVariation <- function(Master_data, skill, incomeType, demandParamet
     
     #Stringency...
     housing_stringency <- list()  
+    price <- list()
     
     if (FullDereg == FALSE) {
       housing_stringency[[1]] <- Master_data$IncomeStringency_model_rents #use values of regStringency currently in data frame
@@ -112,11 +113,14 @@ aggregateVariation <- function(Initial_data, Counterfactual_data, #Pass initial 
   adjustment_factor <- consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]*(demandParameters[1]^(-demandParameters[1]))*((1-demandParameters[1])^(-(1-demandParameters[1])))
   
   #Data frame to organize function
-  EqVar_df <- data.frame(matrix(ncol = 1, nrow = nrow(Initial_data)))
+  EqVar_df <- select(Init_eq, CBSA, CBSA_NAME)
   
   #Calculating preliminaries
   EqVar_df["P_BarA"] <- Initial_data$price_regulated*demandParameters[2]
   EqVar_df["IncomeStringency_model_rents"] <- Initial_data$IncomeStringency_model_rents
+  
+  #Take amenities for reference
+  EqVar_df["InitAmenity"] <- Initial_data[[paste0("Amenity_", name_of_skill, incomeType)]]
   
   #1. Calculate equivalent variation assuming housing consumption constrained at value of minimal lot R (see formula in paper)
   EqVar_df["EqVar_constrained_reg"] <- ( ( ((V_n[[1]] - log(Initial_data[[paste0("Amenity_", name_of_skill, incomeType)]]))/adjustment_factor)^(1/(1-demandParameters[1])) )*
@@ -127,9 +131,9 @@ aggregateVariation <- function(Initial_data, Counterfactual_data, #Pass initial 
   
   #Calculating which households are constrained after compensation
   EqVar_df["constrained_status"] <- ifelse(demandParameters[1]*EqVar_df$EqVar_constrained_reg*Initial_data[[paste0(skill, "Wage")]]*Initial_data[[paste0("ability_grp", incomeType)]] + 
-                                           (1-demandParameters[1])*Initial_data$price_regulated*demandParameters[1] < Initial_data$IncomeStringency_model_rents, 1, 0)
+                                           (1-demandParameters[1])*Initial_data$price_regulated*demandParameters[1] < Initial_data$IncomeStringency_model_rents, 1, 0) #unconstrained expenditures > constrained expenditures
   
-  #Set constrained status = 0 if R < PbarA (set to NaN because constrained status not defined)
+  #Set constrained status = 0 if R < PbarA (must be unconstrained)
   EqVar_df$constrained_status[EqVar_df$P_BarA > EqVar_df$IncomeStringency_model_rents] <- 0
   
   #
@@ -138,13 +142,35 @@ aggregateVariation <- function(Initial_data, Counterfactual_data, #Pass initial 
   EqVar_df["EqVar_unconstrained_reg"] <- (( V_n[[1]] - log(Initial_data[[paste0("Amenity_", name_of_skill, incomeType)]]) )*(Initial_data$price_regulated^demandParameters[1])/(consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]) + 
                                           Initial_data$price_regulated*demandParameters[2] - housingWealth_change)/(Initial_data[[paste0(skill, "Wage")]]*Initial_data[[paste0("ability_grp", incomeType)]])
     
-  #Calculate equivalent variation in the unregulated zone (demands' unconstrained!)
+  #3. Selecting from constrained and unconstrained
+  EqVar_df["EqVar_reg"] <- ifelse(EqVar_df$constrained_status == 1, 
+                                  yes =  EqVar_df$EqVar_constrained_reg,
+                                  no = EqVar_df$EqVar_unconstrained_reg)
   
-  #3. Selecting which one we are. 
+  #Calculate equivalent variation in the unregulated zone (demands' unconstrained no matter what)
+  EqVar_df["EqVar_unreg"] <- (( V_n[[2]] - log(Initial_data[[paste0("Amenity_", name_of_skill, incomeType)]]) )*(Initial_data$price_unregulated^demandParameters[1])/(consumption_AdjustmentFactor[[skill, paste0("consumption_Adjustment", incomeType)]]) + 
+                                 Initial_data$price_regulated*demandParameters[2] - housingWealth_change)/(Initial_data[[paste0(skill, "Wage")]]*Initial_data[[paste0("ability_grp", incomeType)]])
+  
+  
+  #4.Taking welfare formula replaced with this equivalent variation
+  #Taking populations from initial data, calculating city conditional shares and city shares for given type
+  for (zone in c(1, 2)) {
+    EqVar_df[paste0("zone_pop_frac_z", zone)] <- Init_eq[[paste0("Population_type_", name_of_skill, incomeType, "_z", zone)]]/
+                                                (Init_eq[[paste0("Population_type_", name_of_skill, incomeType, "_z1")]] + Init_eq[[paste0("Population_type_", name_of_skill, incomeType, "_z2")]])
+                                               
+  }
+  
+  #Across zone welfare
+  EqVar_df["Welfare_ac_zone"] <- (EqVar_df$zone_pop_frac_z1*(EqVar_df$EqVar_reg)^(wN_elast) + EqVar_df$zone_pop_frac_z2*(EqVar_df$EqVar_unreg)^(wN_elast))^(1/wN_elast)
+  #Set welfare effect to zero if NaN -- neighborhood becomes poor
+  EqVar_df$Welfare_ac_zone[is.na(EqVar_df$Welfare_ac_zone)] <- 0
+    
+  #Now, creating city pop fractions
+  EqVar_df["cityPop_frac"] <- Init_eq[[paste0("Population_type_", name_of_skill, incomeType)]]/Init_eq[[paste0("cityPopulation_type_", name_of_skill, incomeType)]]
   
   
   
-  
-  
+  #Creating city welfare index 
+  EqVar_df <-  EqVar_df %>% group_by(CBSA) %>% mutate(city_welfare = sum( (Welfare_ac_zone^(rho))*(cityPop_frac), na.rm = TRUE  )^(1/rho))
   
 }

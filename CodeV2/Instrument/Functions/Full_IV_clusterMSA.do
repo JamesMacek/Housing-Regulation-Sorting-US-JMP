@@ -31,9 +31,10 @@ local replace
 
 *First stage
 local replace replace 
-ivreghdfe log_Average_Income Average_slope_control Avg_Slope instrument_Avg_Slope_spec_`Pref_spec' Outer_slope_control `control_set_1' if missing(log_Amenity) == 0, absorb(i.eCBSA_NAME) cluster(eCBSA_NAME) partial(`control_set_1') sfirst
+ivreghdfe log_Average_Income Average_slope_control Avg_Slope instrument_Avg_Slope_spec_`Pref_spec' Outer_slope_control `control_set_1' if missing(log_Amenity) == 0, absorb(i.eCBSA_NAME) cluster(eCBSA_NAME) partial(`control_set_1') sfirst resid
 outreg2 using "DataV2/US_Data/Instrument/FirstStageMSACluster", `replace' tex(pretty) label nocon dec(4) nor2 ///
 addtext(Specification, IV, Donut, `instrumentString', Base Controls, No, Amen/Topo Controls, No, Density Control, No, KP-FStat, `KP', Cluster, MSA) 
+
 local replace
 
 *_______CONTROL SET 2:________
@@ -44,6 +45,9 @@ local KP = string(`KP', "%4.1f")
 outreg2 using "DataV2/US_Data/Instrument/FullIVMSACluster", `replace' tex(pretty) label nocon dec(4) nor2 ///
 addtext(Specification, IV, Donut, `instrumentString', Base Controls, Yes, Amen/Topo Controls, No, Density Control, No, KP-FStat, `KP', Cluster, MSA) 
 local replace
+
+*create variable with baseline residuals, summarizing for figure and to produce a plot
+predict baseline_firststage_income
 
 *First stage
 ivreghdfe log_Average_Income Average_slope_control Avg_Slope instrument_Avg_Slope_spec_`Pref_spec' Outer_slope_control `control_set_2' if missing(log_Amenity) == 0, absorb(i.eCBSA_NAME) cluster(eCBSA_NAME) partial(`control_set_2') sfirst
@@ -260,6 +264,9 @@ addtext(Specification, PPML, Donut, `instrumentString', Base Controls, `baseCont
 local replace 
 }
 
+
+*Saving dataset containing first stage residuals with all controls 
+save "DataV2/US_Data/Instrument/all_IV.dta", replace
 
 
 cap log close

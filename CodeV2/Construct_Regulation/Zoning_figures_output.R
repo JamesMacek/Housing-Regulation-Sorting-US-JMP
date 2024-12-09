@@ -58,14 +58,16 @@ rm(US_BLOCK_collap)
 #________________________________________________________
 #empirical CDF of unit density restrictions after cleaning
 ggplot(data = US_BLOCK_temp, aes(UnitDensityRestriction_cl)) + stat_ecdf() +
-  ylab("Empirical CDF") + xlab("Minimum Lot Size (Acres), Censored at 5 Acres")
-ggsave("DataV2/US_Data/Output/UnitDensityRestriction_ECDF.png", width = 24, height = 15, units = "cm")
+  ylab("Empirical CDF") + xlab("Minimum Lot Size (Acres), Censored at 5 Acres") + theme_gray(base_size = 18) 
+ggsave("DataV2/US_Data/Output/UnitDensityRestriction_ECDF.png", width = 24, height = 15, units = "cm") 
+  
 rm(US_BLOCK_temp)
 
 #PART 2: ECDF OF Hayward California, censored at 1 acre to make figure more visible. Import assessment level dataset
 Hayward_assess <- read_dta("DataV2/CoreLogic/output/currentAssess_hayward.dta") %>% filter(acres <= 1) #filtering for properties below one acre to make the plot nice
 ggplot(data = Hayward_assess, aes(landsquarefootage)) + stat_ecdf() + geom_vline(xintercept = 5000, linetype = 2) +  #5000 square foot minimum lot size
-       ylab("Empirical CDF") + xlab("Lot Size (Square Feet)") + ggtitle("Hayward, CA Lot Size Distribution")
+       ylab("Empirical CDF") + xlab("Lot Size (Square Feet)") + ggtitle("Hayward, CA Lot Size Distribution") +
+       theme_gray(base_size = 18) 
 ggsave("DataV2/US_Data/Output/HaywardLotSizeDist.png", width = 24, height = 15, units = "cm")
 
 
@@ -151,7 +153,12 @@ Hayward_block["Zoning_Dist_ID_unique"] <- paste0(Hayward_block[[munic_def]], "_"
     pmap(args, annotation_raster, interpolate = TRUE) + 
     geom_sf(data = Hayward_block,
                      mapping = aes(fill = Zoning_Dist_ID_unique, alpha = 0.15),
-                     show.legend = FALSE) + 
+                     show.legend = FALSE) + coord_sf(expand = FALSE) +
+    theme_gray(base_size = 18) +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          legend.text = element_text(size = 12)) +
     ggtitle("Hayward, CA Optimal Zoning Districts")
   ggsave("DataV2/US_Data/Output/HaywardZoningDistricts.png",  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
@@ -162,6 +169,12 @@ Hayward_block["Zoning_Dist_ID_unique"] <- paste0(Hayward_block[[munic_def]], "_"
       geom_sf(data = Hayward_block,
                      mapping = aes(fill = 43560*UnitDensityRestriction_cl), alpha = 0.65) + #Note: this is the cleaned version
      scale_fill_gradientn(colours=rev(magma(6)), name = paste0("Assigned Density Restriction, \n Square Feet / Household")) +
+    coord_sf(expand = FALSE) +
+    theme_gray(base_size = 18) +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          legend.text = element_text(size = 12)) 
     ggtitle("Hayward, CA Unit Density Restrictions")
   ggsave("DataV2/US_Data/Output/HaywardMinimumLotSizes.png",  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
@@ -173,6 +186,12 @@ Hayward_block["Zoning_Dist_ID_unique"] <- paste0(Hayward_block[[munic_def]], "_"
     geom_sf(data = Hayward_block,
             mapping = aes(fill = IncomeStringency_cl/1000000), alpha = 0.65) + #Note: this is the cleaned version
     scale_fill_gradientn(colours=rev(magma(6)), name = paste0("Income Stringency measure, \n in millions USD")) +
+    coord_sf(expand = FALSE) +
+    theme_gray(base_size = 18) +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          legend.text = element_text(size = 12)) 
     ggtitle("Hayward, CA Income Stringency measure")
   ggsave("DataV2/US_Data/Output/HaywardIncomeStringency.png",  
          width = 35, height = 21.875, units = "cm", type = "cairo") 
@@ -184,6 +203,12 @@ Hayward_block["Zoning_Dist_ID_unique"] <- paste0(Hayward_block[[munic_def]], "_"
     geom_sf(data = Hayward_block,
             mapping = aes(fill = Average_income/1000), alpha = 0.65) + #Note: this is the cleaned version
     scale_fill_gradientn(colours=rev(magma(6)), name = paste0("Average income, \n in thousands USD")) +
+    coord_sf(expand = FALSE) +
+    theme_gray(base_size = 18) +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks = element_blank(),
+          legend.text = element_text(size = 12)) 
     ggtitle("Hayward, CA Neighborhood income distribution")
   ggsave("DataV2/US_Data/Output/HaywardIncome.png",  
          width = 35, height = 21.875, units = "cm", type = "cairo") 

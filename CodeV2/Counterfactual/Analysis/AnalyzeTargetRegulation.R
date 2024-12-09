@@ -70,22 +70,22 @@ uDR_df <- read_dta("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/P
 # Search for all files in solution for counterfactuals
 #____________________________________________________________________________________________________________
 
-#load grid search file to analyze 
-totalGrid <- readRDS("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/grid_search.RData") 
 
-for (model in 0:nrow(totalGrid) ) { #loop over all models   
+for (model in c(0, 1)) { #loop over all models   
     
     if (model == 0) { #if baseline model
+      
       F1 <- 1
-      F2 <- 0
+      F2 <- 1
+      
       model_path <- "DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1_1_F2_TargetFundAmenity.RData"
       
     }else{
       
-      F1 <- totalGrid[model, ]$F1
-      F2 <- totalGrid[model, ]$F2 #extract parameter from grid
+      F1 <- 1
+      F2 <- 1
       
-      model_path <- paste0("DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1_", F1 ,"_F2_", F2, ".RData")
+      model_path <- "DataV2/Counterfactuals/Counterfactual_output/OptimalPolicy/Equilibrium_F1_1_F2_TargetFundAmenity_noEndoAmen.RData"
       
     }
 
@@ -96,9 +96,14 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
     
     #Extracting scaling factor
     
-    #Extracting counterfactual regulation vector
-    Ct_Amenities["IncomeStringency_model_rents"] <- 
-      F1*(uDR_df$IncomeStringency_counterfactual^(1 - F2))/(mean(uDR_df$IncomeStringency_counterfactual)^(F2)) 
+    #Extracting counterfactual regulation vector given choice of
+    Ct_Amenities["IncomeStringency_model_rents"] <- F1*(uDR_df$IncomeStringency_counterfactual^(F2))*( mean(uDR_df$IncomeStringency_counterfactual)/mean(uDR_df$IncomeStringency_counterfactual^(F2)) ) 
+    
+    if (model == 0) {
+      F2 <- "FundAmenity"
+    }else{
+      F2 <-"FundAmenity_NoEndoAmen"
+    }
     
     #Extract new land compositions
     land_regulated_ctfl <- uDR_df$land_regulated_counterfactual
@@ -118,18 +123,19 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
     Ct_Amenities["price_unregulated"] <- Ct_Amenities$housingPrice_z2
     
     if (exists("land_regulated_ctfl")) {
-      
-      Ct_Amenities["regulated_housingUnit_share"] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl) #shares at initial equilibrium == land share if passing new regulated land composition
-      Init_eq["regulated_housingUnit_share"] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl) #Change this comparison, drop
+      #Shares to calculate given finite mig. elasticity within neighborhoods
+      Ct_Amenities["regulated_housingUnit_share"] <- land_regulated_ctfl/(land_regulated_ctfl + land_unregulated_ctfl) 
+      #Use shares at initial equilibrium (roughly == land shares) for EV calculation
+     
       Ct_Amenities["land_regulated"] <- land_regulated_ctfl
       Ct_Amenities["land_unregulated"] <- land_unregulated_ctfl
       
     } else {
       
-      #Not changing land compositions
-      Ct_Amenities["regulated_housingUnit_share"] <- Init_eq$regulated_housingUnit_share #shares at initial equilibrium
-      Ct_Amenities["land_regulated"] <- land_regulated_ctfl
-      Ct_Amenities["land_unregulated"] <- land_unregulated_ctfl
+      #Not changing land compositions, take initial values from calibration.
+      Ct_Amenities["regulated_housingUnit_share"] <- Init_eq$regulated_housingUnit_share #shares at initial equilibrium which matches initial equilibrium
+      Ct_Amenities["land_regulated"] <- Init_eq$land_unregulated
+      Ct_Amenities["land_unregulated"] <- Init_eq$land_regulated
       
     } 
     
@@ -144,7 +150,7 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
     Init_eq["LandValInitEq_unregulated"] <- (1/(1 + Init_eq$HS_Elasticity_imputed))*(Init_eq$price_unregulated^(Init_eq$HS_Elasticity_imputed + 1))*Init_eq$lambda 
     
     #total land value in initial and counterfactual
-    Init_eq["Total_land values_counterfactual"] <- Ct_Amenities$land_regulated*Init_eq["LandValCtEq_regulated"] + Ct_Amenities$land_unregulated*Init_eq["LandValCtEq_unregulated"]
+    Init_eq["Total_land_values_counterfactual"] <- Ct_Amenities$land_regulated*Init_eq["LandValCtEq_regulated"] + Ct_Amenities$land_unregulated*Init_eq["LandValCtEq_unregulated"]
     Init_eq["Total_land_values_initial"] <-  Init_eq$land_regulated*Init_eq$LandValInitEq_regulated + Init_eq$land_unregulated*Init_eq$LandValInitEq_unregulated #land type weighted land values per acre.
     
     
@@ -153,7 +159,7 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
     #Total expenditure on housing services in the neighborhood
     
     #Calculating growth at neighborhood level (log differences in land-value-weighted growth)
-    Init_eq["LandValGrowth"] <- log( Init_eq["Total_land values_counterfactual"]/Init_eq["Total_land_values_initial"] )
+    Init_eq["LandValGrowth"] <- log( Init_eq["Total_land_values_counterfactual"]/Init_eq["Total_land_values_initial"] )
     
     #Note: lambda drops out from calculation. 
     
@@ -184,7 +190,7 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
             sum(Init_eq[[paste0(skill_to_pass, "Wage")]]*
                   Init_eq[[paste0("ability_grp", i)]]*
                   Init_eq[[paste0("hSpendShare_", name_of_skill, i, "_z", zone)]]*
-                  (1/(1 + Init_eq$HS_Elasticity_imputed))*
+                  #(1/(1 + Init_eq$HS_Elasticity_imputed))* #Comment out for full capital losses, comment in for losses only on durable land 
                   Init_eq[[paste0("Population_type_", name_of_skill, i, "_z", zone)]]) #Population by zone
           
           #Note: Multiplied by fraction (1/(1 + \epsilon)) of spending on housing services paid to landowners.
@@ -221,12 +227,13 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
       name_of_skill <- skillName[which(skill_to_pass == skillVector)]
       for (i in 1:7) {
         
-        #Initial equilibrium housing wealth, in levels 
-        Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]]*(total_spending_homeowners + total_spending_renters))/ #Total land payments paid to homeowners
-          (ownerOccupier_rate[i]*Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])                           #Divide by total population of homeowners for that type
+        #Initial equilibrium housing wealth, in levels (Assume Zero at initial equilibrium!)
+        Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- 0    
         
         #Calculating capital loss--multiplying housing wealth by capital loss rate nationally
-        Ct_Amenities[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- (1 + growthRate_landval)*Init_eq[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]]  #capital losses in Ct_Amenities
+        Ct_Amenities[[paste0("Housing_wealth_change_Owner_", name_of_skill, i)]] <- growthRate_landval*(Init_eq[[paste0("hWealth_fraction_", name_of_skill, i)]]*(total_spending_homeowners + total_spending_renters))/ #Total land payments paid to homeowners
+                                                                                                       (ownerOccupier_rate[i]*Init_eq[[paste0("Total_Population_type_", name_of_skill, i)]])                           #Divide by total population of homeowners for that type
+        #capital losses in Ct_Amenities
         #This will be used to calculate the equivalent variation         #National capital loss rate calculated above. 
       }
     }
@@ -293,7 +300,7 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
     }
     
     #Welfare...
-    Welfare <- sum( sum(diag( (total_population%*%(t(Eq_var[["pooled"]]))) ))/sum(total_population) )
+    Welfare <- (Eq_var[["pooled"]]%*%t(total_population))/(sum(total_population))
     print(paste0("Social welfare for model ", F1, ", ", F2, " is ", round(Welfare, 7), "%.")) 
     
     #Create breakdown figures for welfare effects, also perform Shapely decomposition for renters
@@ -363,13 +370,13 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
       BarplotDF["Value_no_percent"] <- BarplotDF$ability*BarplotDF$Value/100
       
       #Calculate social welfare
-      Welfare <-    sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners and renters pooled" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+      Welfare <- (as.numeric(BarplotDF[BarplotDF$Households == "Owners and renters pooled" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)%*%t(total_population))/sum(total_population)
       BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners and renters pooled"] <- Welfare
       print(paste0("Social welfare for model ", F1, ", ", F2, "  under $ equivalent variation is ", round(Welfare, 7), "%.")) 
       
       
       BarplotDF$Value_no_percent[BarplotDF$Income == "Social Welfare" & BarplotDF$Households == "Owners only"] <- 
-        sum( sum(diag( (total_population%*%(as.numeric(t(BarplotDF[BarplotDF$Households == "Owners only" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)))) ))/sum(total_population) )
+        (as.numeric(BarplotDF[BarplotDF$Households == "Owners only" & !is.na(BarplotDF$Value_no_percent),]$Value_no_percent)%*%t(total_population))/sum(total_population)
       
       
       ggplot(BarplotDF, aes(y = Value_no_percent, x = factor(Income), fill = Households,)) + 
@@ -588,21 +595,53 @@ for (model in 0:nrow(totalGrid) ) { #loop over all models
       
       #1. Categorize how this new policy changes the distribution of the regulatory stringency measure. 
         
-        #1.1: calculate share of units in regulated structures in counterfactual, assuming initial regulated housing unit shares. 
-          uDR_df["Regulation_difference"] <- uDR_df$IncomeStringency_counterfactual - uDR_df$IncomeStringency_model_rents
+        for (qtile in c("", "_dens", "_pop", "_wage")) {
+           load(file = paste0("DataV2/US_Data/Output/CBSA_quantiles", qtile, ".Rdata"))
+        }
+    
+          # ACROSS CITIES     
+        # Creating across city data frame for plot
+          #Setting 
+          AcrossCityAnalysis <- Init_eq %>% select(State, County, Tract, BlockGroup, CBSA, CBSA_NAME, City_housing_density, CBSA_med_house_value, IncomeStringency_cl)
+          AcrossCityAnalysis$IncomeStringency_cl[is.na(AcrossCityAnalysis$IncomeStringency_cl)] <- 0 #replacing IncomeStringency_cl = 0 like we did in the model
+    
+          #Delta Average types, populations
+          AcrossCityAnalysis["pDelta_AvgType"] <- 100*(getCityAverageType(Ct_Amenities)/getCityAverageType(Init_eq) - 1)
+          AcrossCityAnalysis["pDelta_Pop"] <- 100*(getCityTotalPop(Ct_Amenities)/getCityTotalPop(Init_eq) - 1)
+    
+          #Initial city wages
+          AcrossCityAnalysis["PooledWage"] <- Init_eq$PooledWage #We take pooled wage as initial city.
+    
+          #Initial city population
+          AcrossCityAnalysis["Init_City_Population"] <- getCityTotalPop(Init_eq)
+    
+          AcrossCityAnalysis["SuperStar"] <- rep(0, nrow(AcrossCityAnalysis))
+          AcrossCityAnalysis$SuperStar[AcrossCityAnalysis$PooledWage > as.numeric(quantile_CBSA_wage["75.0%"])] <- 1 #superstar dummy
+    
+          #Collapse to city level
+          AcrossCityAnalysis <- collap(AcrossCityAnalysis, pDelta_AvgType + pDelta_Pop + PooledWage + IncomeStringency_cl + 
+                                       City_housing_density + CBSA_med_house_value + Init_City_Population + SuperStar ~ CBSA + CBSA_NAME)
+          #Something weird happening with current dataframe formatting. Coercing back to original data frame
+          AcrossCityAnalysis <- data.frame(AcrossCityAnalysis)
           
-          #Getting city-wide regulation changes
-          City_regChange <- collap(uDR_df, Regulation_difference ~ CBSA + CBSA_NAME, 
-                                   w = getNeighborhoodPop(Init_eq))  
-          # Note: initial population-weighted average stringency level barely changes. 
-          #  This involves on average lowering regulation in ultra-stringent cities. 
-          #  This makes sense -- less variation in fundamental amenities than what is prescribed by regulation.  
           
-          #1.2: Show how this policy changes the neighborhood income distribution, both within and across cities. Talk about it! 
-          #Load quantiles
-          for (qtile in c("", "_dens", "_pop", "_wage")) {
-            load(file = paste0("DataV2/US_Data/Output/CBSA_quantiles", qtile, ".Rdata"))
-          }
+          #Create plot
+          
+          ggplot() +    
+            geom_point(data = AcrossCityAnalysis, aes(y = pDelta_AvgType, x = PooledWage, color = PooledWage, size = Init_City_Population/1000000),alpha = 0.5) +
+            geom_text(data = AcrossCityAnalysis[AcrossCityAnalysis$PooledWage > 1.15,], check_overlap = T, size = 4.5, nudge_y = 1,
+                      aes(x = PooledWage, y = pDelta_AvgType, label = CBSA_NAME)) + 
+            scale_color_gradient(low = "blue", high = "red", name = "Productivity") +
+            xlab("Productivity (residualized city wages)") + 
+            ylab("Growth rate in average household skill (percent)") + labs(size = "Households (millions)") +
+            coord_cartesian(clip = "off") + theme_gray(base_size = 15) & theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5), legend.key.size = unit(1, units = "cm"))  
+          ggsave(paste0("DataV2/Counterfactuals/Counterfactual_Output/OptimalPolicy/IncomeSortingMovement_TargetedRegulation_", F1, "_", F2,
+                        BASELINE_SPECIFICATION$bySkill_to_pass, "_pref_", 
+                        BASELINE_SPECIFICATION$pref, ".png"),
+                 width = 30, height = 20, units = "cm") 
+          
+          # WITHIN CITIES:
+        #1.2: Show how this policy changes the neighborhood income distribution, both within and across cities. Talk about it! 
           
           #
           Init_eq <- Init_eq %>% group_by(CBSA) %>% mutate(demeaned_log_Income = log(Avg_income) - mean(log(Avg_income), na.rm = TRUE))
