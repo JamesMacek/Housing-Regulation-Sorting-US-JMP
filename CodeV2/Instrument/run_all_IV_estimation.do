@@ -3,6 +3,8 @@
 
 cd $proj_filepath
 
+cap ssc install acreg
+
 *This file performs the entire IV estimation in the data.
 *Uses (generally) MSA level clustering, with a bartlett kernel estimation in the alternative do file. 
 *This file also (uniquely) estimates 

@@ -1,6 +1,8 @@
 *This file calculates owner occupier shares by income type  (to better compare landlords to households) + 
 *Shares of yearly income from labour vs implicit rent on owned housing 
 
+*Requires price_to_rent_by_city output data 
+
 cd $proj_filepath 
 
 use "DataV2/US_Data/ACS_Individual/acs_2015_2019.dta", clear

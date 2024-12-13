@@ -19,10 +19,12 @@ GoogleMaps_Ping <- 0 #SET TO 0 AFTER AUGUST 2023, TAKE CBD LOCATION AS GIVEN!
 
 
 #This file constructs CBD distances by pinging google API
+
 load(file = "DataV2/US_Data/Output/Constructed_Block.Rdata")
 load(file = "DataV2/US_Data/Output/CBSA_med_house_price.Rdata")
 
 #Loading Holian (2019) CBD definitions + cleaning for merge
+
 CBD <- read_excel("DataV2/US_Data/Shapefiles/holian2019CBDdefs.xlsx", sheet = "copy_of_merged_data2") #Note: these are pre-2013 definition MSAs. Some will need to be filled in. 
 
 CBD <- CBD %>% rename(CBSA = CBSA_code, CBSA_NAME = CBSA_name) %>% select(starts_with(c("CBSA", "Google")))
@@ -40,7 +42,7 @@ US_CBSA_2010_c <- US_CBSA_2010_c[!is.na(US_CBSA_2010_c$CBSA_NAME.join1),]
 CBSA_NAME_toMatch <- US_CBSA_unmatched$CBSA_NAME
 
 #Start google search
-gmaps_key <- "AIzaSyDlKczwjeiIG83YCgdodjkl2C7VapyBKOI" #our API key (DO NOT SHARE!!!) DO NOT RUN AFTER AUGUST 2023!
+gmaps_key <- "xxx" #put your api key here
 
 
 if (GoogleMaps_Ping == 1) {
